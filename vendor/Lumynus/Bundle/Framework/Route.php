@@ -6,12 +6,13 @@ namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\ErrorTemplate;
 use Lumynus\Bundle\Framework\Config;
+use Lumynus\Bundle\Framework\LumaClasses;
 
 /**
  * Classe responsável pelo gerenciamento de rotas no framework Lumynus.
  * Permite o registro de rotas com validação de parâmetros e tipos.
  */
-class Route
+class Route extends LumaClasses
 {
     /**
      * Armazena todas as rotas registradas, organizadas por método HTTP.
@@ -508,5 +509,16 @@ class Route
     public static function listRoutes(): array
     {
         return self::$routes;
+    }
+
+    /**
+     * Método para obter a instância da classe Luma.
+     * @return Luma Retorna uma nova instância da classe Luma.
+     */
+    public function __debugInfo():array
+    {
+        return [
+            'Lumynus' => "Framework PHP"
+        ];
     }
 }

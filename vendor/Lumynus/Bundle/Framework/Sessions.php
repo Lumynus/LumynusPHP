@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Lumynus\Bundle\Framework;
 
-class Sessions
+use Lumynus\Bundle\Framework\LumaClasses;
+
+class Sessions extends LumaClasses
 {
 
     private bool $autostart = true;
@@ -138,5 +140,16 @@ class Sessions
             return;
         }
         $callback();
+    }
+
+    /**
+     * Método para obter a instância da classe Luma.
+     * @return Luma Retorna uma nova instância da classe Luma.
+     */
+    public function __debugInfo(): array
+    {
+        return [
+            'Lumynus' => "Framework PHP"
+        ];
     }
 }

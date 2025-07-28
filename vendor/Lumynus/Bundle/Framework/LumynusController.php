@@ -7,8 +7,11 @@ namespace Lumynus\Bundle\Framework;
 use Lumynus\Bundle\Framework\Luma;
 use Lumynus\Bundle\Framework\Sessions;
 use Lumynus\Bundle\Framework\Response;
+use Lumynus\Bundle\Framework\Sanitizantes;
+use Lumynus\Bundle\Framework\Converts;
+use Lumynus\Bundle\Framework\LumaClasses;
 
-abstract class LumynusController
+abstract class LumynusController extends LumaClasses
 {
 
     /**
@@ -41,5 +44,43 @@ abstract class LumynusController
     protected function response(): Response
     {
         return new Response();
+    }
+
+    /**
+     * Método para obter a instância da classe Sanitizantes.
+     * @return Sanitizantes Retorna uma nova instância da classe Sanitizantes.
+     */
+    protected function sanitizer(): Sanitizantes
+    {
+        return new Sanitizantes();
+    }
+
+    /**
+     * Método para obter a instância da classe Converts.
+     * @return Converts Retorna uma nova instância da classe Converts.
+     */
+    protected function converter(): Converts
+    {
+        return new Converts();
+    }
+
+    /**
+     * Método para obter a instância da classe Brasil.
+     * @return Brasil Retorna uma nova instância da classe Brasil.
+     */
+    protected function brasil(): Brasil
+    {
+        return new Brasil();
+    }
+
+    /**
+     * Método para obter a instância da classe Luma.
+     * @return Luma Retorna uma nova instância da classe Luma.
+     */
+    public function __debugInfo(): array
+    {
+        return [
+            'Lumynus' => "Framework PHP"
+        ];
     }
 }

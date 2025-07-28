@@ -3,8 +3,9 @@
 declare(strict_types=1);
 
 namespace Lumynus\Bundle\Framework;
+use Lumynus\Bundle\Framework\LumaClasses;
 
-class Luma
+class Luma extends LumaClasses
 /** Luz */
 {
     /**
@@ -345,6 +346,17 @@ class Luma
                 throw new \Exception("Block '{$block}' not found in view '{$view}'");
             }
         }, $template);
+    }
+
+    /**
+     * Método para obter a instância da classe Luma.
+     * @return Luma Retorna uma nova instância da classe Luma.
+     */
+    public function __debugInfo():array
+    {
+        return [
+            'Lumynus' => "Framework PHP"
+        ];
     }
 
 }

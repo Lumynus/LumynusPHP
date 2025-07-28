@@ -3,8 +3,9 @@
 declare(strict_types=1);
 
 namespace Lumynus\Bundle\Framework;
+use Lumynus\Bundle\Framework\LumaClasses;
 
-class Config
+class Config extends LumaClasses
 {
 
     /**
@@ -46,5 +47,16 @@ class Config
             return true;
         }
         return false;
+    }
+
+    /**
+     * Método para obter a instância da classe Luma.
+     * @return Luma Retorna uma nova instância da classe Luma.
+     */
+    public function __debugInfo():array
+    {
+        return [
+            'Lumynus' => "Framework PHP"
+        ];
     }
 }

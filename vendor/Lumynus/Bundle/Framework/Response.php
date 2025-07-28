@@ -3,8 +3,9 @@
 declare(strict_types=1);
 
 namespace Lumynus\Bundle\Framework;
+use Lumynus\Bundle\Framework\LumaClasses;
 
-class Response
+class Response extends LumaClasses
 {
 
     /**
@@ -284,5 +285,16 @@ class Response
         http_response_code($this->statusCode);
         echo !empty($text) ? $text : $this->responses[$this->statusCode] ?? '500 Internal Server Error';
         exit;
+    }
+
+    /**
+     * Método para obter a instância da classe Luma.
+     * @return Luma Retorna uma nova instância da classe Luma.
+     */
+    public function __debugInfo():array
+    {
+        return [
+            'Lumynus' => "Framework PHP"
+        ];
     }
 }
