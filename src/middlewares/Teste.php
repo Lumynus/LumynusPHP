@@ -2,9 +2,9 @@
 
 namespace App\Middlewares;
 
+use Lumynus\Bundle\Framework\LumynusMiddleware;
 
-
-class Teste 
+class Teste extends LumynusMiddleware
 {
 
     public function handle($teste,$v)
