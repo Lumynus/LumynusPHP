@@ -1,8 +1,11 @@
 <?php
 
-namespace Lumynus\HTTP;
+declare(strict_types=1);
 
-class SampleHTML
+namespace Lumynus\Bundle\Framework;
+use Lumynus\Bundle\Framework\LumaClasses;
+
+class HttpClient extends LumaClasses
 {
 
     /**
