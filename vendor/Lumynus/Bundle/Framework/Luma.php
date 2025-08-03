@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 namespace Lumynus\Bundle\Framework;
+
 use Lumynus\Bundle\Framework\LumaClasses;
+use Lumynus\Bundle\Framework\Config;
 
 class Luma extends LumaClasses
 /** Luz */
@@ -32,7 +34,7 @@ class Luma extends LumaClasses
         self::$viewStack[] = $view;
 
         $basePath = Config::pathProject();
-        $viewFile = $basePath . '/src/views/' . $view;
+        $viewFile = $basePath . Config::getAplicationConfig()['path']['views'] . $view;
         $cacheFile = $basePath . '/cache/views/' . $view . '.php';
 
         // Cria diretório de cache se não existir
@@ -78,6 +80,7 @@ class Luma extends LumaClasses
         $context = self::default($context);
         $context = self::include($context);
         $context = self::use($context);
+        $context = self::js($context);
         $context = \Lumynus\Bundle\Framework\LumaJS::compile($context);
 
         return $context;
@@ -263,6 +266,34 @@ class Luma extends LumaClasses
         }, $template);
     }
 
+    /**
+     * Processa o template substituindo as diretivas do Lux por código PHP.
+     *
+     * @param string $js O código JavaScript a ser processado
+     * @return string O código JavaScript com as diretivas convertidas para PHP
+     */
+    private static function js(string $js)
+    {
+        return preg_replace_callback('/@js\s*\((["\'])(.+?)\1\)/', function ($matches) {
+            $path = $matches[2];
+
+            // Garante que o caminho seja relativo ao projeto
+            $fullPath = Config::getAplicationConfig()['path']['js'] . $path . '.js';
+
+            if (!file_exists($fullPath)) {
+                return "<script>console.error('Arquivo JS não encontrado: {$fullPath}');</script>";
+            }
+            $content = file_get_contents($fullPath);
+            $hash = base64_encode(hash('sha384', $content, true));
+
+            return <<<HTML
+                <script src="{$fullPath}" type="module" integrity="sha384-{$hash}" crossorigin="anonymous"></script>
+            HTML;
+        }, $js);
+    }
+
+
+
     // 3. break() - Novo método
     private static function break(string $template)
     {
@@ -309,6 +340,12 @@ class Luma extends LumaClasses
         }, $template);
     }
 
+    /**
+     * Processa o template substituindo as diretivas do Lux por código PHP.
+     *
+     * @param string $template O template a ser processado
+     * @return string O template com as diretivas convertidas para PHP
+     */
     private static function use(string $template): string
     {
         return preg_replace_callback('/@use\s*\(\s*[\'"](.+?)[\'"]\s*,\s*(\w+)\s*\)/', function ($matches) {
@@ -316,7 +353,7 @@ class Luma extends LumaClasses
             $block = $matches[2];
 
             $basePath = Config::pathProject();
-            $viewFile = $basePath . '/src/views/' . $view;
+            $viewFile = $basePath . Config::getAplicationConfig()['path']['views'] . $view;
             $cacheFile = $basePath . '/cache/views/' . $view . '.php';
 
             if (!file_exists($viewFile)) {
@@ -352,11 +389,10 @@ class Luma extends LumaClasses
      * Método para obter a instância da classe Luma.
      * @return Luma Retorna uma nova instância da classe Luma.
      */
-    public function __debugInfo():array
+    public function __debugInfo(): array
     {
         return [
             'Lumynus' => "Framework PHP"
         ];
     }
-
 }

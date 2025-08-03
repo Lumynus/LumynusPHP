@@ -10,6 +10,9 @@ use Lumynus\Bundle\Framework\Response;
 use Lumynus\Bundle\Framework\Sanitizantes;
 use Lumynus\Bundle\Framework\Converts;
 use Lumynus\Bundle\Framework\LumaClasses;
+use Lumynus\Bundle\Framework\LumaHTTP;
+use Lumynus\Bundle\Framework\HttpClient;
+use Lumynus\Bundle\Framework\Brasil;
 
 abstract class LumynusController extends LumaClasses
 {
@@ -71,6 +74,24 @@ abstract class LumynusController extends LumaClasses
     protected function brasil(): Brasil
     {
         return new Brasil();
+    }
+
+    /**
+     * Método para obter a instância da classe LumaHTTP.
+     * @return LumaHTTP Retorna uma nova instância da classe LumaHTTP.
+     */
+    protected function lumaHTTP(): LumaHTTP
+    {
+        return new LumaHTTP();
+    }
+
+    /**
+     * Método para obter a instância da classe HttpClient.
+     * @return HttpClient Retorna uma nova instância da classe HttpClient.
+     */
+    protected function httpClient(): HttpClient
+    {
+        return new HttpClient();
     }
 
     /**

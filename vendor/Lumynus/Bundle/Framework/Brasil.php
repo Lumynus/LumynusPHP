@@ -353,8 +353,6 @@ class Brasil extends LumaClasses
         return $dddMap[$uf] ?? [];
     }
 
-
-
     /**
      * Formata um número de telefone para o padrão brasileiro.
      *

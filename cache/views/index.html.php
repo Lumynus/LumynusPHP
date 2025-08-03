@@ -26,11 +26,9 @@
 
 <div data-luma-if="test">
 Avava
-</div>
-
-
-
+</div> 
+    <script src="./resources/js/oi.js" type="module" integrity="sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb" crossorigin="anonymous"></script>
 
 </body>
 
-</html>
+</html> 

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 namespace Lumynus\Bundle\Framework;
+
 use Lumynus\Bundle\Framework\LumaClasses;
 
 class Config extends LumaClasses
@@ -21,6 +22,21 @@ class Config extends LumaClasses
         }
         $config =  parse_ini_file($file, true);
         return $config ?? null;
+    }
+
+    /**
+     * Obtém as configurações do arquivo aplication.json.
+     *
+     * @return array|null Retorna um array com as configurações ou null se o arquivo não existir.
+     */
+    public static function getAplicationConfig(): ?array
+    {
+        $file = self::pathProject() . DIRECTORY_SEPARATOR . 'aplication.json';
+        if (!file_exists($file)) {
+            return null;
+        }
+        $config =  json_decode(file_get_contents($file), true);
+        return array_merge($config[0]) ?? null;
     }
 
     /**
@@ -53,7 +69,7 @@ class Config extends LumaClasses
      * Método para obter a instância da classe Luma.
      * @return Luma Retorna uma nova instância da classe Luma.
      */
-    public function __debugInfo():array
+    public function __debugInfo(): array
     {
         return [
             'Lumynus' => "Framework PHP"

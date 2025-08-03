@@ -1,0 +1,31 @@
+[
+  {
+    "App": {
+      "nameApplication": "Lumynus",
+      "version": "1",
+      "description": "A simple PHP framework for building web applications.",
+      "author": "Welen",
+      "email": "",
+      "host": "www.exemple.com"
+    },
+    "path": {
+      "js": "./resources/js/",
+      "css": "./resources/css/",
+      "img": "./resources/img/",
+      "views": "/src/views/"
+    },
+    "securiy": {
+      "csrf": {
+        "enabled": true,
+        "nameToken": "luma_csrf"
+      },
+      "integrityAssets": {
+        "enabled": true
+      }
+    },
+    "pagesErrors": {
+      "404": "/src/views/errors/404",
+      "500": "/src/views/errors/500"
+    }
+  }
+]

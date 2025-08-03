@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 namespace Lumynus\Bundle\Framework;
+
 use Lumynus\Bundle\Framework\LumaClasses;
 
 
@@ -153,9 +154,7 @@ class ErrorTemplate extends LumaClasses
     public  static function getViewPath(string $name, string $extension = 'php'): string
     {
         $path = Config::pathProject()
-            . DIRECTORY_SEPARATOR . 'src'
-            . DIRECTORY_SEPARATOR . 'views'
-            . DIRECTORY_SEPARATOR . $name . '.' . $extension;
+            . Config::getAplicationConfig()['pagesErrors'][$name] . '.' . $extension;
 
         if (file_exists($path)) {
             return file_get_contents($path);
@@ -646,7 +645,7 @@ class ErrorTemplate extends LumaClasses
      * Método para obter a instância da classe Luma.
      * @return Luma Retorna uma nova instância da classe Luma.
      */
-    public function __debugInfo():array
+    public function __debugInfo(): array
     {
         return [
             'Lumynus' => "Framework PHP"
