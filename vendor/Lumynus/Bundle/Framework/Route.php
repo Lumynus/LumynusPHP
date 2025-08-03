@@ -420,7 +420,7 @@ class Route extends LumaClasses
 
         if (!isset(self::$routes[$requestMethod][$route])) {
             http_response_code(404);
-            echo ErrorTemplate::getViewPath('errors/404', 'php');
+            echo ErrorTemplate::getViewPath('404', 'php');
             return;
         }
 
@@ -431,6 +431,24 @@ class Route extends LumaClasses
             http_response_code(400);
             echo $validation['error'];
             return;
+        }
+
+        //VERIFICA SE O TOKEN CSRF FOI ENVIADO E É VÁLIDO
+        if (
+            Config::getAplicationConfig()['security']['csrf']['enabled'] === true
+            && in_array($requestMethod, ['POST', 'PUT', 'DELETE'])
+        ) {
+            if (!isset($_POST[Config::getAplicationConfig()['security']['csrf']['nameToken']])) {
+                http_response_code(403);
+                echo ErrorTemplate::getViewPath('403', 'php');
+                return;
+            }
+
+            if (CSRF::isValidToken($_POST[Config::getAplicationConfig()['security']['csrf']['nameToken']]) === false) {
+                http_response_code(403);
+                echo ErrorTemplate::getViewPath('403', 'php');
+                return;
+            }
         }
 
 
@@ -515,7 +533,7 @@ class Route extends LumaClasses
      * Método para obter a instância da classe Luma.
      * @return Luma Retorna uma nova instância da classe Luma.
      */
-    public function __debugInfo():array
+    public function __debugInfo(): array
     {
         return [
             'Lumynus' => "Framework PHP"

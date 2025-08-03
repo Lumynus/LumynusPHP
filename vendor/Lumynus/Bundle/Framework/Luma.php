@@ -50,9 +50,14 @@ class Luma extends LumaClasses
             file_put_contents($cacheFile, $compiled);
         }
 
+        //TokenCSRF
+        if (Config::getAplicationConfig()['security']['csrf']['enabled'] === true) {
+            $data['nameCSRF'] = Config::getAplicationConfig()['security']['csrf']['nameToken'];
+            $data['tokenSecurityCSRF'] = \Lumynus\Bundle\Framework\CSRF::generateToken();
+        }
+
         // Cria variáveis com base nos dados
         extract($data, EXTR_SKIP);
-
         // Executa e captura a saída
         ob_start();
         include $cacheFile;
@@ -81,6 +86,8 @@ class Luma extends LumaClasses
         $context = self::include($context);
         $context = self::use($context);
         $context = self::js($context);
+        $context = self::css($context);
+        $context = self::tokenCSRF($context);
         $context = \Lumynus\Bundle\Framework\LumaJS::compile($context);
 
         return $context;
@@ -283,21 +290,80 @@ class Luma extends LumaClasses
             if (!file_exists($fullPath)) {
                 return "<script>console.error('Arquivo JS não encontrado: {$fullPath}');</script>";
             }
+
             $content = file_get_contents($fullPath);
             $hash = base64_encode(hash('sha384', $content, true));
 
+            $integrity = isset(Config::getAplicationConfig()['security']['integrityAssets']['enabled'])
+                && Config::getAplicationConfig()['security']['integrityAssets']['enabled'] === true
+                ? "integrity='sha384-{$hash}'" : '';
+
             return <<<HTML
-                <script src="{$fullPath}" type="module" integrity="sha384-{$hash}" crossorigin="anonymous"></script>
+                <script src="{$fullPath}" type="module" $integrity crossorigin="anonymous"></script>
             HTML;
         }, $js);
     }
 
+    /**
+     * Processa o template substituindo as diretivas do Lux por código PHP.
+     *
+     * @param string $css O código CSS a ser processado
+     * @return string O código CSS com as diretivas convertidas para PHP
+     */
+    private static function css(string $css)
+    {
+        return preg_replace_callback('/@css\s*\((["\'])(.+?)\1\)/', function ($matches) {
+            $path = $matches[2];
 
+            // Garante que o caminho seja relativo ao projeto
+            $fullPath = Config::getAplicationConfig()['path']['css'] . $path . '.css';
 
-    // 3. break() - Novo método
+            if (!file_exists($fullPath)) {
+                return "<script>console.error('Arquivo CSS não encontrado: {$fullPath}');</script>";
+            }
+
+            $content = file_get_contents($fullPath);
+            $hash = base64_encode(hash('sha384', $content, true));
+
+            $integrity = isset(Config::getAplicationConfig()['security']['integrityAssets']['enabled'])
+                && Config::getAplicationConfig()['security']['integrityAssets']['enabled'] === true
+                ? "integrity='sha384-{$hash}'" : '';
+
+            return <<<HTML
+            <link href="{$fullPath}" rel="stylesheet" $integrity crossorigin="anonymous">
+        HTML;
+        }, $css);
+    }
+
+    /**
+     * Processa o template substituindo as diretivas do Lux por código PHP.
+     *
+     * @param string $template O template a ser processado
+     * @return string O template com as diretivas convertidas para PHP
+     */
     private static function break(string $template)
     {
         return preg_replace('/@break/', '<?php break; ?>', $template);
+    }
+
+    /**
+     * Processa o template substituindo as diretivas do Lux por código PHP.
+     *
+     * @param string $template O template a ser processado
+     * @return string O template com as diretivas convertidas para PHP
+     */
+    private static function tokenCSRF(string $template)
+    {
+        if (Config::getAplicationConfig()['security']['csrf']['enabled'] !== true) {
+            return;
+        }
+
+        return preg_replace(
+            '/<\/body>/i',
+            '<input type="hidden" name="<?= $nameCSRF ?>" value="<?= $tokenSecurityCSRF ?>">' . PHP_EOL . '</body>',
+            $template,
+            1
+        );
     }
 
     /**

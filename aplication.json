@@ -14,7 +14,7 @@
       "img": "./resources/img/",
       "views": "/src/views/"
     },
-    "securiy": {
+    "security": {
       "csrf": {
         "enabled": true,
         "nameToken": "luma_csrf"

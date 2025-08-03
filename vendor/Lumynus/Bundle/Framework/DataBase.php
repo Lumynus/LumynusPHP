@@ -12,7 +12,6 @@ use Lumynus\Bundle\Framework\LumaClasses;
 abstract class DataBase extends LumaClasses
 {
 
-
     /**
      * @param string $type Tipo de banco de dados (mysql, postgresql, sqlite, sqlserver)
      * @param string $host Host do banco de dados
