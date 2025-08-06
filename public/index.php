@@ -4,8 +4,6 @@
 # Copyright (C) 2025 Weleny Santos <
 
 
-
-
 require_once __DIR__ . '/../bootstrap/useRoutes.php';
 
 

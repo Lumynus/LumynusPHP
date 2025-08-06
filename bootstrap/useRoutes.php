@@ -1,5 +1,8 @@
 <?php
 
+# Lumynus Framework - A simple and lightweight PHP framework
+# Copyright (C) 2025 Weleny Santos <
+
 use Lumynus\Bundle\Framework\Route;
 use Lumynus\Bundle\Framework\ErrorHandler;
 

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Lumynus\Bundle\Framework;
 
-abstract class LumaClasses
+use Lumynus\Bundle\Contrats\LumaStrictContract;
+
+abstract class LumaClasses implements LumaStrictContract
 {
     public function __call($name, $arguments)
     {

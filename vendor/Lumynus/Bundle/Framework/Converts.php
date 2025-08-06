@@ -85,7 +85,7 @@ class Converts extends LumaClasses
     {
         $data = json_decode($json, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \InvalidArgumentException('JSON inválido: ' . json_last_error_msg());
+            throw new \InvalidArgumentException('JSON invalid: ' . json_last_error_msg());
         }
         return $data;
     }
@@ -101,7 +101,7 @@ class Converts extends LumaClasses
     {
         $data = json_decode($json);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \InvalidArgumentException('JSON inválido: ' . json_last_error_msg());
+            throw new \InvalidArgumentException('JSON invalid: ' . json_last_error_msg());
         }
         return $data;
     }

@@ -6,7 +6,7 @@ namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\LumaClasses;
 
-class Sessions extends LumaClasses
+class Sessions extends LumaClasses implements \Lumynus\Contracts\SessionInterface
 {
 
     private bool $autostart = true;
