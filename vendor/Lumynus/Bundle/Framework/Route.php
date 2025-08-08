@@ -7,6 +7,7 @@ namespace Lumynus\Bundle\Framework;
 use Lumynus\Bundle\Framework\ErrorTemplate;
 use Lumynus\Bundle\Framework\Config;
 use Lumynus\Bundle\Framework\LumaClasses;
+use Lumynus\Templates\Errors;
 
 /**
  * Classe responsável pelo gerenciamento de rotas no framework Lumynus.
@@ -14,6 +15,9 @@ use Lumynus\Bundle\Framework\LumaClasses;
  */
 class Route extends LumaClasses
 {
+
+    use Errors;
+
     /**
      * Armazena todas as rotas registradas, organizadas por método HTTP.
      *
@@ -309,7 +313,7 @@ class Route extends LumaClasses
                 }
             } elseif (is_array($actions)) {
                 if (count($middlewares) !== count($actions)) {
-                    throw new \InvalidArgumentException("Se 'middlewares' e 'actions' forem arrays, devem ter o mesmo número de elementos.");
+                    throw new \InvalidArgumentException("If 'middlewares' and 'actions' are arrays, they must have the same number of elements.");
                 }
 
                 foreach ($middlewares as $i => $midd) {
@@ -320,7 +324,7 @@ class Route extends LumaClasses
                 }
             }
         } else {
-            throw new \InvalidArgumentException("Middlewares e actions devem ser strings ou arrays.");
+            throw new \InvalidArgumentException("Middlewares and actions must be strings or arrays.");
         }
 
         self::$middlewareStack = $map;
@@ -339,7 +343,7 @@ class Route extends LumaClasses
     private static function loadRoutesFromCache(): bool
     {
         $basePath = Config::pathProject();
-        $cacheFile = $basePath . '/cache/routers/routes.cache.php';
+        $cacheFile = $basePath . Config::getAplicationConfig()['path']['cache'] . 'routers ' . DIRECTORY_SEPARATOR . 'routes.cache.php';
 
         if (!file_exists($cacheFile)) {
             return false;
@@ -347,7 +351,7 @@ class Route extends LumaClasses
 
         $cacheTime = filemtime($cacheFile);
 
-        $routerPath = $basePath . '/src/routers';
+        $routerPath = $basePath . Config::getAplicationConfig()['path']['routers'];
         $routerFiles = glob($routerPath . '/*.php');
 
         $lastModified = 0;
@@ -376,15 +380,16 @@ class Route extends LumaClasses
     private static function cacheRoutes(): void
     {
         $basePath = Config::pathProject();
-        $cacheFile = $basePath . '/cache/routers/routes.cache.php';
+        $cacheFile = $basePath . Config::getAplicationConfig()['path']['cache'] . 'routers' . DIRECTORY_SEPARATOR . 'routes.cache.php';
 
         $export = var_export(self::$routes, true);
         $content = "<?php\n\nreturn {$export};";
 
         // Cria diretório de cache se não existir
         $cacheDir = dirname($cacheFile);
+
         if (!is_dir($cacheDir)) {
-            mkdir($cacheDir, 0777, true);
+            mkdir($cacheDir, 0755, true);
         }
 
         file_put_contents($cacheFile, $content);
@@ -419,8 +424,7 @@ class Route extends LumaClasses
         }
 
         if (!isset(self::$routes[$requestMethod][$route])) {
-            http_response_code(404);
-            echo ErrorTemplate::getViewPath('404', 'php');
+            self::throwError('Route not found', 404, 'html');
             return;
         }
 
@@ -428,8 +432,7 @@ class Route extends LumaClasses
         $validation = self::validateParams($params, $routeConfig['fieldsPermitted']);
 
         if (!$validation['valid']) {
-            http_response_code(400);
-            echo $validation['error'];
+            self::throwError('Forbidden', 403, 'html');
             return;
         }
 
@@ -439,14 +442,12 @@ class Route extends LumaClasses
             && in_array($requestMethod, ['POST', 'PUT', 'DELETE'])
         ) {
             if (!isset($_POST[Config::getAplicationConfig()['security']['csrf']['nameToken']])) {
-                http_response_code(403);
-                echo ErrorTemplate::getViewPath('403', 'php');
+                self::throwError('Forbidden', 403, 'html');
                 return;
             }
 
             if (CSRF::isValidToken($_POST[Config::getAplicationConfig()['security']['csrf']['nameToken']]) === false) {
-                http_response_code(403);
-                echo ErrorTemplate::getViewPath('403', 'php');
+                self::throwError('Forbidden', 403, 'html');
                 return;
             }
         }
@@ -481,7 +482,7 @@ class Route extends LumaClasses
                 $returnMidd = call_user_func_array([$middleware, $midd['action']], [$params, $customizeParamsPosts]);
 
                 if ($returnMidd === false) {
-                    http_response_code(403);
+                    self::throwError('Forbidden', 403, 'html');
                     return;
                 }
             }
@@ -502,8 +503,7 @@ class Route extends LumaClasses
                 [$params, $customizeParamsPosts, ($returnMidd !== null && $returnMidd !== false) ? $returnMidd : null]
             );
         } else {
-            http_response_code(404);
-            echo "Controller or action not found.";
+            self::throwError('Forbidden', 403, 'html');
         }
     }
 

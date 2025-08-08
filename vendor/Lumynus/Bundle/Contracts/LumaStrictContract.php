@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Lumynus\Bundle\Contrats;
+namespace Lumynus\Bundle\Contracts;
 
 /**
  * Interface para classes que bloqueiam completamente recursos mágicos e comportamentos dinâmicos.

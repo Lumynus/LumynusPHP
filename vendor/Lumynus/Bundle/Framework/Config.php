@@ -32,12 +32,49 @@ class Config extends LumaClasses
     public static function getAplicationConfig(): ?array
     {
         $file = self::pathProject() . DIRECTORY_SEPARATOR . 'aplication.json';
-        if (!file_exists($file)) {
-            return null;
+
+        if (file_exists($file)) {
+            $config = json_decode(file_get_contents($file), true);
+
+            if (is_array($config) && isset($config[0])) {
+                return $config[0];
+            }
         }
-        $config =  json_decode(file_get_contents($file), true);
-        return array_merge($config[0]) ?? null;
+
+        // Se não existir ou estiver inválido, retorna padrão
+        return [
+            "App" => [
+                "nameApplication" => "Lumynus",
+                "version" => "1",
+                "description" => "A simple PHP framework for building web applications.",
+                "author" => "Welen",
+                "email" => "",
+                "host" => "www.exemple.com"
+            ],
+            "path" => [
+                "js" => "./resources/js/",
+                "css" => "./resources/css/",
+                "img" => "./resources/img/",
+                "views" => "/src/views/",
+                "routers" => "/src/routers/",
+                "cache" => "/storage/cache/"
+            ],
+            "security" => [
+                "csrf" => [
+                    "enabled" => true,
+                    "nameToken" => "luma_csrf"
+                ],
+                "integrityAssets" => [
+                    "enabled" => true
+                ]
+            ],
+            "pagesErrors" => [
+                "404" => "/src/views/errors/404",
+                "500" => "/src/views/errors/500"
+            ]
+        ];
     }
+
 
     /**
      * Retorna o caminho do projeto Lumynus.

@@ -12,7 +12,9 @@
       "js": "./resources/js/",
       "css": "./resources/css/",
       "img": "./resources/img/",
-      "views": "/src/views/"
+      "views": "/src/views/",
+      "routers": "/src/routers/",
+      "cache": "/storage/cache/"
     },
     "security": {
       "csrf": {

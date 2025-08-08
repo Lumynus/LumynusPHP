@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Lumynus\Contracts;
+namespace Lumynus\Bundle\Contracts;
 
 /**
  * Interface que define as operações de uma sessão segura.

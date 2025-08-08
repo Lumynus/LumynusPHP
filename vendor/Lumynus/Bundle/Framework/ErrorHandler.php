@@ -6,9 +6,13 @@ namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\ErrorTemplate;
 use Lumynus\Bundle\Framework\LumaClasses;
+use Lumynus\Templates\Errors;
 
 class ErrorHandler extends LumaClasses
 {
+
+    use Errors;
+
     /**
      * Registra manipuladores de erros e exceções para o framework Lumynus.
      * Define como os erros e exceções serão tratados, renderizando um template de erro.
@@ -43,7 +47,7 @@ class ErrorHandler extends LumaClasses
                     ]);
                     exit;
                 } else {
-                    echo self::error()->getViewPath('500', 'php');
+                    self::throwError('Internal Server Error', 500, 'html');
                 }
 
                 exit;
@@ -61,7 +65,7 @@ class ErrorHandler extends LumaClasses
                     ]);
                     exit;
                 } else {
-                    echo self::error()->getViewPath('500', 'php');
+                    self::throwError('Internal Server Error', 500, 'html');
                 }
                 exit;
             });
@@ -81,7 +85,7 @@ class ErrorHandler extends LumaClasses
                         ]);
                         exit;
                     } else {
-                        echo self::error()->getViewPath('500', 'php');
+                        self::throwError('Internal Server Error', 500, 'html');
                     }
                     exit;
                 }
@@ -104,7 +108,7 @@ class ErrorHandler extends LumaClasses
      * Método para obter a instância da classe Luma.
      * @return Luma Retorna uma nova instância da classe Luma.
      */
-    public function __debugInfo():array
+    public function __debugInfo(): array
     {
         return [
             'Lumynus' => "Framework PHP"

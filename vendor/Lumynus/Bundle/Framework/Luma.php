@@ -6,10 +6,14 @@ namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\LumaClasses;
 use Lumynus\Bundle\Framework\Config;
+use Lumynus\Bundle\Framework\Constants;
 
 class Luma extends LumaClasses
 /** Luz */
 {
+
+    use Constants;
+    
     /**
      * Armazena as variáveis globais para o template.
      *
@@ -35,7 +39,7 @@ class Luma extends LumaClasses
 
         $basePath = Config::pathProject();
         $viewFile = $basePath . Config::getAplicationConfig()['path']['views'] . $view;
-        $cacheFile = $basePath . '/cache/views/' . $view . '.php';
+        $cacheFile = $basePath . Config::getAplicationConfig()['path']['cache'] . 'views' . DIRECTORY_SEPARATOR . $view . '.php';
 
         // Cria diretório de cache se não existir
         $cacheDir = dirname($cacheFile);
@@ -399,7 +403,7 @@ class Luma extends LumaClasses
             $view = $matches[1];
             $additionalVars = $matches[2] ?? '[]';
 
-            return '<?php echo \Lumynus\Bundle\Framework\Lux::render('
+            return '<?php echo \Lumynus\Bundle\Framework\Luma::render('
                 . var_export($view, true) . ', '
                 . 'array_merge(get_defined_vars(), ' . $additionalVars . ')'
                 . '); ?>';
@@ -420,7 +424,7 @@ class Luma extends LumaClasses
 
             $basePath = Config::pathProject();
             $viewFile = $basePath . Config::getAplicationConfig()['path']['views'] . $view;
-            $cacheFile = $basePath . '/cache/views/' . $view . '.php';
+            $cacheFile = $basePath . Config::getAplicationConfig()['path']['cache'] . 'views' . DIRECTORY_SEPARATOR . $view . '.php';
 
             if (!file_exists($viewFile)) {
                 throw new \Exception("View '$view' not found at $viewFile");

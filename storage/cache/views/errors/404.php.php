@@ -1,3 +1,3 @@
 Oiiii
 ----------------------------
-{{$conteudo}}
+<?= htmlspecialchars($conteudo) ?>

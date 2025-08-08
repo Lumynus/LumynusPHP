@@ -571,72 +571,26 @@ class ErrorTemplate extends LumaClasses
         </div>
 
         <script>
-            function toggleTheme() {
-                const html = document.documentElement;
-                const themeIcon = document.getElementById("theme-icon");
-                const themeText = document.getElementById("theme-text");
-                
-                const currentTheme = html.getAttribute("data-theme");
-                const newTheme = currentTheme === "dark" ? "light" : "dark";
-                
-                html.setAttribute("data-theme", newTheme);
-                
-                if (newTheme === "dark") {
-                    themeIcon.textContent = "☀️";
-                    themeText.textContent = "Light Mode";
-                } else {
-                    themeIcon.textContent = "🌙";
-                    themeText.textContent = "Dark Mode";
-                }
-                
-                localStorage.setItem("theme", newTheme);
-            }
-            
-            function loadTheme() {
-                const savedTheme = localStorage.getItem("theme") || "light";
-                const html = document.documentElement;
-                const themeIcon = document.getElementById("theme-icon");
-                const themeText = document.getElementById("theme-text");
-                
-                html.setAttribute("data-theme", savedTheme);
-                
-                if (savedTheme === "dark") {
-                    themeIcon.textContent = "☀️";
-                    themeText.textContent = "Light Mode";
-                } else {
-                    themeIcon.textContent = "🌙";
-                    themeText.textContent = "Dark Mode";
-                }
-            }
+    function cleanBodyKeepErrorContainerAndStyle() {
+        const errorContainer = document.querySelector(".error-container");
+        if (!errorContainer) return;
 
-            function removeLooseTextFromBody() {
-                    if (!document.body) return;
-                    
-                    // Obter apenas os filhos diretos do body
-                    const childNodes = Array.from(document.body.childNodes);
-                    
-                    childNodes.forEach(node => {
-                        // Se for um text node com conteúdo
-                        if (node.nodeType === 3) {
-                            const textContent = node.textContent.trim();
-                            
-                            if (textContent.length > 0) {
-                                
-                                node.remove();
-                            }
-                            // Remover espaços em branco também
-                            else if (node.textContent.match(/^\s+$/)) {
-                                node.remove();
-                            }
-                        }
-                    });
-    
-                
+        const bodyChildren = Array.from(document.body.childNodes);
+
+        for (const node of bodyChildren) {
+            // Se não for a error-container nem uma tag <style>, remove
+            if (node !== errorContainer && !(node.nodeType === 1 && node.tagName.toLowerCase() === "style")) {
+                node.remove();
             }
-            
-            document.addEventListener("DOMContentLoaded", loadTheme);
-            document.addEventListener("DOMContentLoaded", removeLooseTextFromBody);
-        </script>
+        }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+        cleanBodyKeepErrorContainerAndStyle();
+    });
+</script>
+
+
     </body>
     </html>';
     }
