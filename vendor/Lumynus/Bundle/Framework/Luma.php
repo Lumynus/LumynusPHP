@@ -67,7 +67,12 @@ class Luma extends LumaClasses
         ob_start();
         include $cacheFile;
         array_pop(self::$viewStack);
-        return ob_get_clean();
+        $output = ob_get_clean();
+        // Limpa as variáveis após a compilação/renderização
+        if (empty(self::$viewStack)) { // Só limpa quando não há views aninhadas
+            self::$shareData = [];
+        }
+        return $output;
     }
 
     /**
