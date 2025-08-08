@@ -62,4 +62,5 @@ abstract class LumaClasses implements LumaStrictContract
     {
         throw new \RuntimeException("Deserialization is not allowed (__unserialize blocked).");
     }
+
 }

@@ -31,7 +31,7 @@ Avava
 </div> 
     <script src="./resources/js/oi.js" type="module" integrity='sha384-OLBgp1GsljhM2TJ+sbHjaiH9txEUvgdDTAzHv2P24donTt6/529l+9Ua0vFImLlb' crossorigin="anonymous"></script>
 
-<?php echo \Lumynus\Bundle\Framework\Luma::render('errors/404.php', array_merge(get_defined_vars(), [])); ?> 
+<?php echo \Lumynus\Bundle\Framework\Luma::render('errors/404.php', ['conteudo' => $conteudo]); ?>  
 
 <input type="hidden" name="<?= $nameCSRF ?>" value="<?= $tokenSecurityCSRF ?>">
 </body>

@@ -6,20 +6,19 @@ namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\LumaClasses;
 use Lumynus\Bundle\Framework\Config;
-use Lumynus\Bundle\Framework\Constants;
+
 
 class Luma extends LumaClasses
-/** Luz */
 {
-
-    use Constants;
-    
     /**
      * Armazena as variáveis globais para o template.
      *
      * @var array
      */
     private static array $viewStack = [];
+
+
+    private static array $shareData = [];
 
     /**
      * Renderiza uma view com os dados fornecidos.
@@ -46,14 +45,7 @@ class Luma extends LumaClasses
         if (!is_dir($cacheDir)) {
             mkdir($cacheDir, 0777, true);
         }
-
-        // Compila se o cache não existir ou se a view original foi modificada
-        if (!file_exists($cacheFile) || filemtime($cacheFile) < filemtime($viewFile)) {
-            $original = file_get_contents($viewFile);
-            $compiled = self::compile($original);
-            file_put_contents($cacheFile, $compiled);
-        }
-
+    
         //TokenCSRF
         if (Config::getAplicationConfig()['security']['csrf']['enabled'] === true) {
             $data['nameCSRF'] = Config::getAplicationConfig()['security']['csrf']['nameToken'];
@@ -62,6 +54,15 @@ class Luma extends LumaClasses
 
         // Cria variáveis com base nos dados
         extract($data, EXTR_SKIP);
+        self::$shareData = $data;
+
+        // Compila se o cache não existir ou se a view original foi modificada
+        if (!file_exists($cacheFile) || filemtime($cacheFile) < filemtime($viewFile)) {
+            $original = file_get_contents($viewFile);
+            $compiled = self::compile($original);
+            file_put_contents($cacheFile, $compiled);
+        }
+
         // Executa e captura a saída
         ob_start();
         include $cacheFile;
@@ -400,15 +401,34 @@ class Luma extends LumaClasses
     private static function include(string $template)
     {
         return preg_replace_callback('/@include\s*\(\s*[\'"](.+?)[\'"]\s*(?:,\s*(.+?))?\s*\)/', function ($matches) {
+
             $view = $matches[1];
-            $additionalVars = $matches[2] ?? '[]';
+            $additionalVarsRaw = $matches[2] ?? '[]';
+
+            // Verifica se o parâmetro é a string 'all' (sem aspas)
+            $additionalVarsRawTrimmed = trim($additionalVarsRaw);
+
+            if ($additionalVarsRawTrimmed === 'all') {
+                // Injeta o conteúdo de $shareData diretamente como array via var_export
+                $additionalVarsCode = self::$shareData;
+                $formatted = [];
+                foreach ($additionalVarsCode as $key => $value) {
+                    $formatted[] = "'" . addslashes($key) . "' => $" . $key; // ✅ Formato correto
+                }
+                $arrayString = '[' . implode(', ', $formatted) . ']';
+                $additionalVarsCode = $arrayString;
+            } else {
+                // Usa o que foi passado (array, variáveis, etc)
+                $additionalVarsCode = $additionalVarsRaw ?: '[]';
+            }
 
             return '<?php echo \Lumynus\Bundle\Framework\Luma::render('
                 . var_export($view, true) . ', '
-                . 'array_merge(get_defined_vars(), ' . $additionalVars . ')'
+                . $additionalVarsCode
                 . '); ?>';
         }, $template);
     }
+
 
     /**
      * Processa o template substituindo as diretivas do Lux por código PHP.
