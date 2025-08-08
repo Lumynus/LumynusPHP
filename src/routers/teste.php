@@ -22,4 +22,4 @@ use Lumynus\Bundle\Framework\Route;
 // });
 
 Route::get('test[string e, string v]', ControllerExample::class, 'index');
-Route::get('va[string e]', ControllerExample::class, 'index');
+Route::get('va[string e]', ControllerExample::class, 'teste4');

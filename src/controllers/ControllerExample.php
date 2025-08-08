@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-
+use Lumynus\Bundle\Framework\ErrorTemplate;
 use Lumynus\Bundle\Framework\LumynusController;
 use Lumynus\Templates\Errors;
 
@@ -71,12 +71,9 @@ class ControllerExample extends LumynusController
         var_dump($teste['App']);
     }
 
-    public function teste4() {
+    public function teste4()
+    {
 
-         $teste = \Lumynus\Bundle\Framework\Config::getAplicationConfig();
-
-        var_dump($teste['App']);
-    
-        
+       
     }
 }

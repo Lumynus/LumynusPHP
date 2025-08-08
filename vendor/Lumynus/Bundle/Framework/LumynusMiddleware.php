@@ -13,9 +13,15 @@ use Lumynus\Bundle\Framework\LumaClasses;
 use Lumynus\Bundle\Framework\LumaHTTP;
 use Lumynus\Bundle\Framework\HttpClient;
 use Lumynus\Bundle\Framework\CORS;
+use Lumynus\Bundle\Framework\Requirements;
+use Lumynus\Bundle\Framework\Regex;
 
 abstract class LumynusMiddleware extends LumaClasses
 {
+
+    use Requirements;
+
+
     /**
      * Método para obter a instância da classe Sessions.
      * @param bool $autostart Indica se as configurações de segurança e sessão devem ser iniciadas automaticamente.
@@ -76,10 +82,19 @@ abstract class LumynusMiddleware extends LumaClasses
      * Método para obter a instância da classe CORS.
      * @return CORS Retorna uma nova instância da classe CORS.
      */
-    protected function cors() : CORS {
+    protected function cors(): CORS
+    {
         return new CORS();
     }
 
+    /**
+     * Método para obter a instância da classe CORS.
+     * @return CORS Retorna uma nova instância da classe CORS.
+     */
+    protected function regex(): Regex
+    {
+        return new Regex();
+    }
 
     /**
      * Método para obter a instância da classe Luma.

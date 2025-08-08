@@ -19,7 +19,7 @@ return array (
     'va' => 
     array (
       'controller' => 'App\\Controllers\\ControllerExample',
-      'action' => 'index',
+      'action' => 'teste4',
       'fieldsPermitted' => 
       array (
         'e' => 'string',

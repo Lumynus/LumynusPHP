@@ -13,9 +13,13 @@ use Lumynus\Bundle\Framework\LumaClasses;
 use Lumynus\Bundle\Framework\LumaHTTP;
 use Lumynus\Bundle\Framework\HttpClient;
 use Lumynus\Bundle\Framework\Brasil;
+use Lumynus\Bundle\Framework\Requirements;
+use Lumynus\Bundle\Framework\Regex;
 
 abstract class LumynusController extends LumaClasses
 {
+
+    use Requirements;
 
     /**
      * Método para renderizar uma view com dados.
@@ -93,6 +97,16 @@ abstract class LumynusController extends LumaClasses
     {
         return new HttpClient();
     }
+
+    /**
+     * Método para obter a instância da classe CORS.
+     * @return CORS Retorna uma nova instância da classe CORS.
+     */
+    protected function regex(): Regex
+    {
+        return new Regex();
+    }
+
 
     /**
      * Método para obter a instância da classe Luma.
