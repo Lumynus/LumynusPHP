@@ -45,7 +45,7 @@ class Luma extends LumaClasses
         if (!is_dir($cacheDir)) {
             mkdir($cacheDir, 0777, true);
         }
-    
+
         //TokenCSRF
         if (Config::getAplicationConfig()['security']['csrf']['enabled'] === true) {
             $data['nameCSRF'] = Config::getAplicationConfig()['security']['csrf']['nameToken'];
