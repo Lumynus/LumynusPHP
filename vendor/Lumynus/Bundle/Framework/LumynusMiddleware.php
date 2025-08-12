@@ -21,6 +21,17 @@ abstract class LumynusMiddleware extends LumaClasses
 
     use Requirements;
 
+    /**
+     * Método para renderizar uma view com dados.
+     *
+     * @param string $view Nome da view a ser renderizada.
+     * @param array $data Dados a serem passados para a view.
+     * @return string Retorna o conteúdo renderizado da view.
+     */
+    protected function renderView(string $view, array $data = []): string
+    {
+        return Luma::render($view, $data);
+    }
 
     /**
      * Método para obter a instância da classe Sessions.

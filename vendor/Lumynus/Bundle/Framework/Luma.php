@@ -29,7 +29,6 @@ class Luma extends LumaClasses
      */
     public static function render(string $view, array $data = []): string
     {
-
         if (in_array($view, self::$viewStack)) {
             throw new \Exception("Loop detected: the view '$view' is already being rendered.");
         }
@@ -39,6 +38,10 @@ class Luma extends LumaClasses
         $basePath = Config::pathProject();
         $viewFile = $basePath . Config::getAplicationConfig()['path']['views'] . $view;
         $cacheFile = $basePath . Config::getAplicationConfig()['path']['cache'] . 'views' . DIRECTORY_SEPARATOR . $view . '.php';
+
+        if (!is_file($viewFile)) {
+            throw new \Exception("View not detected.");
+        }
 
         // Cria diretório de cache se não existir
         $cacheDir = dirname($cacheFile);
@@ -60,20 +63,31 @@ class Luma extends LumaClasses
         if (!file_exists($cacheFile) || filemtime($cacheFile) < filemtime($viewFile)) {
             $original = file_get_contents($viewFile);
             $compiled = self::compile($original);
-            file_put_contents($cacheFile, $compiled);
+
+            if (!is_string($compiled) || $compiled === '') {
+                throw new \Exception("Falha na compilação: template vazio para '{$viewFile}'");
+            }
+
+            $tmpFile = $cacheFile . '.tmp';
+            file_put_contents($tmpFile, $compiled, LOCK_EX);
+            rename($tmpFile, $cacheFile); // substituição atômica
         }
+        
 
         // Executa e captura a saída
         ob_start();
         include $cacheFile;
-        array_pop(self::$viewStack);
         $output = ob_get_clean();
+        array_pop(self::$viewStack);
+
         // Limpa as variáveis após a compilação/renderização
-        if (empty(self::$viewStack)) { // Só limpa quando não há views aninhadas
+        if (empty(self::$viewStack)) {
             self::$shareData = [];
         }
+
         return $output;
     }
+
 
     /**
      * Renderiza uma view com os dados fornecidos e retorna o conteúdo.
@@ -98,7 +112,6 @@ class Luma extends LumaClasses
         $context = self::js($context);
         $context = self::css($context);
         $context = self::tokenCSRF($context);
-        $context = \Lumynus\Bundle\Framework\LumaJS::compile($context);
 
         return $context;
     }
@@ -365,7 +378,7 @@ class Luma extends LumaClasses
     private static function tokenCSRF(string $template)
     {
         if (Config::getAplicationConfig()['security']['csrf']['enabled'] !== true) {
-            return;
+            return $template; // <- Retorna o conteúdo original, não null
         }
 
         return preg_replace(
