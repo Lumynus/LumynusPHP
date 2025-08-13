@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\LumaClasses;
+use Lumynus\Bundle\Framework\LumynusTools;
 
 /**
  * Classe base para conexões de banco de dados.
  */
 abstract class DataBase extends LumaClasses
 {
+
+    use LumynusTools;
 
     /**
      * @param string $type Tipo de banco de dados (mysql, postgresql, sqlite, sqlserver)
@@ -19,7 +22,7 @@ abstract class DataBase extends LumaClasses
      * @param string $password Senha do banco de dados
      * @param string $dataBase Nome do banco de dados
      */
-    public function __construct(string $type, string $host, string $user, $password, string $dataBase)
+    public function connect(string $type, string $host, string $user, $password, string $dataBase)
     {
         switch ($type) {
             case 'mysql':

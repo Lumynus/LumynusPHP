@@ -15,6 +15,7 @@ use Lumynus\Bundle\Framework\HttpClient;
 use Lumynus\Bundle\Framework\Brasil;
 use Lumynus\Bundle\Framework\Requirements;
 use Lumynus\Bundle\Framework\Regex;
+use Lumynus\Bundle\Framework\Encryption;
 
 abstract class LumynusController extends LumaClasses
 {
@@ -105,6 +106,14 @@ abstract class LumynusController extends LumaClasses
     protected function regex(): Regex
     {
         return new Regex();
+    }
+
+    /**
+     * Método para obter a instância da classe Encryption
+     * @return Encryption Retorna uma nova instância da classe Encryption
+     */
+    protected function encrypt() : Encryption {
+        return new Encryption();
     }
 
 
