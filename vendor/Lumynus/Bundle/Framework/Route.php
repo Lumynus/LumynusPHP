@@ -477,6 +477,7 @@ class Route extends LumaClasses
         }
 
         $customizeParamsPosts = array_merge(
+            ['GET' => $params ?? []],
             ['POST' => $_POST ?? []],
             ['INPUT' => $input ?? []],
             ['FILE' => $_FILES ?? []],
@@ -501,7 +502,7 @@ class Route extends LumaClasses
                     throw new \Exception("Error Processing Request - Midd", 1);
                 }
 
-                $returnMidd = call_user_func_array([$middleware, $midd['action']], [$params, $customizeParamsPosts]);
+                $returnMidd = call_user_func_array([$middleware, $midd['action']], [$customizeParamsPosts]);
 
                 if ($returnMidd === false) {
                     self::throwError('Forbidden', 403, 'html');
@@ -522,7 +523,7 @@ class Route extends LumaClasses
 
             call_user_func_array(
                 [$instance, $action],
-                [$params, $customizeParamsPosts, ($returnMidd !== null && $returnMidd !== false) ? $returnMidd : null]
+                [$customizeParamsPosts, ($returnMidd !== null && $returnMidd !== false) ? $returnMidd : null]
             );
         } else {
             self::throwError('Forbidden', 403, 'html');
