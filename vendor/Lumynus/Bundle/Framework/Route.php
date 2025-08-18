@@ -445,24 +445,37 @@ class Route extends LumaClasses
             return;
         }
 
-        $isApi = $routeConfig['api'] ?? false;
 
         // VERIFICA SE O TOKEN CSRF FOI ENVIADO E É VÁLIDO (apenas para rotas Web)
+        $isApi = $routeConfig['api'] ?? false;
+        $input = json_decode(file_get_contents('php://input'), true);
+
         if (
             !$isApi &&
-            Config::getAplicationConfig()['security']['csrf']['enabled'] === true &&
-            in_array($requestMethod, ['POST', 'PUT', 'DELETE'])
+            Config::getAplicationConfig()['security']['csrf']['enabled'] === true
+            && in_array($requestMethod, ['POST', 'PUT', 'DELETE'])
         ) {
-            $csrfName = Config::getAplicationConfig()['security']['csrf']['nameToken'];
+            $tokenName = Config::getAplicationConfig()['security']['csrf']['nameToken'];
+            $token = null;
 
-            if (!isset($_POST[$csrfName]) || CSRF::isValidToken($_POST[$csrfName]) === false) {
+            if (!empty($input[$tokenName])) {
+                $token = $input[$tokenName];
+            }
+            // 2. Fallback para header HTTP
+            elseif (!empty($_SERVER['X_CSRF_TOKEN'])) {
+                $token = $_SERVER['X_CSRF_TOKEN'];
+            }
+            // 3. Fallback para POST tradicional
+            elseif (!empty($_POST[$tokenName])) {
+                $token = $_POST[$tokenName];
+            }
+
+            if (!$token || CSRF::isValidToken($token) === false) {
                 self::throwError('Forbidden', 403, 'html');
                 return;
             }
         }
 
-
-        $input = json_decode(file_get_contents('php://input'), true);
         $customizeParamsPosts = array_merge(
             ['POST' => $_POST ?? []],
             ['INPUT' => $input ?? []],
