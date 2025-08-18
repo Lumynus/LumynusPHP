@@ -49,13 +49,14 @@ class Route extends LumaClasses
             return;
         }
 
-        [$cleanRoute, $fieldsPermitted] = self::parseRouteFields($route);
+        [$cleanRoute, $fieldsPermitted, $isApi] = self::parseRouteFields($route);
 
         self::$routes[strtoupper($method)][$cleanRoute] = [
             'controller' => $controller,
             'action' => $action,
             'fieldsPermitted' => $fieldsPermitted,
-            'middlewares' => self::$middlewareStack
+            'middlewares' => self::$middlewareStack,
+            'api' => $isApi
         ];
     }
 
@@ -69,8 +70,15 @@ class Route extends LumaClasses
     {
         $fieldsPermitted = [];
         $cleanRoute = $route;
+        $isApi = false;
 
-        if (preg_match('/^(.*?)\[(.*?)\]$/', $route, $matches)) {
+        // Verifica se tem marcador {api}
+        if (preg_match('/\{api\}$/', $route)) {
+            $isApi = true;
+            $cleanRoute = str_replace('{api}', '', $cleanRoute);
+        }
+
+        if (preg_match('/^(.?)\[(.?)\]$/', $cleanRoute, $matches)) {
             $cleanRoute = $matches[1];
             $fieldsRaw = trim($matches[2]);
 
@@ -89,8 +97,9 @@ class Route extends LumaClasses
             }
         }
 
-        return [$cleanRoute, $fieldsPermitted];
+        return [$cleanRoute, $fieldsPermitted, $isApi];
     }
+
 
     /**
      * Registra uma rota do tipo GET.
@@ -272,13 +281,13 @@ class Route extends LumaClasses
         foreach ($_SERVER as $key => $value) {
             if (str_starts_with($key, 'HTTP_')) {
                 // Transforma HTTP_AUTHORIZATION → Authorization
-                $header = str_replace('_', '-', ucwords(strtolower(substr($key, 5)), '_'));
+                $header = str_replace('', '-', ucwords(strtolower(substr($key, 5)), ''));
                 $headers[$header] = $value;
             }
 
             // Alguns headers não vêm com HTTP_ (como CONTENT_TYPE)
             if (in_array($key, ['CONTENT_TYPE', 'CONTENT_LENGTH'])) {
-                $header = str_replace('_', '-', ucwords(strtolower($key), '_'));
+                $header = str_replace('', '-', ucwords(strtolower($key), ''));
                 $headers[$header] = $value;
             }
         }
@@ -436,17 +445,17 @@ class Route extends LumaClasses
             return;
         }
 
-        //VERIFICA SE O TOKEN CSRF FOI ENVIADO E É VÁLIDO
-        if (
-            Config::getAplicationConfig()['security']['csrf']['enabled'] === true
-            && in_array($requestMethod, ['POST', 'PUT', 'DELETE'])
-        ) {
-            if (!isset($_POST[Config::getAplicationConfig()['security']['csrf']['nameToken']])) {
-                self::throwError('Forbidden', 403, 'html');
-                return;
-            }
+        $isApi = $routeConfig['api'] ?? false;
 
-            if (CSRF::isValidToken($_POST[Config::getAplicationConfig()['security']['csrf']['nameToken']]) === false) {
+        // VERIFICA SE O TOKEN CSRF FOI ENVIADO E É VÁLIDO (apenas para rotas Web)
+        if (
+            !$isApi &&
+            Config::getAplicationConfig()['security']['csrf']['enabled'] === true &&
+            in_array($requestMethod, ['POST', 'PUT', 'DELETE'])
+        ) {
+            $csrfName = Config::getAplicationConfig()['security']['csrf']['nameToken'];
+
+            if (!isset($_POST[$csrfName]) || CSRF::isValidToken($_POST[$csrfName]) === false) {
                 self::throwError('Forbidden', 403, 'html');
                 return;
             }
