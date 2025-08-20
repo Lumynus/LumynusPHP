@@ -8,6 +8,9 @@ use Lumynus\Bundle\Contracts\LumaStrictContract;
 
 abstract class LumaClasses implements LumaStrictContract
 {
+
+    public const VERSION = '1.0.0';
+
     public function __call($name, $arguments)
     {
         throw new \BadMethodCallException("Magic method __call is not allowed: {$name}()");
@@ -62,5 +65,4 @@ abstract class LumaClasses implements LumaStrictContract
     {
         throw new \RuntimeException("Deserialization is not allowed (__unserialize blocked).");
     }
-
 }
