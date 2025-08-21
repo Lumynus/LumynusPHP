@@ -12,21 +12,12 @@ use Lumynus\Bundle\Framework\LumynusTools;
  */
 abstract class DataBase extends LumaClasses
 {
-
     use LumynusTools;
 
-    /**
-     * @param string $type Tipo de banco de dados (mysql, postgresql, sqlite, sqlserver)
-     * @param string $host Host do banco de dados
-     * @param string $user Usuário do banco de dados
-     * @param string $password Senha do banco de dados
-     * @param string $dataBase Nome do banco de dados
-     */
     public function connect(string $type, string $host, string $user, $password, string $dataBase)
     {
-        switch ($type) {
+        switch (strtolower($type)) {
             case 'mysql':
-                return new Mysql($host, $user, $password, $dataBase);
             case 'mariadb':
                 return new Mysql($host, $user, $password, $dataBase);
             case 'postgresql':
@@ -35,6 +26,9 @@ abstract class DataBase extends LumaClasses
                 return new Sqlite($host);
             case 'sqlserver':
                 return new SqlServer($host, $dataBase, $user, $password);
+            case 'ibase':
+            case 'firebird':
+                return new Ibase($host, $user, $password, $dataBase);
             default:
                 throw new \InvalidArgumentException("Unsupported database type: {$type}");
         }
@@ -42,19 +36,14 @@ abstract class DataBase extends LumaClasses
 }
 
 /**
- * Classe de conexão e execução de queries para MySQL com MySQLi.
+ * MySQLi
  */
 class Mysql
 {
     private \mysqli $mysql;
     private string $charset = 'utf8mb4';
+    private array $lastResult = [];
 
-    /**
-     * @param string $host
-     * @param string $user
-     * @param string $password
-     * @param string $dataBase
-     */
     public function __construct(string $host, string $user, $password, string $dataBase)
     {
         if (!class_exists('mysqli')) {
@@ -63,153 +52,212 @@ class Mysql
         $this->mysql = new \mysqli($host, $user, $password, $dataBase);
     }
 
-    public function __destruct()
-    {
-        if ($this->mysql) {
-            $this->mysql->close();
-        }
-    }
-
-    /**
-     * @param string $charset
-     */
     public function setCharset(string $charset): void
     {
         $this->charset = $charset;
         $this->mysql->set_charset($this->charset);
     }
 
-    /**
-     * @param string $query
-     * @param array $params
-     * @param array $types
-     * @return mixed
-     */
-    public function query(string $query, array $params = [], array $types = []): mixed
+    public function query(string $query, array $params = [], array $types = []): array|bool
     {
-        if ($this->mysql->connect_errno) {
-            throw new \RuntimeException("Connection failed: " . $this->mysql->connect_error);
-        }
-
         $stmt = $this->mysql->prepare($query);
-        if (!$stmt) {
-            throw new \RuntimeException("Prepare failed: " . $this->mysql->error);
-        }
+        if (!$stmt) throw new \RuntimeException("Prepare failed: " . $this->mysql->error);
 
-        if (!empty($params)) {
-            $stmt->bind_param(implode('', $types), ...$params);
-        }
-
-        if (!$stmt->execute()) {
-            throw new \RuntimeException("Execute failed: " . $stmt->error);
-        }
+        if (!empty($params)) $stmt->bind_param(implode('', $types), ...$params);
+        if (!$stmt->execute()) throw new \RuntimeException("Execute failed: " . $stmt->error);
 
         $result = $stmt->get_result();
-        return $result === false ? true : $result->fetch_all(MYSQLI_ASSOC);
+        $this->lastResult = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
+        return $this->lastResult ?: true;
     }
 
-    public function __debugInfo()
+    public function getInsertId(): int
     {
-        return ['LumynusBD' => 'DataBase'];
+        return $this->mysql->insert_id;
+    }
+
+    public function getAffectedRows(): int
+    {
+        return !empty($this->lastResult) ? count($this->lastResult) : $this->mysql->affected_rows;
     }
 }
 
 /**
- * Classe para conexão e execução de queries com PostgreSQL via PDO.
+ * PostgreSQL via PDO
  */
 class PostergreSql
 {
     private \PDO $pdo;
+    private array $lastResult = [];
 
-    /**
-     * @param string $host
-     * @param string $user
-     * @param string $password
-     * @param string $dataBase
-     */
     public function __construct(string $host, string $user, $password, string $dataBase)
     {
-        if (!class_exists('PDO')) {
-            throw new \RuntimeException("PDO extension is not available.");
-        }
         $this->pdo = new \PDO("pgsql:host=$host;dbname=$dataBase", $user, $password);
     }
 
-    /**
-     * @param string $query
-     * @param array $params
-     * @return mixed
-     */
-    public function query(string $query, array $params = []): mixed
+    public function query(string $query, array $params = []): array
     {
         $stmt = $this->pdo->prepare($query);
-        if (!$stmt) {
-            throw new \RuntimeException("Prepare failed: " . $this->pdo->errorInfo()[2]);
-        }
+        foreach ($params as $i => $v) $stmt->bindValue($i + 1, $v);
+        if (!$stmt->execute()) throw new \RuntimeException("Execute failed: " . $this->pdo->errorInfo()[2]);
 
-        foreach ($params as $key => $value) {
-            $stmt->bindValue($key + 1, $value);
-        }
+        $this->lastResult = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        return $this->lastResult;
+    }
 
-        if (!$stmt->execute()) {
-            throw new \RuntimeException("Execute failed: " . $stmt->errorInfo()[2]);
-        }
+    public function getInsertId(string $seqName = ''): int
+    {
+        return (int) $this->pdo->lastInsertId($seqName ?: null);
+    }
 
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    public function getAffectedRows(): int
+    {
+        return is_array($this->lastResult) ? count($this->lastResult) : 0;
     }
 }
 
 /**
- * Classe para conexão e execução de queries com SQLite via PDO.
+ * SQLite via PDO
  */
 class Sqlite
 {
     private \PDO $pdo;
+    private array $lastResult = [];
 
-    /**
-     * @param string $file Caminho para o arquivo SQLite
-     */
     public function __construct(string $file)
     {
         $this->pdo = new \PDO("sqlite:$file");
     }
 
-    public function query(string $query, array $params = []): mixed
+    public function query(string $query, array $params = []): array
     {
         $stmt = $this->pdo->prepare($query);
-        foreach ($params as $key => $value) {
-            $stmt->bindValue($key + 1, $value);
-        }
+        foreach ($params as $i => $v) $stmt->bindValue($i + 1, $v);
         $stmt->execute();
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $this->lastResult = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        return $this->lastResult;
+    }
+
+    public function getInsertId(): int
+    {
+        return (int) $this->pdo->lastInsertId();
+    }
+
+    public function getAffectedRows(): int
+    {
+        return is_array($this->lastResult) ? count($this->lastResult) : 0;
     }
 }
 
 /**
- * Classe para conexão com SQL Server via PDO.
+ * SQL Server via PDO
  */
 class SqlServer
 {
     private \PDO $pdo;
+    private array $lastResult = [];
 
-    /**
-     * @param string $host
-     * @param string $db
-     * @param string $user
-     * @param string $pass
-     */
     public function __construct(string $host, string $db, string $user, string $pass)
     {
         $this->pdo = new \PDO("sqlsrv:Server=$host;Database=$db", $user, $pass);
     }
 
-    public function query(string $query, array $params = []): mixed
+    public function query(string $query, array $params = []): array
     {
         $stmt = $this->pdo->prepare($query);
-        foreach ($params as $key => $value) {
-            $stmt->bindValue($key + 1, $value);
-        }
+        foreach ($params as $i => $v) $stmt->bindValue($i + 1, $v);
         $stmt->execute();
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $this->lastResult = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        return $this->lastResult;
+    }
+
+    public function getInsertId(): int
+    {
+        return (int) $this->pdo->lastInsertId();
+    }
+
+    public function getAffectedRows(): int
+    {
+        return is_array($this->lastResult) ? count($this->lastResult) : 0;
+    }
+}
+
+/**
+ * InterBase / Firebird via ibase_* functions
+ */
+class Ibase
+{
+    private $conn;
+    private array $lastResult = [];
+    private $lastStmt = null;
+
+    /**
+     * Construtor
+     */
+    public function __construct(string $host, string $user, $password, string $database)
+    {
+        $this->conn = ibase_connect("$host:$database", $user, $password);
+        if (!$this->conn) {
+            throw new \RuntimeException("Cannot connect to InterBase/Firebird: " . ibase_errmsg());
+        }
+    }
+
+    /**
+     * Executa uma query com prepared statements
+     */
+    public function query(string $query, array $params = []): array
+    {
+        if (!empty($params)) {
+            // Prepared statement
+            $stmt = ibase_prepare($this->conn, $query);
+            if (!$stmt) throw new \RuntimeException("Prepare failed: " . ibase_errmsg());
+
+            $res = ibase_execute($stmt, ...$params);
+            if (!$res) throw new \RuntimeException("Execute failed: " . ibase_errmsg());
+
+            $this->lastStmt = $stmt;
+        } else {
+            // Query simples sem parâmetros
+            $res = ibase_query($this->conn, $query);
+            if (!$res) throw new \RuntimeException("Query failed: " . ibase_errmsg());
+        }
+
+        // Captura resultado
+        $rows = [];
+        while ($row = ibase_fetch_assoc($res)) {
+            $rows[] = $row;
+        }
+        $this->lastResult = $rows;
+
+        return $rows;
+    }
+
+    /**
+     * Retorna o último ID gerado por um generator
+     * Atenção: substitua "GEN_TABLE" pelo nome real do generator
+     */
+    public function getInsertId(string $generator = 'GEN_TABLE'): int
+    {
+        $res = ibase_query($this->conn, "SELECT GEN_ID($generator, 0) AS ID FROM RDB\$DATABASE");
+        if (!$res) return 0;
+
+        $row = ibase_fetch_assoc($res);
+        return (int)($row['ID'] ?? 0);
+    }
+
+    /**
+     * Retorna o número de linhas afetadas
+     */
+    public function getAffectedRows(): int
+    {
+        // Se SELECT retornou linhas, conta o array
+        if (!empty($this->lastResult)) {
+            return count($this->lastResult);
+        }
+
+        // Para INSERT/UPDATE/DELETE
+        return ibase_affected_rows() ?: 0;
     }
 }

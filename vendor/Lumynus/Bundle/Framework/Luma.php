@@ -40,7 +40,7 @@ class Luma extends LumaClasses
         $cacheFile = $basePath . Config::getAplicationConfig()['path']['cache'] . 'views' . DIRECTORY_SEPARATOR . $view . '.php';
 
         if (!is_file($viewFile)) {
-            throw new \Exception("View not detected.");
+            throw new \Exception("View not detected: {$view}");
         }
 
         // Cria diretório de cache se não existir
@@ -72,7 +72,7 @@ class Luma extends LumaClasses
             file_put_contents($tmpFile, $compiled, LOCK_EX);
             rename($tmpFile, $cacheFile); // substituição atômica
         }
-        
+
 
         // Executa e captura a saída
         ob_start();
@@ -98,20 +98,24 @@ class Luma extends LumaClasses
      */
     private static function compile(string $template): string
     {
+        // Ordem importante: estruturas mais complexas primeiro
         $context = self::escape($template);
-        $context = self::ifelse($context);
-        $context = self::for($context);
+        $context = self::switch($context);    // switch antes de case/default/break
+        $context = self::case($context);
+        $context = self::default($context);
+        $context = self::break($context);
+        $context = self::processElseIf($context);  // elseif primeiro
+        $context = self::processElse($context);    // else segundo  
+        $context = self::processIf($context);      // if terceiro
+        $context = self::processEndIf($context);   // endif por último   // if/elseif/else
+        $context = self::for($context);       // loops
         $context = self::foreach($context);
         $context = self::while($context);
-        $context = self::switch($context);
-        $context = self::case($context);
-        $context = self::break($context);
-        $context = self::default($context);
-        $context = self::include($context);
+        $context = self::include($context);   // includes
         $context = self::use($context);
-        $context = self::js($context);
+        $context = self::js($context);        // assets
         $context = self::css($context);
-        $context = self::tokenCSRF($context);
+        $context = self::tokenCSRF($context); // security
 
         return $context;
     }
@@ -131,12 +135,12 @@ class Luma extends LumaClasses
 
             if ($second === null) {
                 // Só variável simples: {{ var }} - escapa por padrão
-                return '<?= htmlspecialchars(' . $first . ') ?>';
+                return '<?= htmlspecialchars(' . $first . ' ?? "") ?>';
             }
 
             // Se o primeiro é 'raw', sempre sem escape
             if ($first === 'raw') {
-                return '<?= ' . $second . ' ?>';
+                return '<?= ' . $second . ' ?? "" ?>';
             }
 
             // Verifica se o segundo parâmetro é "raw"
@@ -171,9 +175,9 @@ class Luma extends LumaClasses
 
             // Aplica escape se não for raw
             if ($isRaw) {
-                return '<?= ' . $output . ' ?>';
+                return '<?= ' . $output . ' ?? "" ?>';
             } else {
-                return '<?= htmlspecialchars(' . $output . ') ?>';
+                return '<?= htmlspecialchars(' . $output . ' ?? "") ?>';
             }
         }, $template);
     }
@@ -185,30 +189,27 @@ class Luma extends LumaClasses
      * @param string $template O template a ser processado
      * @return string O template com as diretivas convertidas para PHP
      */
-    private static function ifelse(string $template)
+    private static function processIf(string $template)
     {
-        // Primeiro processa @elseif
-        $template = preg_replace_callback('/@if\s*\((.+?)\)(.*?)(?:@elseif\s*\((.+?)\)(.*?))*(?:@else(.*?))?@endif/s', function ($matches) {
-            $condition = $matches[1];
-            $trueBlock = $matches[2];
+        $template = preg_replace('/@if\s*\(([^)]+)\)/', '<?php if ($1): ?>', $template);
+        return $template;
+    }
 
-            $result = '<?php if (' . $condition . '): ?>' . $trueBlock;
+    private static function processElseIf(string $template)
+    {
+        $template = preg_replace('/@elseif\s*\(([^)]+)\)/', '<?php elseif ($1): ?>', $template);
+        return $template;
+    }
 
-            // Processa @elseif se existir
-            if (isset($matches[3])) {
-                $result .= '<?php elseif (' . $matches[3] . '): ?>' . $matches[4];
-            }
+    private static function processElse(string $template)
+    {
+        $template = preg_replace('/@else(?!\w)/', '<?php else: ?>', $template);
+        return $template;
+    }
 
-            // Processa @else se existir
-            if (isset($matches[5])) {
-                $result .= '<?php else: ?>' . $matches[5];
-            }
-
-            $result .= '<?php endif; ?>';
-
-            return $result;
-        }, $template);
-
+    private static function processEndIf(string $template)
+    {
+        $template = preg_replace('/@endif/', '<?php endif; ?>', $template);
         return $template;
     }
 
@@ -218,14 +219,35 @@ class Luma extends LumaClasses
      * @param string $template O template a ser processado
      * @return string O template com as diretivas convertidas para PHP
      */
-    private static function for(string $template)
+    private static function for($template)
     {
-        return preg_replace_callback('/@for\s*\((.+?)\)(.*?)@endfor/s', function ($matches) {
-            $condition = $matches[1];
-            $block = $matches[2];
+        $result = $template;
+        $changes = true;
+        $maxIterations = 10;
+        $iteration = 0;
 
-            return '<?php for (' . $condition . '): ?>' . $block . '<?php endfor; ?>';
-        }, $template);
+        while ($changes && $iteration < $maxIterations) {
+            $changes = false;
+            $iteration++;
+
+            $newResult = preg_replace_callback(
+                '/@for\s*\(([^)]+)\)((?:(?!@for\s*\().)*?)@endfor/s',
+                function ($matches) {
+                    $condition = $matches[1];
+                    $block = $matches[2];
+
+                    return '<?php for (' . $condition . '): ?>' . $block . '<?php endfor; ?>';
+                },
+                $result
+            );
+
+            if ($newResult !== $result) {
+                $changes = true;
+                $result = $newResult;
+            }
+        }
+
+        return $result;
     }
 
     /* Processa o template substituindo as diretivas do Lux por código PHP.
@@ -233,14 +255,45 @@ class Luma extends LumaClasses
      * @param string $template O template a ser processado
      * @return string O template com as diretivas convertidas para PHP
      */
+
     private static function foreach(string $template)
     {
-        return preg_replace_callback('/@foreach\s*\((.+?)\)(.*?)@endforeach/s', function ($matches) {
-            $condition = $matches[1];
-            $block = $matches[2];
+        $result = $template;
 
-            return '<?php foreach (' . $condition . '): ?>' . $block . '<?php endforeach; ?>';
-        }, $template);
+        while (strpos($result, '@foreach') !== false) {
+            $result = preg_replace_callback(
+                '/@foreach\s*\(([^)]+)\)(.*?)@endforeach/s',
+                function ($matches) {
+                    $condition = $matches[1];
+                    $content = $matches[2];
+
+                    // Verifica se há foreach aninhado no conteúdo
+                    $level = 0;
+                    $chars = str_split($content);
+                    $processedContent = '';
+                    $i = 0;
+
+                    while ($i < count($chars)) {
+                        if (substr($content, $i, 8) === '@foreach') {
+                            $level++;
+                        } elseif (substr($content, $i, 11) === '@endforeach') {
+                            $level--;
+                            if ($level < 0) {
+                                // Este @endforeach pertence ao foreach atual
+                                break;
+                            }
+                        }
+                        $processedContent .= $chars[$i];
+                        $i++;
+                    }
+
+                    return '<?php foreach (' . $condition . '): ?>' . $processedContent . '<?php endforeach; ?>';
+                },
+                $result
+            );
+        }
+
+        return $result;
     }
 
     /**
@@ -251,12 +304,33 @@ class Luma extends LumaClasses
      */
     private static function while(string $template)
     {
-        return preg_replace_callback('/@while\s*\((.+?)\)(.*?)@endwhile/s', function ($matches) {
-            $condition = $matches[1];
-            $block = $matches[2];
+        $result = $template;
+        $changes = true;
+        $maxIterations = 10;
+        $iteration = 0;
 
-            return '<?php while (' . $condition . '): ?>' . $block . '<?php endwhile; ?>';
-        }, $template);
+        while ($changes && $iteration < $maxIterations) {
+            $changes = false;
+            $iteration++;
+
+            $newResult = preg_replace_callback(
+                '/@while\s*\(([^)]+)\)((?:(?!@while\s*\().)*?)@endwhile/s',
+                function ($matches) {
+                    $condition = $matches[1];
+                    $block = $matches[2];
+
+                    return '<?php while (' . $condition . '): ?>' . $block . '<?php endwhile; ?>';
+                },
+                $result
+            );
+
+            if ($newResult !== $result) {
+                $changes = true;
+                $result = $newResult;
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -271,10 +345,10 @@ class Luma extends LumaClasses
             $condition = $matches[1];
             $block = $matches[2];
 
-            // Processa @case e @default dentro do switch
-            $block = $this->case($block);
-            $block = $this->default($block);
-            $block = $this->break($block);
+            // ✅ CORRIGIDO: usar self:: em métodos estáticos
+            $block = self::case($block);
+            $block = self::default($block);
+            $block = self::break($block);
 
             return '<?php switch (' . $condition . '): ?>' . $block . '<?php endswitch; ?>';
         }, $template);
@@ -288,12 +362,7 @@ class Luma extends LumaClasses
      */
     private static function case(string $template)
     {
-        return preg_replace_callback('/@case\s*\((.+?)\)(.*?)(?=@case|@default|@endswitch)/s', function ($matches) {
-            $condition = $matches[1];
-            $block = $matches[2];
-
-            return '<?php case ' . $condition . ': ?>' . $block . '<?php break; ?>';
-        }, $template);
+        return preg_replace('/@case\s*\((.+?)\)/', '<?php case $1: ?>', $template);
     }
 
     /**
@@ -397,11 +466,7 @@ class Luma extends LumaClasses
      */
     private static function default(string $template)
     {
-        return preg_replace_callback('/@default(.*?)@enddefault/s', function ($matches) {
-            $block = $matches[1];
-
-            return '<?php default: ?>' . $block . '<?php break; ?>';
-        }, $template);
+        return preg_replace('/@default/', '<?php default: ?>', $template);
     }
 
     /**

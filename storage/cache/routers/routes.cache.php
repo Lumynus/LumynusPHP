@@ -3,30 +3,29 @@
 return array (
   'GET' => 
   array (
-    'test' => 
+    'test[string e, string v]' => 
     array (
       'controller' => 'App\\Controllers\\ControllerExample',
       'action' => 'index',
       'fieldsPermitted' => 
       array (
-        'e' => 'string',
-        'v' => 'string',
       ),
       'middlewares' => 
       array (
       ),
+      'api' => false,
     ),
-    'va' => 
+    'va[string e]' => 
     array (
       'controller' => 'App\\Controllers\\ControllerExample',
       'action' => 'teste4',
       'fieldsPermitted' => 
       array (
-        'e' => 'string',
       ),
       'middlewares' => 
       array (
       ),
+      'api' => false,
     ),
   ),
 );

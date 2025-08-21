@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\LumaClasses;
+use Lumynus\Bundle\Framework\Config;
 
 
 class ErrorTemplate extends LumaClasses
@@ -35,9 +36,9 @@ class ErrorTemplate extends LumaClasses
             'url' => $_SERVER['REQUEST_URI'] ?? 'N/A',
             'ip' => $_SERVER['REMOTE_ADDR'] ?? 'N/A',
             'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'N/A',
-            'lumynus_version' => '1.2.3',
+            'lumynus_version' => LumaClasses::VERSION,
             'node_version' => phpversion(),
-            'environment' => 'development',
+            'environment' => (Config::modeProduction() ? 'Production' : 'Development'),
             'memory_usage' => $this->formatBytes(memory_get_usage(true))
         ];
     }
@@ -50,9 +51,41 @@ class ErrorTemplate extends LumaClasses
      */
     public function render(array $data = []): string
     {
-        $mergedData = array_merge($this->defaultData, $data);
+        // Limpa output buffers
+        while (ob_get_level()) {
+            ob_end_clean();
+        }
 
-        return $this->replacePlaceholders($this->template, $mergedData);
+        $mergedData = array_merge($this->defaultData, $data);
+        $errorTemplate = $this->replacePlaceholders($this->template, $mergedData);
+
+        // Adiciona JavaScript de limpeza no início do template
+        $cleanupScript = '
+    <script>
+        // Executa imediatamente para limpar qualquer conteúdo anterior
+        (function() {
+            if (document.body) {
+                document.body.innerHTML = "";
+                document.body.className = "";
+            }
+            
+            // Remove qualquer CSS ou JS anterior
+            const existingStyles = document.querySelectorAll("style:not([data-error-template])");
+            existingStyles.forEach(style => style.remove());
+            
+            const existingScripts = document.querySelectorAll("script:not([data-error-template])");
+            existingScripts.forEach(script => {
+                if (!script.src.includes("error-template")) {
+                    script.remove();
+                }
+            });
+        })();
+    </script>';
+
+        // Adiciona o script no início do template
+        $cleanTemplate = str_replace('<head>', '<head>' . $cleanupScript, $errorTemplate);
+
+        return $cleanTemplate;
     }
 
     /**
@@ -184,17 +217,18 @@ class ErrorTemplate extends LumaClasses
             }
 
             :root {
-                --bg-primary: #f8fafc;
-                --bg-secondary: #ffffff;
-                --bg-tertiary: #f1f5f9;
-                --text-primary: #0f172a;
-                --text-secondary: #64748b;
-                --text-muted: #94a3b8;
-                --border-color: #e2e8f0;
+                --bg-primary: #ffffff;
+                --bg-secondary: #f8fafc;
+                --bg-tertiary: #e2e8f0;
+                --text-primary: #1e293b;
+                --text-secondary: #475569;
+                --text-muted: #64748b;
+                --border-color: #cbd5e1;
                 --error-color: #dc2626;
                 --accent-color: #3b82f6;
-                --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-                --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+                --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
             }
 
             [data-theme="dark"] {
@@ -207,19 +241,20 @@ class ErrorTemplate extends LumaClasses
                 --border-color: #334155;
                 --error-color: #ef4444;
                 --accent-color: #60a5fa;
-                --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
-                --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+                --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+                --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+                --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
             }
 
             body {
                 font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-                background-color: var(--bg-primary);
+                background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
                 color: var(--text-primary);
                 line-height: 1.6;
                 font-size: 14px;
                 padding: 20px;
                 min-height: 100vh;
-                transition: all 0.2s ease;
+                transition: all 0.3s ease;
             }
 
             .error-container {
@@ -227,17 +262,24 @@ class ErrorTemplate extends LumaClasses
                 margin: 0 auto;
                 display: flex;
                 flex-direction: column;
-                gap: 20px;
+                gap: 24px;
             }
 
             .error-header {
                 background: var(--bg-secondary);
-                border: 1px solid var(--border-color);
-                border-radius: 12px;
-                padding: 32px;
-                box-shadow: var(--shadow);
+                border: 2px solid var(--border-color);
+                border-radius: 16px;
+                padding: 40px;
+                box-shadow: var(--shadow-lg);
                 text-align: center;
                 position: relative;
+                backdrop-filter: blur(10px);
+            }
+
+            [data-theme="light"] .error-header {
+                background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+                border: 2px solid #e2e8f0;
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
             }
 
             .theme-toggle {
@@ -247,36 +289,62 @@ class ErrorTemplate extends LumaClasses
                 display: flex;
                 align-items: center;
                 gap: 8px;
-                background: var(--bg-tertiary);
-                border: 1px solid var(--border-color);
+                background: var(--bg-primary);
+                border: 2px solid var(--border-color);
                 color: var(--text-secondary);
-                padding: 8px 16px;
-                border-radius: 8px;
+                padding: 10px 18px;
+                border-radius: 10px;
                 cursor: pointer;
                 font-size: 14px;
-                transition: all 0.2s ease;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                box-shadow: var(--shadow-card);
             }
 
             .theme-toggle:hover {
-                background: var(--border-color);
-                transform: translateY(-1px);
+                background: var(--bg-tertiary);
+                transform: translateY(-2px);
+                box-shadow: var(--shadow);
+            }
+
+            [data-theme="light"] .theme-toggle {
+                background: #ffffff;
+                border: 2px solid #cbd5e1;
+                color: #475569;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            }
+
+            [data-theme="light"] .theme-toggle:hover {
+                background: #f1f5f9;
+                border-color: #94a3b8;
             }
 
             .framework-name {
                 font-size: 14px;
-                font-weight: 500;
+                font-weight: 600;
                 color: var(--text-muted);
                 text-transform: uppercase;
-                letter-spacing: 0.1em;
+                letter-spacing: 0.15em;
                 margin-bottom: 16px;
             }
 
-            .error-title {
-                font-size: 42px;
+            [data-theme="light"] .framework-name {
+                color: #64748b;
                 font-weight: 700;
+            }
+
+            .error-title {
+                font-size: 48px;
+                font-weight: 800;
                 color: var(--error-color);
                 margin-bottom: 16px;
                 line-height: 1.1;
+                text-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
+            }
+
+            [data-theme="light"] .error-title {
+                color: #dc2626;
+                text-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
             }
 
             .error-message {
@@ -287,55 +355,82 @@ class ErrorTemplate extends LumaClasses
                 max-width: 600px;
                 margin-left: auto;
                 margin-right: auto;
+                font-weight: 500;
+            }
+
+            [data-theme="light"] .error-message {
+                color: #475569;
+                font-weight: 600;
             }
 
             .error-location {
                 font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
                 font-size: 14px;
-                color: var(--text-muted);
-                background: var(--bg-tertiary);
-                padding: 12px 20px;
-                border-radius: 8px;
-                border: 1px solid var(--border-color);
+                color: var(--text-primary);
+                background: var(--bg-primary);
+                padding: 14px 24px;
+                border-radius: 10px;
+                border: 2px solid var(--border-color);
                 display: inline-block;
-                font-weight: 500;
+                font-weight: 600;
+                box-shadow: var(--shadow-card);
+            }
+
+            [data-theme="light"] .error-location {
+                background: #ffffff;
+                color: #1e293b;
+                border: 2px solid #cbd5e1;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             }
 
             .error-cards {
                 display: grid;
-                grid-template-columns: 1fr 2fr;
-                gap: 20px;
-            }
-
-            .error-sidebar {
-                display: flex;
-                flex-direction: column;
-                gap: 20px;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 24px;
             }
 
             .card {
                 background: var(--bg-secondary);
-                border: 1px solid var(--border-color);
-                border-radius: 12px;
+                border: 2px solid var(--border-color);
+                border-radius: 16px;
                 overflow: hidden;
-                box-shadow: var(--shadow);
-                transition: all 0.2s ease;
+                box-shadow: var(--shadow-card);
+                transition: all 0.3s ease;
+                backdrop-filter: blur(10px);
             }
 
             .card:hover {
                 box-shadow: var(--shadow-lg);
-                transform: translateY(-2px);
+                transform: translateY(-4px);
+                border-color: var(--accent-color);
+            }
+
+            [data-theme="light"] .card {
+                background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+                border: 2px solid #e2e8f0;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            }
+
+            [data-theme="light"] .card:hover {
+                box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+                border-color: #3b82f6;
             }
 
             .card-header {
                 background: var(--bg-tertiary);
-                padding: 16px 24px;
-                border-bottom: 1px solid var(--border-color);
-                font-weight: 600;
+                padding: 18px 24px;
+                border-bottom: 2px solid var(--border-color);
+                font-weight: 700;
                 font-size: 14px;
-                color: var(--text-secondary);
+                color: var(--text-primary);
                 text-transform: uppercase;
-                letter-spacing: 0.05em;
+                letter-spacing: 0.1em;
+            }
+
+            [data-theme="light"] .card-header {
+                background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+                color: #1e293b;
+                border-bottom: 2px solid #cbd5e1;
             }
 
             .card-content {
@@ -346,8 +441,17 @@ class ErrorTemplate extends LumaClasses
                 display: flex;
                 justify-content: space-between;
                 align-items: flex-start;
-                padding: 16px 24px;
+                padding: 18px 24px;
                 border-bottom: 1px solid var(--border-color);
+                transition: background-color 0.2s ease;
+            }
+
+            .card-item:hover {
+                background: var(--bg-primary);
+            }
+
+            [data-theme="light"] .card-item:hover {
+                background: #f8fafc;
             }
 
             .card-item:last-child {
@@ -356,10 +460,15 @@ class ErrorTemplate extends LumaClasses
 
             .card-label {
                 color: var(--text-secondary);
-                font-weight: 500;
+                font-weight: 600;
                 font-size: 14px;
                 min-width: 80px;
                 flex-shrink: 0;
+            }
+
+            [data-theme="light"] .card-label {
+                color: #475569;
+                font-weight: 700;
             }
 
             .card-value {
@@ -370,11 +479,21 @@ class ErrorTemplate extends LumaClasses
                 word-break: break-word;
                 margin-left: 16px;
                 line-height: 1.4;
-                font-weight: 500;
+                font-weight: 600;
+                background: var(--bg-tertiary);
+                padding: 6px 12px;
+                border-radius: 6px;
+            }
+
+            [data-theme="light"] .card-value {
+                color: #1e293b;
+                background: #f1f5f9;
+                font-weight: 700;
             }
 
             .stack-trace-card {
                 grid-column: 1 / -1;
+                margin-top: 8px;
             }
 
             .stack-trace {
@@ -388,8 +507,15 @@ class ErrorTemplate extends LumaClasses
                 max-height: 500px;
                 overflow-y: auto;
                 background: var(--bg-tertiary);
-                border-radius: 8px;
+                border-radius: 12px;
                 margin: 20px;
+                box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            [data-theme="light"] .stack-trace {
+                background: #f1f5f9;
+                color: #1e293b;
+                border: 1px solid #cbd5e1;
             }
 
             .stack-trace-empty {
@@ -397,6 +523,7 @@ class ErrorTemplate extends LumaClasses
                 text-align: center;
                 color: var(--text-muted);
                 font-style: italic;
+                font-weight: 500;
             }
 
             @media (max-width: 768px) {
@@ -405,17 +532,17 @@ class ErrorTemplate extends LumaClasses
                 }
 
                 .error-header {
-                    padding: 24px 20px;
+                    padding: 32px 24px;
                 }
 
                 .theme-toggle {
                     position: static;
-                    margin-bottom: 20px;
+                    margin-bottom: 24px;
                     align-self: flex-end;
                 }
 
                 .error-title {
-                    font-size: 32px;
+                    font-size: 36px;
                 }
 
                 .error-message {
@@ -424,42 +551,44 @@ class ErrorTemplate extends LumaClasses
 
                 .error-cards {
                     grid-template-columns: 1fr;
-                    gap: 16px;
+                    gap: 20px;
                 }
 
                 .card-item {
                     flex-direction: column;
                     align-items: flex-start;
-                    gap: 8px;
-                    padding: 16px 20px;
+                    gap: 12px;
+                    padding: 18px 20px;
                 }
 
                 .card-value {
                     text-align: left;
                     margin-left: 0;
+                    width: 100%;
                 }
 
                 .stack-trace {
                     margin: 16px;
-                    padding: 16px;
+                    padding: 20px;
                     max-height: 400px;
                 }
             }
 
             /* Custom scrollbar */
             ::-webkit-scrollbar {
-                width: 8px;
-                height: 8px;
+                width: 10px;
+                height: 10px;
             }
 
             ::-webkit-scrollbar-track {
                 background: var(--bg-tertiary);
-                border-radius: 4px;
+                border-radius: 6px;
             }
 
             ::-webkit-scrollbar-thumb {
                 background: var(--border-color);
-                border-radius: 4px;
+                border-radius: 6px;
+                border: 2px solid var(--bg-tertiary);
             }
 
             ::-webkit-scrollbar-thumb:hover {
@@ -467,10 +596,10 @@ class ErrorTemplate extends LumaClasses
             }
 
             /* Loading animation */
-            @keyframes fadeIn {
+            @keyframes fadeInUp {
                 from {
                     opacity: 0;
-                    transform: translateY(20px);
+                    transform: translateY(30px);
                 }
                 to {
                     opacity: 1;
@@ -479,13 +608,17 @@ class ErrorTemplate extends LumaClasses
             }
 
             .card {
-                animation: fadeIn 0.5s ease-out;
+                animation: fadeInUp 0.6s ease-out;
             }
 
             .card:nth-child(1) { animation-delay: 0.1s; }
             .card:nth-child(2) { animation-delay: 0.2s; }
             .card:nth-child(3) { animation-delay: 0.3s; }
             .card:nth-child(4) { animation-delay: 0.4s; }
+
+            .error-header {
+                animation: fadeInUp 0.6s ease-out;
+            }
         </style>
     </head>
     <body>
@@ -503,96 +636,122 @@ class ErrorTemplate extends LumaClasses
             </div>
 
             <div class="error-cards">
-                <div class="error-sidebar">
-                    <div class="card">
-                        <div class="card-header">Request</div>
-                        <div class="card-content">
-                            <div class="card-item">
-                                <span class="card-label">Method</span>
-                                <span class="card-value">{{http_method}}</span>
-                            </div>
-                            <div class="card-item">
-                                <span class="card-label">URL</span>
-                                <span class="card-value">{{url}}</span>
-                            </div>
-                            <div class="card-item">
-                                <span class="card-label">IP</span>
-                                <span class="card-value">{{ip}}</span>
-                            </div>
-                            <div class="card-item">
-                                <span class="card-label">Time</span>
-                                <span class="card-value">{{timestamp}}</span>
-                            </div>
+                <div class="card">
+                    <div class="card-header">Request</div>
+                    <div class="card-content">
+                        <div class="card-item">
+                            <span class="card-label">Method</span>
+                            <span class="card-value">{{http_method}}</span>
                         </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header">Environment</div>
-                        <div class="card-content">
-                            <div class="card-item">
-                                <span class="card-label">{{framework_name}}</span>
-                                <span class="card-value">{{lumynus_version}}</span>
-                            </div>
-                            <div class="card-item">
-                                <span class="card-label">PHP</span>
-                                <span class="card-value">{{node_version}}</span>
-                            </div>
-                            <div class="card-item">
-                                <span class="card-label">Environment</span>
-                                <span class="card-value">{{environment}}</span>
-                            </div>
-                            <div class="card-item">
-                                <span class="card-label">Memory</span>
-                                <span class="card-value">{{memory_usage}}</span>
-                            </div>
+                        <div class="card-item">
+                            <span class="card-label">URL</span>
+                            <span class="card-value">{{url}}</span>
                         </div>
-                    </div>
-
-                    <div class="card">
-                        <div class="card-header">Context</div>
-                        <div class="card-content">
-                            <div class="card-item">
-                                <span class="card-label">Method</span>
-                                <span class="card-value">{{method}}</span>
-                            </div>
-                            <div class="card-item">
-                                <span class="card-label">User Agent</span>
-                                <span class="card-value">{{user_agent}}</span>
-                            </div>
+                        <div class="card-item">
+                            <span class="card-label">IP</span>
+                            <span class="card-value">{{ip}}</span>
+                        </div>
+                        <div class="card-item">
+                            <span class="card-label">Time</span>
+                            <span class="card-value">{{timestamp}}</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="card">
-                    <div class="card-header">Stack Trace</div>
-                    <div class="stack-trace">{{stack_trace}}</div>
+                    <div class="card-header">Environment</div>
+                    <div class="card-content">
+                        <div class="card-item">
+                            <span class="card-label">{{framework_name}}</span>
+                            <span class="card-value">{{lumynus_version}}</span>
+                        </div>
+                        <div class="card-item">
+                            <span class="card-label">PHP</span>
+                            <span class="card-value">{{node_version}}</span>
+                        </div>
+                        <div class="card-item">
+                            <span class="card-label">Environment</span>
+                            <span class="card-value">{{environment}}</span>
+                        </div>
+                        <div class="card-item">
+                            <span class="card-label">Memory</span>
+                            <span class="card-value">{{memory_usage}}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">Context</div>
+                    <div class="card-content">
+                        <div class="card-item">
+                            <span class="card-label">Method</span>
+                            <span class="card-value">{{method}}</span>
+                        </div>
+                        <div class="card-item">
+                            <span class="card-label">User Agent</span>
+                            <span class="card-value">{{user_agent}}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <script>
-    function cleanBodyKeepErrorContainerAndStyle() {
-        const errorContainer = document.querySelector(".error-container");
-        if (!errorContainer) return;
-
-        const bodyChildren = Array.from(document.body.childNodes);
-
-        for (const node of bodyChildren) {
-            // Se não for a error-container nem uma tag <style>, remove
-            if (node !== errorContainer && !(node.nodeType === 1 && node.tagName.toLowerCase() === "style")) {
-                node.remove();
+        function toggleTheme() {
+            const html = document.documentElement;
+            const themeIcon = document.getElementById("theme-icon");
+            const themeText = document.getElementById("theme-text");
+            
+            const currentTheme = html.getAttribute("data-theme");
+            
+            if (currentTheme === "dark") {
+                html.setAttribute("data-theme", "light");
+                themeIcon.textContent = "🌙";
+                themeText.textContent = "Modo Escuro";
+                localStorage.setItem("theme", "light");
+            } else {
+                html.setAttribute("data-theme", "dark");
+                themeIcon.textContent = "☀️";
+                themeText.textContent = "Modo Claro";
+                localStorage.setItem("theme", "dark");
             }
         }
-    }
 
-    window.addEventListener("DOMContentLoaded", () => {
-        cleanBodyKeepErrorContainerAndStyle();
-    });
-</script>
+        function cleanBodyKeepErrorContainerAndStyle() {
+            const errorContainer = document.querySelector(".error-container");
+            if (!errorContainer) return;
 
+            const bodyChildren = Array.from(document.body.childNodes);
 
+            for (const node of bodyChildren) {
+                if (node !== errorContainer && !(node.nodeType === 1 && node.tagName.toLowerCase() === "style")) {
+                    node.remove();
+                }
+            }
+        }
+
+        // Load saved theme
+        window.addEventListener("DOMContentLoaded", () => {
+            cleanBodyKeepErrorContainerAndStyle();
+            
+            const savedTheme = localStorage.getItem("theme");
+            const html = document.documentElement;
+            const themeIcon = document.getElementById("theme-icon");
+            const themeText = document.getElementById("theme-text");
+            
+            if (savedTheme === "light") {
+                html.setAttribute("data-theme", "light");
+                themeIcon.textContent = "🌙";
+                themeText.textContent = "Modo Escuro";
+            } else {
+                html.setAttribute("data-theme", "dark");
+                themeIcon.textContent = "☀️";
+                themeText.textContent = "Modo Claro";
+            }
+        });
+        </script>
     </body>
-    </html>';
+</html>';
     }
 
     /**
