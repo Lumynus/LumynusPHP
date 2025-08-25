@@ -27,11 +27,12 @@ abstract class LumynusController extends LumaClasses
      *
      * @param string $view Nome da view a ser renderizada.
      * @param array $data Dados a serem passados para a view.
+     * @param bool $regenerateCSRF Informa se deseja regernar o CSRF na view
      * @return string Retorna o conteúdo renderizado da view.
      */
-    protected function renderView(string $view, array $data = []): string
+    protected function renderView(string $view, array $data = [], bool $regenerateCSRF = true): string
     {
-        return Luma::render($view, $data);
+        return Luma::render($view, $data, $regenerateCSRF);
     }
 
     /**
@@ -112,7 +113,8 @@ abstract class LumynusController extends LumaClasses
      * Método para obter a instância da classe Encryption
      * @return Encryption Retorna uma nova instância da classe Encryption
      */
-    protected function encrypt() : Encryption {
+    protected function encrypt(): Encryption
+    {
         return new Encryption();
     }
 

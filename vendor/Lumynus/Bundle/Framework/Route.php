@@ -8,6 +8,7 @@ use Lumynus\Bundle\Framework\ErrorTemplate;
 use Lumynus\Bundle\Framework\Config;
 use Lumynus\Bundle\Framework\LumaClasses;
 use Lumynus\Templates\Errors;
+use Lumynus\Bundle\Framework\Logs;
 
 /**
  * Classe responsável pelo gerenciamento de rotas no framework Lumynus.
@@ -66,6 +67,12 @@ class Route extends LumaClasses
      * @param string $route Rota com ou sem definição de campos entre colchetes.
      * @return array Um array contendo [rota limpa, campos permitidos].
      */
+    /**
+     * Analisa a string da rota e extrai os campos permitidos e seus tipos.
+     *
+     * @param string $route Rota com ou sem definição de campos entre colchetes.
+     * @return array Um array contendo [rota limpa, campos permitidos].
+     */
     private static function parseRouteFields(string $route): array
     {
         $fieldsPermitted = [];
@@ -78,7 +85,7 @@ class Route extends LumaClasses
             $cleanRoute = str_replace('{api}', '', $cleanRoute);
         }
 
-        if (preg_match('/^(.?)\[(.?)\]$/', $cleanRoute, $matches)) {
+        if (preg_match('/^(.*?)\[(.*?)\]$/', $cleanRoute, $matches)) {
             $cleanRoute = $matches[1];
             $fieldsRaw = trim($matches[2]);
 
@@ -87,10 +94,12 @@ class Route extends LumaClasses
             } elseif (preg_match('/^(string|int|float|bool)\s+\*$/', $fieldsRaw, $typeMatch)) {
                 $fieldsPermitted = ['*' => $typeMatch[1]];
             } else {
-                $fields = explode(',', $fieldsRaw);
+
+                $fields = preg_split('/\s*,\s*/', $fieldsRaw); // Remove espaços ao redor das vírgulas
                 foreach ($fields as $field) {
-                    if (preg_match('/(\w+)\s+(\w+)/', trim($field), $fieldMatch)) {
-                        [$_, $type, $name] = $fieldMatch;
+                    $field = trim($field);
+                    if (preg_match('/^(string|int|float|bool)\s+(\w+)$/', $field, $fieldMatch)) {
+                        [, $type, $name] = $fieldMatch;
                         $fieldsPermitted[$name] = $type;
                     }
                 }
@@ -352,7 +361,7 @@ class Route extends LumaClasses
     private static function loadRoutesFromCache(): bool
     {
         $basePath = Config::pathProject();
-        $cacheFile = $basePath . Config::getAplicationConfig()['path']['cache'] . 'routers ' . DIRECTORY_SEPARATOR . 'routes.cache.php';
+        $cacheFile = $basePath . Config::getAplicationConfig()['path']['cache'] . 'routers' . DIRECTORY_SEPARATOR . 'routes.cache.php';
 
         if (!file_exists($cacheFile)) {
             return false;
@@ -441,6 +450,9 @@ class Route extends LumaClasses
         $validation = self::validateParams($params, $routeConfig['fieldsPermitted']);
 
         if (!$validation['valid']) {
+            Logs::register("Validation Params", [
+                'Message' => 'Invalid fields sent. Some parameters are not allowed.'
+            ]);
             self::throwError('Forbidden', 403, 'html');
             return;
         }
@@ -471,7 +483,12 @@ class Route extends LumaClasses
             }
 
             if (!$token || CSRF::isValidToken($token) === false) {
-                self::throwError('Forbidden', 403, 'html');
+                Logs::register("CSRF Token Mismatch Error", [
+                    'Sent Token'    => $token,
+                    'Session Token' => CSRF::getToken(),
+                    'Message'       => 'The token sent does not match the session token. Possible CSRF attack or session expired.'
+                ]);
+                self::throwError('Page Expired', 419, 'html');
                 return;
             }
         }
@@ -505,12 +522,15 @@ class Route extends LumaClasses
                 $returnMidd = call_user_func_array([$middleware, $midd['action']], [$customizeParamsPosts]);
 
                 if ($returnMidd === false) {
+                    Logs::register("System Interrupted", [
+                        'Code'    => 403,
+                        'Message' => 'Request blocked by middleware: user is not authorized or action is forbidden.'
+                    ]);
                     self::throwError('Forbidden', 403, 'html');
                     return;
                 }
             }
         }
-
 
         // Se chegou aqui, significa que a rota é válida e os middlewares passaram
         // Instancia o controlador e chama a ação correspondente
@@ -526,7 +546,11 @@ class Route extends LumaClasses
                 [$customizeParamsPosts, ($returnMidd !== null && $returnMidd !== false) ? $returnMidd : null]
             );
         } else {
-            self::throwError('Forbidden', 403, 'html');
+            Logs::register("System Interrupted", [
+                'Code'    => 500,
+                'Message' => 'The system encountered an error and cannot process the request.'
+            ]);
+            self::throwError('Internal server error', 500, 'html');
         }
     }
 

@@ -6,6 +6,7 @@ namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\LumaClasses;
 use Lumynus\Bundle\Framework\Config;
+use Lumynus\Bundle\Framework\CSRF;
 
 
 class Luma extends LumaClasses
@@ -25,9 +26,10 @@ class Luma extends LumaClasses
      *
      * @param string $view Caminho relativo da view dentro de src/views/
      * @param array $data Dados a serem passados para a view
+     * @param bool $refenerateCSRF Informa se o token deve ser regenerado
      * @return string Conteúdo renderizado da view
      */
-    public static function render(string $view, array $data = []): string
+    public static function render(string $view, array $data = [], bool $regenerateCSRF = true): string
     {
         if (in_array($view, self::$viewStack)) {
             throw new \Exception("Loop detected: the view '$view' is already being rendered.");
@@ -46,13 +48,14 @@ class Luma extends LumaClasses
         // Cria diretório de cache se não existir
         $cacheDir = dirname($cacheFile);
         if (!is_dir($cacheDir)) {
-            mkdir($cacheDir, 0777, true);
+            mkdir($cacheDir, 0755, true);
         }
 
         //TokenCSRF
         if (Config::getAplicationConfig()['security']['csrf']['enabled'] === true) {
             $data['nameCSRF'] = Config::getAplicationConfig()['security']['csrf']['nameToken'];
-            $data['tokenSecurityCSRF'] = \Lumynus\Bundle\Framework\CSRF::generateToken();
+            $data['tokenSecurityCSRF'] = $regenerateCSRF == true ? \Lumynus\Bundle\Framework\CSRF::generateToken()
+                : CSRF::getToken();
         }
 
         // Cria variáveis com base nos dados
@@ -108,6 +111,10 @@ class Luma extends LumaClasses
         $context = self::processElse($context);    // else segundo  
         $context = self::processIf($context);      // if terceiro
         $context = self::processEndIf($context);   // endif por último   // if/elseif/else
+        $context = self::exists($context);
+        $context = self::endExists($context);
+        $context = self::not($context);
+        $context = self::endNot($context);
         $context = self::for($context);       // loops
         $context = self::foreach($context);
         $context = self::while($context);
@@ -195,18 +202,113 @@ class Luma extends LumaClasses
         return $template;
     }
 
+    /**
+     * Converte a diretiva @exist(...) em um bloco PHP if.
+     *
+     * Exemplo no template:
+     *   @exist($user)
+     *   ...
+     *   @endexist
+     *
+     * @param string $template O conteúdo do template a ser processado
+     * @return string Template processado com o PHP if correspondente
+     */
+    private static function exists(string $template)
+    {
+        $template = preg_replace(
+            '/@exist\s*\((.+?)\)/',
+            '<?php if (!empty(\1)): ?>',
+            $template
+        );
+
+        return $template;
+    }
+
+    /**
+     * Converte a diretiva @endexist em <?php endif; ?>
+     *
+     * @param string $template O conteúdo do template a ser processado
+     * @return string Template processado com o fechamento do bloco if
+     */
+    private static function endExists(string $template)
+    {
+        $template = preg_replace('/@endexist/', '<?php endif; ?>', $template);
+        return $template;
+    }
+
+    /**
+     * Converte a diretiva @not(...) em um bloco PHP if negado.
+     *
+     * Executa o bloco se a variável:
+     * - Não existir
+     * - Estiver vazia
+     * - For array/Countable e tiver contagem zero
+     *
+     * Exemplo no template:
+     *   @not($users)
+     *   Nenhum usuário
+     *   @endnot
+     *
+     * @param string $template O conteúdo do template a ser processado
+     * @return string Template processado com o PHP if negado
+     */
+    private static function not(string $template)
+    {
+        $template = preg_replace(
+            '/@not\s*\((.+?)\)/',
+            '<?php if (!isset(\1) || empty(\1) || (is_array(\1) || \1 instanceof Countable ? count(\1) == 0 : false)): ?>',
+            $template
+        );
+
+        return $template;
+    }
+
+    /**
+     * Converte a diretiva @endnot em <?php endif; ?>
+     *
+     * @param string $template O conteúdo do template a ser processado
+     * @return string Template processado com o fechamento do bloco if
+     */
+    private static function endNot(string $template)
+    {
+        $template = preg_replace('/@endnot/', '<?php endif; ?>', $template);
+        return $template;
+    }
+
+    /**
+     * Converte a diretiva @elseif(...) em um bloco PHP elseif.
+     *
+     * Exemplo no template:
+     *   @elseif($user['age'] > 18)
+     *
+     * @param string $template O conteúdo do template a ser processado
+     * @return string Template processado com o PHP elseif
+     */
     private static function processElseIf(string $template)
     {
         $template = preg_replace('/@elseif\s*\(([^)]+)\)/', '<?php elseif ($1): ?>', $template);
         return $template;
     }
 
+    /**
+     * Converte a diretiva @else em um bloco PHP else.
+     *
+     * @param string $template O conteúdo do template a ser processado
+     * @return string Template processado com o PHP else
+     */
     private static function processElse(string $template)
     {
         $template = preg_replace('/@else(?!\w)/', '<?php else: ?>', $template);
         return $template;
     }
 
+
+    /**
+     * Converte a diretiva @endif em <?php endif; ?>
+     *
+     * @param string $template O conteúdo do template a ser processado
+     * @return string Template processado com o fechamento do bloco if
+     */
     private static function processEndIf(string $template)
     {
         $template = preg_replace('/@endif/', '<?php endif; ?>', $template);
@@ -536,7 +638,7 @@ class Luma extends LumaClasses
             // Cria diretório de cache se não existir
             $cacheDir = dirname($cacheFile);
             if (!is_dir($cacheDir)) {
-                mkdir($cacheDir, 0777, true);
+                mkdir($cacheDir, 0755, true);
             }
 
             // Compila se necessário

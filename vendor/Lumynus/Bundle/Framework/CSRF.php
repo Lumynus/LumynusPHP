@@ -62,4 +62,17 @@ class CSRF extends LumaClasses
         $sessionToken = self::session()->get($name);
         return hash_equals($sessionToken, $token);
     }
+
+    /**
+     * Recupera Token salvo
+     *
+     * @return string O token CSRF gerado.
+     */
+    public static function getToken(): string|null
+    {
+        return
+            self::session()->get(
+                Config::getAplicationConfig()['security']['csrf']['nameToken']
+            ) ?? null;
+    }
 }
