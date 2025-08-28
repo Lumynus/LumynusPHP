@@ -14,6 +14,9 @@ use Lumynus\Bundle\Framework\Brasil;
 use Lumynus\Bundle\Framework\Requirements;
 use Lumynus\Bundle\Framework\Regex;
 use Lumynus\Bundle\Framework\Encryption;
+use Lumynus\Bundle\Framework\Validate;
+use Lumynus\Bundle\Framework\QueueManager;
+use Lumynus\Bundle\Framework\Logs;
 
 /**
  * Trait com métodos utilitários comuns do framework Lumynus.
@@ -22,7 +25,6 @@ use Lumynus\Bundle\Framework\Encryption;
 trait LumynusTools
 {
     use Requirements;
-
 
     protected function sessions(bool $autostart = true): Sessions
     {
@@ -67,6 +69,21 @@ trait LumynusTools
     protected function encrypt(): Encryption
     {
         return new Encryption();
+    }
+
+    protected function validate(): Validate
+    {
+        return new Validate();
+    }
+
+    protected function queue(): QueueManager
+    {
+        return new QueueManager();
+    }
+
+    protected function logs(): Logs
+    {
+        return new Logs();
     }
 
     public function __debugInfo(): array

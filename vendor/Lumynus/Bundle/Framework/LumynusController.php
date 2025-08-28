@@ -16,6 +16,9 @@ use Lumynus\Bundle\Framework\Brasil;
 use Lumynus\Bundle\Framework\Requirements;
 use Lumynus\Bundle\Framework\Regex;
 use Lumynus\Bundle\Framework\Encryption;
+use Lumynus\Bundle\Framework\Validate;
+use Lumynus\Bundle\Framework\QueueManager;
+use Lumynus\Bundle\Framework\Logs;
 
 abstract class LumynusController extends LumaClasses
 {
@@ -118,6 +121,32 @@ abstract class LumynusController extends LumaClasses
         return new Encryption();
     }
 
+    /**
+     * Método para obter a instância da classe Validate.
+     * @return Validate Retorna uma nova instância da classe Validate.
+     */
+    protected function validate() : Validate
+    {
+        return new Validate();
+    }
+
+    /**
+     * Método para obter a instância da classe Queue.
+     * @return Queue Retorna uma nova instância da classe Queue.
+     */
+    protected function queue(): QueueManager
+    {
+        return new QueueManager();
+    }
+
+    /**
+     * Método para obter a instância da classe Logs.
+     * @return Logs Retorna uma nova instância da classe Logs.
+     */
+    protected function logs() : Logs
+    {
+        return new Logs();
+    }
 
     /**
      * Método para obter a instância da classe Luma.

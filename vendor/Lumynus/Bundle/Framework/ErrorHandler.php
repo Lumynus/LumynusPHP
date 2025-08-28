@@ -10,12 +10,10 @@ use Lumynus\Templates\Errors;
 
 class ErrorHandler extends LumaClasses
 {
-
     use Errors;
 
     /**
      * Registra manipuladores de erros e exceções para o framework Lumynus.
-     * Define como os erros e exceções serão tratados, renderizando um template de erro.
      *
      * @return void
      */
@@ -26,76 +24,96 @@ class ErrorHandler extends LumaClasses
         if (!$configFile || !isset($configFile['app']['debug'])) {
             $fileConfigured = false;
             $callback($fileConfigured);
-            print('Aplicattion is not in debug mode. Error handler is not registered. Configure your config.ini file to enable debug mode.');
+            print('Application is not in debug mode. Error handler is not registered. Configure your config.ini file to enable debug mode.');
             return;
-        } else {
-
-
-
-            $callback($fileConfigured);
-
-            set_exception_handler(function ($e) use ($configFile) {
-                http_response_code(500);
-
-                if (isset($configFile['app']['debug']) && ($configFile['app']['debug'] === 'true' || $configFile['app']['debug'] == '1')) {
-                    echo self::error()->render([
-                        'error_message' => $e->getMessage(),
-                        'error_type' => get_class($e),
-                        'file' => $e->getFile(),
-                        'line' => $e->getLine(),
-                        'error_code' => 500
-                    ]);
-                    exit;
-                } else {
-                    self::throwError('Internal Server Error', 500, 'html');
-                }
-
-                exit;
-            });
-
-            set_error_handler(function ($severity, $message, $file, $line) use ($configFile) {
-                http_response_code(500);
-                if (isset($configFile['app']['debug']) && ($configFile['app']['debug'] === 'true' || $configFile['app']['debug'] == '1')) {
-                    echo self::error()->render([
-                        'error_message' => $message,
-                        'error' => $severity,
-                        'file' => $file,
-                        'line' => $line,
-                        'error_code' => 500
-                    ]);
-                    exit;
-                } else {
-                    self::throwError('Internal Server Error', 500, 'html');
-                }
-                exit;
-            });
-
-            register_shutdown_function(function () use ($configFile) {
-                $error = error_get_last();
-
-                if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
-                    http_response_code(500);
-                    if (isset($configFile['app']['debug']) && ($configFile['app']['debug'] === 'true' || $configFile['app']['debug'] == '1')) {
-                        echo self::error()->render([
-                            'error_message' => $error['message'],
-                            'error' => 'Fatal error caught',
-                            'file' => $error['file'],
-                            'line' => $error['line'],
-                            'error_code' => 500
-                        ]);
-                        exit;
-                    } else {
-                        self::throwError('Internal Server Error', 500, 'html');
-                    }
-                    exit;
-                }
-            });
         }
+
+        $callback($fileConfigured);
+
+        /**
+         * Função auxiliar para decidir o formato de resposta
+         */
+        $renderError = function (array $data, bool $debug, int $statusCode = 500) {
+            http_response_code($statusCode);
+
+            $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
+            $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+
+            // Decide se deve responder em JSON
+            $wantsJson = (
+                stripos($accept, 'application/json') !== false ||
+                stripos($contentType, 'application/json') !== false
+            );
+
+            if ($wantsJson) {
+                header('Content-Type: application/json; charset=utf-8');
+                if ($debug) {
+                    echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                } else {
+                    echo json_encode([
+                        'error' => 'Internal Server Error',
+                        'code'  => $statusCode
+                    ]);
+                }
+            } else {
+                // fallback para HTML
+                if ($debug) {
+                    echo self::error()->render($data);
+                } else {
+                    self::throwError('Internal Server Error', $statusCode, 'html');
+                }
+            }
+            exit;
+        };
+
+        set_exception_handler(function ($e) use ($configFile, $renderError) {
+            $debug = ($configFile['app']['debug'] === 'true' || $configFile['app']['debug'] == '1');
+
+            $data = [
+                'error_message' => $e->getMessage(),
+                'error_type'    => get_class($e),
+                'file'          => $e->getFile(),
+                'line'          => $e->getLine(),
+                'error_code'    => 500
+            ];
+
+            $renderError($data, $debug, 500);
+        });
+
+        set_error_handler(function ($severity, $message, $file, $line) use ($configFile, $renderError) {
+            $debug = ($configFile['app']['debug'] === 'true' || $configFile['app']['debug'] == '1');
+
+            $data = [
+                'error_message' => $message,
+                'error'         => $severity,
+                'file'          => $file,
+                'line'          => $line,
+                'error_code'    => 500
+            ];
+
+            $renderError($data, $debug, 500);
+        });
+
+        register_shutdown_function(function () use ($configFile, $renderError) {
+            $error = error_get_last();
+            $debug = ($configFile['app']['debug'] === 'true' || $configFile['app']['debug'] == '1');
+
+            if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+                $data = [
+                    'error_message' => $error['message'],
+                    'error'         => 'Fatal error caught',
+                    'file'          => $error['file'],
+                    'line'          => $error['line'],
+                    'error_code'    => 500
+                ];
+
+                $renderError($data, $debug, 500);
+            }
+        });
     }
 
     /**
      * Retorna uma instância de ErrorTemplate.
-     * Método auxiliar para facilitar a criação de templates de erro.
      *
      * @return ErrorTemplate
      */
@@ -105,8 +123,7 @@ class ErrorHandler extends LumaClasses
     }
 
     /**
-     * Método para obter a instância da classe Luma.
-     * @return Luma Retorna uma nova instância da classe Luma.
+     * Informações de debug da classe
      */
     public function __debugInfo(): array
     {

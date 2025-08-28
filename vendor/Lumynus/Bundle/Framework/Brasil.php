@@ -123,7 +123,7 @@ class Brasil extends LumaClasses
     }
 
     /**
-     * Converte uma data no formato brasileiro (d/m/Y) para o formato SQL (Y-m-d).
+     * Converte uma data no formato sql (Y-m-d) para o formato BRL (d/m/Y).
      *
      * @param string $data A data no formato brasileiro.
      * @return string A data no formato SQL.

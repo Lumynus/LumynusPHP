@@ -61,8 +61,11 @@ class Validate extends LumaClasses
 
             // Maximum validation
             if (isset($rule['max'])) {
-                if (is_string($value) && mb_strlen($value) > $rule['max']) {
-                    $errors[$field][] = "Maximum length is {$rule['max']} characters.";
+                if ($rule['type'] === 'string') {
+                    $stringValue = (string) $value;
+                    if (mb_strlen($stringValue) > $rule['max']) {
+                        $errors[$field][] = "Maximum length is {$rule['max']} characters.";
+                    }
                 } elseif (is_numeric($value) && $value > $rule['max']) {
                     $errors[$field][] = "Maximum allowed value is {$rule['max']}.";
                 }

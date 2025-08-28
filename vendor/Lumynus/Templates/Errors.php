@@ -15,7 +15,9 @@ trait Errors
     public static function throwError(string|array|null $message = null, int $code = 500, ?string $forceType = null): void
     {
         http_response_code($code);
+
         $accept = $_SERVER['HTTP_ACCEPT'] ?? '*/*';
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
 
         $message = $message ?? 'Occurred an error in application';
 
@@ -23,14 +25,14 @@ trait Errors
         if ($forceType !== null) {
             $type = strtolower($forceType);
         } else {
-            // Detecta pelo header Accept
-            if (str_contains($accept, 'application/json')) {
+            // Detecta pelo Content-Type ou Accept
+            if (str_contains($accept, 'application/json') || str_contains($contentType, 'application/json')) {
                 $type = 'json';
-            } elseif (str_contains($accept, 'application/xml') || str_contains($accept, 'text/xml')) {
+            } elseif (str_contains($accept, 'application/xml') || str_contains($contentType, 'application/xml') || str_contains($accept, 'text/xml')) {
                 $type = 'xml';
-            } elseif (str_contains($accept, 'application/javascript') || str_contains($accept, 'text/javascript')) {
+            } elseif (str_contains($accept, 'application/javascript') || str_contains($accept, 'text/javascript') || str_contains($contentType, 'application/javascript')) {
                 $type = 'javascript';
-            } elseif (str_contains($accept, 'text/plain')) {
+            } elseif (str_contains($accept, 'text/plain') || str_contains($contentType, 'text/plain')) {
                 $type = 'plain';
             } else {
                 $type = 'html';
@@ -59,6 +61,7 @@ trait Errors
 
         exit;
     }
+
 
 
     // ===== Métodos privados por tipo =====
