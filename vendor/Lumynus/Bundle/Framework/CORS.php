@@ -4,9 +4,12 @@ declare(strict_types=1);
 namespace Lumynus\Bundle\Framework;
 use Lumynus\Bundle\Framework\ErrorTemplate;
 use Lumynus\Bundle\Framework\LumaClasses;
+use Lumynus\Templates\Errors;
 
 class CORS extends LumaClasses
 {
+
+    use Errors;
 
     /**
      * Origens permitidas para CORS.
@@ -109,8 +112,7 @@ class CORS extends LumaClasses
         $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
         if (!in_array($origin, $this->allowedOrigins)) {
-            http_response_code(403);
-            echo ErrorTemplate::getViewPath('403', 'php');
+            self::throwError('CORS origin not allowed', 403);
             return;
         }
 

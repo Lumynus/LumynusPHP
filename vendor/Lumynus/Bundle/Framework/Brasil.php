@@ -18,7 +18,7 @@ class Brasil extends LumaClasses
     public static function realBrasil(float|int $valor): string
     {
         if (is_numeric($valor)) {
-            return number_format(round($valor, 2), 2, '.', ',');
+            return number_format(round($valor, 2), 2, ',', '.');
         } else {
             return '0,00';
         }

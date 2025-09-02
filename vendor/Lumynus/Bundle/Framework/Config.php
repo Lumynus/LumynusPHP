@@ -52,8 +52,8 @@ class Config extends LumaClasses
                 "host" => "www.exemple.com"
             ],
             "path" => [
-                "js" => "./resources/js/",
-                "css" => "./resources/css/",
+                "js" => "/public/resources/js/",
+                "css" => "/public/resources/css/",
                 "img" => "./resources/img/",
                 "views" => "/src/views/",
                 "routers" => "/src/routers/",
@@ -67,11 +67,8 @@ class Config extends LumaClasses
                 "integrityAssets" => [
                     "enabled" => true
                 ]
-            ],
-            "pagesErrors" => [
-                "404" => "/src/views/errors/404",
-                "500" => "/src/views/errors/500"
             ]
+
         ];
     }
 
