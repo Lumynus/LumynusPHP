@@ -52,8 +52,8 @@ class Config extends LumaClasses
                 "host" => "www.exemple.com"
             ],
             "path" => [
-                "js" => "/public/resources/js/",
-                "css" => "/public/resources/css/",
+                "js" => "./resources/js/",
+                "css" => "./resources/css/",
                 "img" => "./resources/img/",
                 "views" => "/src/views/",
                 "routers" => "/src/routers/",
@@ -66,9 +66,14 @@ class Config extends LumaClasses
                 ],
                 "integrityAssets" => [
                     "enabled" => true
+                ],
+                "session" =>  [
+                    "secret" => "2025_trx$#@@lum@nysCryptSessionsDates"
+                ],
+                "cookie" => [
+                    "secret" => "2025_trx$#@@lum@nysCryptCookiesDates"
                 ]
             ]
-
         ];
     }
 

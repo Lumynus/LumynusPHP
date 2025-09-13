@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\LumaClasses;
+use Lumynus\Bundle\Framework\Config;
 
 class Sessions extends LumaClasses implements \Lumynus\Bundle\Contracts\SessionInterface
 {
 
     private bool $autostart = true;
+    private string $secret;
 
     /**
      * Constructor to initialize the session.
@@ -17,11 +19,12 @@ class Sessions extends LumaClasses implements \Lumynus\Bundle\Contracts\SessionI
     public function __construct(bool $autostart = true)
     {
         $this->autostart = $autostart;
+        $this->secret = Config::getAplicationConfig()['security']['session']['secret'] ?? 'LumynusApp';
         if (!$autostart) {
             return;
         }
         if (session_status() === PHP_SESSION_NONE) {
-            session_name('LumynusSession');
+            session_name('LumynusSession_' . Config::getAplicationConfig()['App']['nameApplication']);
 
             ini_set('session.use_trans_sid', 0);
             ini_set('session.use_only_cookies', 1);
@@ -29,11 +32,14 @@ class Sessions extends LumaClasses implements \Lumynus\Bundle\Contracts\SessionI
 
             session_set_cookie_params([
                 'lifetime' => 0,
-                'path' => '/',
+                'path' => Config::getAplicationConfig()['App']['host'],
                 'secure' => Config::modeProduction(),
                 'httponly' => Config::modeProduction(),
                 'samesite' => 'Strict'
             ]);
+
+            ini_set('session.use_strict_mode', Config::modeProduction());
+            ini_set('session.use_only_cookies', Config::modeProduction());
 
             session_start();
         }
@@ -47,7 +53,7 @@ class Sessions extends LumaClasses implements \Lumynus\Bundle\Contracts\SessionI
      */
     public function set(string $key, mixed $value): void
     {
-        $_SESSION[$key] = $value;
+        $_SESSION[$key] = $this->encrypt($value);
     }
 
     /**
@@ -57,7 +63,7 @@ class Sessions extends LumaClasses implements \Lumynus\Bundle\Contracts\SessionI
      */
     public function get(string $key): mixed
     {
-        return $_SESSION[$key] ?? null;
+        return isset($_SESSION[$key]) ? $this->decrypt($_SESSION[$key]) : null;
     }
 
     /**
@@ -86,6 +92,8 @@ class Sessions extends LumaClasses implements \Lumynus\Bundle\Contracts\SessionI
      */
     public function clear(): void
     {
+        $_SESSION = [];
+        setcookie(session_name(), '', time() - 3600, '/');
         session_destroy();
     }
 
@@ -113,7 +121,11 @@ class Sessions extends LumaClasses implements \Lumynus\Bundle\Contracts\SessionI
      */
     public function getAll(): array
     {
-        return $_SESSION;
+        $all = [];
+        foreach ($_SESSION as $key => $value) {
+            $all[$key] = $this->decrypt($value);
+        }
+        return $all;
     }
 
     /**
@@ -127,6 +139,29 @@ class Sessions extends LumaClasses implements \Lumynus\Bundle\Contracts\SessionI
             return;
         }
         $callback();
+    }
+
+    /**
+     * Criptografa um valor usando AES-256-CBC
+     */
+    private function encrypt(mixed $value): string
+    {
+        $serialized = serialize($value);
+        $iv = random_bytes(16);
+        $encrypted = openssl_encrypt($serialized, 'AES-256-CBC', $this->secret, 0, $iv);
+        return base64_encode($iv . $encrypted);
+    }
+
+    /**
+     * Descriptografa um valor
+     */
+    private function decrypt(string $data): mixed
+    {
+        $decoded = base64_decode($data);
+        $iv = substr($decoded, 0, 16);
+        $encrypted = substr($decoded, 16);
+        $decrypted = openssl_decrypt($encrypted, 'AES-256-CBC', $this->secret, 0, $iv);
+        return $decrypted !== false ? unserialize($decrypted) : null;
     }
 
     /**

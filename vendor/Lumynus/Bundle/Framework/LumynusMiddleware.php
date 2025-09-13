@@ -17,8 +17,8 @@ use Lumynus\Bundle\Framework\Requirements;
 use Lumynus\Bundle\Framework\Regex;
 use Lumynus\Bundle\Framework\Encryption;
 use Lumynus\Bundle\Framework\Validate;
-use Lumynus\Bundle\Framework\QueueManager;
 use Lumynus\Bundle\Framework\Logs;
+use Lumynus\Bundle\Framework\Cookies;
 
 abstract class LumynusMiddleware extends LumaClasses
 {
@@ -51,6 +51,15 @@ abstract class LumynusMiddleware extends LumaClasses
     }
 
     /**
+     * Método para obter a instância da classe Cookie.
+     * @return Cookie Retorna uma nova instância da classe Cookie.
+     */
+    protected function cookies(): Cookies
+    {
+        return new Cookies();
+    }
+
+    /**
      * Método para obter a instância da classe Response.
      * @return Response Retorna uma nova instância da classe Response.
      */
@@ -75,6 +84,24 @@ abstract class LumynusMiddleware extends LumaClasses
     protected function converter(): Converts
     {
         return new Converts();
+    }
+
+    /**
+     * Método para obter a instância da classe Validate.
+     * @return Validate Retorna uma nova instância da classe Validate.
+     */
+    protected function validate(): Validate
+    {
+        return new Validate();
+    }
+
+    /**
+     * Método para obter a instância da classe Logs.
+     * @return Logs Retorna uma nova instância da classe Logs.
+     */
+    protected function logs(): Logs
+    {
+        return new Logs;
     }
 
     /**
@@ -105,8 +132,8 @@ abstract class LumynusMiddleware extends LumaClasses
     }
 
     /**
-     * Método para obter a instância da classe CORS.
-     * @return CORS Retorna uma nova instância da classe CORS.
+     * Método para obter a instância da classe Regex.
+     * @return Regex Retorna uma nova instância da classe Regex.
      */
     protected function regex(): Regex
     {
@@ -120,33 +147,6 @@ abstract class LumynusMiddleware extends LumaClasses
     protected function encrypt(): Encryption
     {
         return new Encryption();
-    }
-
-    /**
-     * Método para obter a instância da classe Validate.
-     * @return Validate Retorna uma nova instância da classe Validate.
-     */
-    protected function validate() : Validate
-    {
-        return new Validate();
-    }
-
-    /**
-     * Método para obter a instância da classe Queue.
-     * @return Queue Retorna uma nova instância da classe Queue.
-     */
-    protected function queue(): QueueManager
-    {
-        return new QueueManager();
-    }
-
-    /**
-     * Método para obter a instância da classe Logs.
-     * @return Logs Retorna uma nova instância da classe Logs.
-     */
-    protected function logs() : Logs
-    {
-        return new Logs();
     }
 
     /**

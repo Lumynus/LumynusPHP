@@ -22,7 +22,13 @@
         "nameToken": "luma_csrf"
       },
       "integrityAssets": {
-        "enabled": true
+        "enabled": false
+      },
+      "session": {
+        "secret": "qrmida2025_txt444@session"
+      },
+      "cookie": {
+        "secret": "qrmida2025_txt444@cookie5"
       }
     }
   }
