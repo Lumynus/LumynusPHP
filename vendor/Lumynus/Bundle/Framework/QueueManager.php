@@ -18,7 +18,7 @@ use Lumynus\Bundle\Framework\Logs;
 class QueueManager extends LumaClasses
 {
     private string $queueDir = '';
-    
+
 
     /**
      * Construtor. Inicializa o diretório de filas baseado na configuração do projeto.
@@ -26,9 +26,9 @@ class QueueManager extends LumaClasses
      * @param bool $debug Habilita logs de debug
      * @throws \RuntimeException Se o diretório de filas não puder ser criado
      */
-    public function __construct(bool $debug = false)
+    public function __construct()
     {
-        $this->debug = $debug;
+
         $this->queueDir = Config::pathProject() . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'Lumynus' . DIRECTORY_SEPARATOR . 'Memory' . DIRECTORY_SEPARATOR . 'queues' . DIRECTORY_SEPARATOR;
 
         if (!is_dir($this->queueDir) && !mkdir($this->queueDir, 0755, true)) {
@@ -44,8 +44,19 @@ class QueueManager extends LumaClasses
      */
     private function getFilePath(string $file): string
     {
-        return $this->queueDir . pathinfo($file, PATHINFO_FILENAME) . '.ndjson';
+        // Remove diretórios e pega apenas o nome base
+        $filename = basename($file);
+
+        // Remove caracteres não permitidos (apenas letras, números, underscore e hífen)
+        $filename = preg_replace('/[^a-zA-Z0-9_\-]/', '', $filename);
+
+        if (empty($filename)) {
+            throw new \InvalidArgumentException("Invalid queue file name.");
+        }
+
+        return $this->queueDir . $filename . '.ndjson';
     }
+
 
     /**
      * Retorna o caminho completo do arquivo de lock correspondente.
@@ -73,22 +84,33 @@ class QueueManager extends LumaClasses
         }
 
         $filePath = $this->getFilePath($file);
-        $lockFile = $this->getLockPath($filePath);
-
-        if (!$this->acquireLock($lockFile)) {
-            $this->log("Could not acquire lock: {$lockFile}", 'error');
-            return false;
-        }
 
         try {
             $jsonLine = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
-
             if ($jsonLine === false) {
                 $this->log("JSON encode failed: " . json_last_error_msg(), 'error');
                 return false;
             }
 
-            $bytes = file_put_contents($filePath, $jsonLine . PHP_EOL, FILE_APPEND | LOCK_EX);
+            // Abre o arquivo em append (cria se não existir)
+            $fp = fopen($filePath, 'a');
+            if (!$fp) {
+                $this->log("File open failed: {$filePath}", 'error');
+                return false;
+            }
+
+            // Lock exclusivo (espera até liberar)
+            if (flock($fp, LOCK_EX)) {
+                $bytes = fwrite($fp, $jsonLine . PHP_EOL);
+                fflush($fp); // garante flush no disco
+                flock($fp, LOCK_UN);
+            } else {
+                $this->log("Could not acquire flock: {$filePath}", 'error');
+                fclose($fp);
+                return false;
+            }
+
+            fclose($fp);
 
             if ($bytes === false) {
                 $this->log("File write failed: {$filePath}", 'error');
@@ -100,10 +122,9 @@ class QueueManager extends LumaClasses
         } catch (\Throwable $e) {
             $this->log("Insert exception: " . $e->getMessage(), 'error');
             return false;
-        } finally {
-            $this->releaseLock($lockFile);
         }
     }
+
 
     /**
      * Remove linhas da fila que contenham uma chave com determinado valor.
@@ -122,13 +143,31 @@ class QueueManager extends LumaClasses
             return false;
         }
 
-        $lockFile = $this->getLockPath($filePath);
-        if (!$this->acquireLock($lockFile)) return false;
+        // Abre o arquivo para leitura e escrita
+        $fp = fopen($filePath, 'c+'); // 'c+' cria se não existir e permite leitura/escrita
+        if (!$fp) {
+            $this->log("Failed to open file: {$filePath}", 'error');
+            return false;
+        }
+
+        // Lock exclusivo (espera até liberar)
+        if (!flock($fp, LOCK_EX)) {
+            $this->log("Could not acquire flock: {$filePath}", 'error');
+            fclose($fp);
+            return false;
+        }
 
         try {
-            $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-            if ($lines === false) return false;
+            // Lê todas as linhas
+            $lines = [];
+            while (($line = fgets($fp)) !== false) {
+                $line = trim($line);
+                if ($line !== '') $lines[] = $line;
+            }
 
+            if (empty($lines)) return false;
+
+            // Filtra as linhas que NÃO correspondem à chave/valor
             $newLines = [];
             foreach ($lines as $line) {
                 $decoded = json_decode($line, true);
@@ -137,15 +176,23 @@ class QueueManager extends LumaClasses
                 }
             }
 
-            $content = empty($newLines) ? '' : implode(PHP_EOL, $newLines) . PHP_EOL;
-            return file_put_contents($filePath, $content, LOCK_EX) !== false;
+            // Sobrescreve o arquivo com segurança
+            ftruncate($fp, 0);
+            rewind($fp);
+            if (!empty($newLines)) {
+                fwrite($fp, implode(PHP_EOL, $newLines) . PHP_EOL);
+            }
         } catch (\Throwable $e) {
             $this->log("Remove exception: " . $e->getMessage(), 'error');
             return false;
         } finally {
-            $this->releaseLock($lockFile);
+            flock($fp, LOCK_UN);
+            fclose($fp);
         }
+
+        return true;
     }
+
 
     /**
      * Atualiza linhas com base em uma chave e valor, mesclando com novos dados.
@@ -162,13 +209,31 @@ class QueueManager extends LumaClasses
 
         if (!file_exists($filePath)) return false;
 
-        $lockFile = $this->getLockPath($filePath);
-        if (!$this->acquireLock($lockFile)) return false;
+        // Abre o arquivo para leitura e escrita
+        $fp = fopen($filePath, 'c+'); // 'c+' cria se não existir e permite leitura/escrita
+        if (!$fp) {
+            $this->log("Failed to open file: {$filePath}", 'error');
+            return false;
+        }
+
+        // Lock exclusivo (espera até liberar)
+        if (!flock($fp, LOCK_EX)) {
+            $this->log("Could not acquire flock: {$filePath}", 'error');
+            fclose($fp);
+            return false;
+        }
 
         try {
-            $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-            if ($lines === false) return false;
+            // Lê todas as linhas
+            $lines = [];
+            while (($line = fgets($fp)) !== false) {
+                $line = trim($line);
+                if ($line !== '') $lines[] = $line;
+            }
 
+            if (empty($lines)) return false;
+
+            // Atualiza as linhas que correspondem à chave/valor
             $updatedLines = [];
             foreach ($lines as $line) {
                 $decoded = json_decode($line, true);
@@ -179,14 +244,21 @@ class QueueManager extends LumaClasses
                 $updatedLines[] = $line;
             }
 
-            return file_put_contents($filePath, implode(PHP_EOL, $updatedLines) . PHP_EOL, LOCK_EX) !== false;
+            // Sobrescreve o arquivo com segurança
+            ftruncate($fp, 0);
+            rewind($fp);
+            fwrite($fp, implode(PHP_EOL, $updatedLines) . PHP_EOL);
         } catch (\Throwable $e) {
             $this->log("Update exception: " . $e->getMessage(), 'error');
             return false;
         } finally {
-            $this->releaseLock($lockFile);
+            flock($fp, LOCK_UN);
+            fclose($fp);
         }
+
+        return true;
     }
+
 
     /**
      * Deleta um arquivo de fila NDJSON e seu lock correspondente.
@@ -288,39 +360,61 @@ class QueueManager extends LumaClasses
 
         if (!file_exists($filePath)) return null;
 
-        $lockFile = $this->getLockPath($filePath);
-        if (!$this->acquireLock($lockFile)) return null;
+        $itemsRemoved = null;
+
+        // Abre o arquivo para leitura e escrita
+        $fp = fopen($filePath, 'c+'); // 'c+' cria se não existir e permite leitura/escrita
+        if (!$fp) {
+            $this->log("Failed to open file: {$filePath}", 'error');
+            return null;
+        }
+
+        // Lock exclusivo (espera até liberar)
+        if (!flock($fp, LOCK_EX)) {
+            $this->log("Could not acquire flock: {$filePath}", 'error');
+            fclose($fp);
+            return null;
+        }
 
         try {
-            $allLines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-            if (empty($allLines)) return null;
-
-            $limit = ($limit === null || $limit > count($allLines)) ? count($allLines) : $limit;
-            $linesToProcess = array_slice($allLines, 0, $limit);
-            $linesLeftover = array_slice($allLines, $limit);
-
-            $itemsRemoved = [];
-
-            // Processa TODOS os itens a serem removidos
-            foreach ($linesToProcess as $line) {
-                $decoded = json_decode($line, true);
-                if (is_array($decoded)) {
-                    $itemsRemoved[] = $decoded;
-                }
+            // Lê todas as linhas
+            $lines = [];
+            while (($line = fgets($fp)) !== false) {
+                $line = trim($line);
+                if ($line !== '') $lines[] = $line;
             }
 
-            // Salva apenas as linhas que sobram
-            $content = empty($linesLeftover) ? '' : implode(PHP_EOL, $linesLeftover) . PHP_EOL;
-            file_put_contents($filePath, $content, LOCK_EX);
+            if (empty($lines)) return null;
 
-            return empty($itemsRemoved) ? null : $itemsRemoved;
+            // Determina o limite
+            $limit = ($limit === null || $limit > count($lines)) ? count($lines) : $limit;
+
+            $linesToProcess = array_slice($lines, 0, $limit);
+            $linesLeftover = array_slice($lines, $limit);
+
+            $itemsRemoved = [];
+            foreach ($linesToProcess as $line) {
+                $decoded = json_decode($line, true);
+                if (is_array($decoded)) $itemsRemoved[] = $decoded;
+            }
+
+            // Escreve apenas as linhas que sobraram (após processar)
+            ftruncate($fp, 0);       // limpa arquivo
+            rewind($fp);             // volta pro início
+            if (!empty($linesLeftover)) {
+                fwrite($fp, implode(PHP_EOL, $linesLeftover) . PHP_EOL);
+            }
         } catch (\Throwable $e) {
             $this->log("Dequeue exception: " . $e->getMessage(), 'error');
             return null;
         } finally {
-            $this->releaseLock($lockFile);
+            flock($fp, LOCK_UN);
+            fclose($fp);
         }
+
+        return empty($itemsRemoved) ? null : $itemsRemoved;
     }
+
 
     /**
      * Remove e retorna apenas UM item da fila (comportamento clássico de fila)
@@ -335,36 +429,13 @@ class QueueManager extends LumaClasses
     }
 
     /**
-     * Tenta adquirir o lock para um determinado arquivo.
-     * 
-     * @param string $lockFile Caminho do arquivo de lock
-     * @return bool True se lock adquirido, False se já estiver em uso
-     */
-    private function acquireLock(string $lockFile): bool
-    {
-        if (file_exists($lockFile)) return false;
-        return @file_put_contents($lockFile, getmypid()) !== false;
-    }
-
-    /**
-     * Remove o lock de um determinado arquivo.
-     * 
-     * @param string $lockFile Caminho do arquivo de lock
-     * @return void
-     */
-    private function releaseLock(string $lockFile): void
-    {
-        if (file_exists($lockFile)) @unlink($lockFile);
-    }
-
-    /**
      * Registra mensagens para debug e rastreamento de erros.
      * 
      * @param string $message Mensagem para registrar
      * @param string $level Nível do log (debug, error)
      * @return void
      */
-    private function log(string $message, string $level = 'debug'): void
+    private function log(string $message): void
     {
         Logs::register($message, 'QueueManager');
     }

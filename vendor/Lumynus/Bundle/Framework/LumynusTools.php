@@ -17,6 +17,7 @@ use Lumynus\Bundle\Framework\Encryption;
 use Lumynus\Bundle\Framework\Validate;
 use Lumynus\Bundle\Framework\Logs;
 use Lumynus\Bundle\Framework\Cookies;
+use Lumynus\Bundle\Framework\QueueManager;
 
 /**
  * Trait com métodos utilitários comuns do framework Lumynus.
@@ -86,6 +87,12 @@ trait LumynusTools
     {
         return new Encryption();
     }
+
+    protected function queue(): QueueManager
+    {
+        return new QueueManager;
+    }
+
 
     public function __debugInfo(): array
     {

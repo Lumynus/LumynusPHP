@@ -19,6 +19,7 @@ use Lumynus\Bundle\Framework\Encryption;
 use Lumynus\Bundle\Framework\Validate;
 use Lumynus\Bundle\Framework\Logs;
 use Lumynus\Bundle\Framework\Cookies;
+use Lumynus\Bundle\Framework\QueueManager;
 
 abstract class LumynusMiddleware extends LumaClasses
 {
@@ -148,6 +149,16 @@ abstract class LumynusMiddleware extends LumaClasses
     {
         return new Encryption();
     }
+
+    /**
+     * Método para obter a instância da classe QueueManager
+     * @return QueueManager Retorna uma nova instância da classe QueueManager
+     */
+    protected function queue(): QueueManager
+    {
+        return new QueueManager;
+    }
+
 
     /**
      * Método para obter a instância da classe Luma.

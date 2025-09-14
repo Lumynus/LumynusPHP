@@ -11,11 +11,6 @@ class Encryption extends LumaClasses
 {
     /**
      * Criptografa um conteúdo com AES-256-CBC
-     *
-     * @param mixed $data Conteúdo a criptografar
-     * @param string|null $keyName Nome do arquivo da chave PEM (opcional)
-     * @return string Texto criptografado codificado em base64
-     * @throws \RuntimeException Se o OpenSSL não estiver disponível ou a chave não for válida
      */
     public static function encrypt($data, ?string $keyName = null): string
     {
@@ -24,18 +19,13 @@ class Encryption extends LumaClasses
         $iv = openssl_random_pseudo_bytes(openssl_cipher_iv_length('aes-256-cbc'));
         $textCrypt = openssl_encrypt($data, 'aes-256-cbc', $chave, 0, $iv);
         if ($textCrypt === false) {
-            throw new \RuntimeException("Error encrypting data..");
+            throw new \RuntimeException("Error encrypting data.");
         }
         return base64_encode($iv . $textCrypt);
     }
 
     /**
      * Descriptografa um conteúdo com AES-256-CBC
-     *
-     * @param string $data Texto criptografado em base64
-     * @param string|null $keyName Nome do arquivo da chave PEM (opcional)
-     * @return string Texto descriptografado
-     * @throws \RuntimeException Se o OpenSSL não estiver disponível ou falhar a descriptografia
      */
     public static function decrypt(string $data, ?string $keyName = null): string
     {
@@ -52,13 +42,8 @@ class Encryption extends LumaClasses
         return $texto;
     }
 
-
     /**
-     * Gera uma nova chave aleatória de 32 bytes e salva em um arquivo .pem
-     *
-     * @param string|null $keyName Nome do arquivo da chave (opcional)
-     * @throws \RuntimeException Se não for possível criar ou salvar a chave
-     * @return string Caminho completo da chave gerada
+     * Cria uma nova chave AES de 32 bytes e salva em arquivo .pem
      */
     public static function createKey(?string $keyName = null): string
     {
@@ -68,15 +53,14 @@ class Encryption extends LumaClasses
             DIRECTORY_SEPARATOR . 'Memory' .
             DIRECTORY_SEPARATOR . 'keys';
 
-        if (!is_dir($keyDir)) {
-            if (!mkdir($keyDir, 0755, true)) {
-                throw new \RuntimeException("Failed to create key directory: {$keyDir}");
-            }
+        if (!is_dir($keyDir) && !mkdir($keyDir, 0755, true)) {
+            throw new \RuntimeException("Failed to create key directory: {$keyDir}");
         }
 
-        $keyFile = $keyDir . DIRECTORY_SEPARATOR . ($keyName ?? 'key') . '.pem';
+        $keyName = self::sanitizeFileName($keyName ?? 'key');
+        $keyFile = $keyDir . DIRECTORY_SEPARATOR . $keyName . '.pem';
 
-        $randomKey = random_bytes(32); // Garante 256 bits (32 bytes)
+        $randomKey = random_bytes(32);
         if (file_put_contents($keyFile, $randomKey) === false) {
             throw new \RuntimeException("Failed to write key to file: {$keyFile}");
         }
@@ -85,37 +69,26 @@ class Encryption extends LumaClasses
     }
 
     /**
-     * Remove o arquivo da chave PEM especificada
-     *
-     * @param string|null $keyName Nome do arquivo da chave (opcional)
-     * @return bool True se o arquivo foi removido ou não existia, false se falhou na remoção
+     * Remove chave PEM
      */
     public static function removeKey(?string $keyName = null): bool
     {
+        $keyName = self::sanitizeFileName($keyName ?? 'key');
+
         $keyFile = Config::pathProject() .
             DIRECTORY_SEPARATOR . 'vendor' .
             DIRECTORY_SEPARATOR . 'Lumynus' .
             DIRECTORY_SEPARATOR . 'Memory' .
             DIRECTORY_SEPARATOR . 'keys' .
-            DIRECTORY_SEPARATOR . ($keyName ?? 'key') . '.pem';
+            DIRECTORY_SEPARATOR . $keyName . '.pem';
 
-        if (!file_exists($keyFile)) {
-            // Arquivo já não existe, considera sucesso
-            return true;
-        }
+        if (!file_exists($keyFile)) return true;
 
-        // Tenta apagar o arquivo
         return @unlink($keyFile);
     }
 
     /**
-     * Salva um valor serializado e criptografado em arquivo .luma
-     *
-     * @param string $nameFile Nome do arquivo (sem extensão)
-     * @param mixed $value Valor a ser salvo
-     * @param string|null $keyName Nome da chave
-     * @throws \RuntimeException Se falhar ao criar pasta ou salvar arquivo
-     * @return string Caminho completo do arquivo salvo
+     * Salva valor serializado e criptografado em arquivo .luma
      */
     public static function saveToFile(string $nameFile, $value, ?string $keyName = null): bool
     {
@@ -125,16 +98,14 @@ class Encryption extends LumaClasses
             DIRECTORY_SEPARATOR . 'Memory' .
             DIRECTORY_SEPARATOR . 'encryptions';
 
-        if (!is_dir($dir) && !mkdir($dir, 0755, true)) {
-            return false;
-        }
+        if (!is_dir($dir) && !mkdir($dir, 0755, true)) return false;
 
+        $nameFile = self::sanitizeFileName($nameFile);
         $filePath = $dir . DIRECTORY_SEPARATOR . $nameFile . '.luma';
 
         $serialized = serialize($value);
-
         try {
-            $encrypted = self::Encrypt($serialized, $keyName);
+            $encrypted = self::encrypt($serialized, $keyName);
         } catch (\RuntimeException $e) {
             return false;
         }
@@ -143,48 +114,41 @@ class Encryption extends LumaClasses
     }
 
     /**
-     * Remove o arquivo .luma especificado
-     *
-     * @param string $nameFile Nome do arquivo (sem extensão)
-     * @return bool True se arquivo removido ou não existia, false se falhou na remoção
+     * Remove arquivo .luma
      */
     public static function removeToFile(string $nameFile): bool
     {
-        $filePath = Config::pathProject() .
+        $dir = Config::pathProject() .
             DIRECTORY_SEPARATOR . 'vendor' .
             DIRECTORY_SEPARATOR . 'Lumynus' .
             DIRECTORY_SEPARATOR . 'Memory' .
-            DIRECTORY_SEPARATOR . 'encryptions' .
-            DIRECTORY_SEPARATOR . $nameFile . '.luma';
+            DIRECTORY_SEPARATOR . 'encryptions';
 
-        if (!file_exists($filePath)) {
-            return true; // arquivo não existe, considera sucesso
-        }
+        $nameFile = self::sanitizeFileName($nameFile);
+        $filePath = $dir . DIRECTORY_SEPARATOR . $nameFile . '.luma';
+
+        if (!file_exists($filePath)) return true;
 
         return @unlink($filePath);
     }
 
     /**
-     * Lê um ou vários arquivos .luma, descriptografa e desserializa os valores salvos
-     *
-     * @param string|array $nameFile Nome do arquivo (sem extensão) ou array de nomes
-     * @param string|null $keyName Nome da chave para descriptografar (opcional)
-     * @throws \RuntimeException Se algum arquivo não existir ou falhar a descriptografia/desserialização
-     * @return mixed Valor original salvo (para 1 arquivo) ou array associativo [nomeArquivo => valor] para vários arquivos
+     * Lê arquivos .luma, descriptografa e desserializa
      */
     public static function readFiles(string|array $nameFile, ?string $keyName = null)
     {
-        // Normaliza para array (se for string, transforma em array com 1 elemento)
+        $dir = Config::pathProject() .
+            DIRECTORY_SEPARATOR . 'vendor' .
+            DIRECTORY_SEPARATOR . 'Lumynus' .
+            DIRECTORY_SEPARATOR . 'Memory' .
+            DIRECTORY_SEPARATOR . 'encryptions';
+
         $files = is_array($nameFile) ? $nameFile : [$nameFile];
         $results = [];
 
         foreach ($files as $file) {
-            $filePath = Config::pathProject() .
-                DIRECTORY_SEPARATOR . 'vendor' .
-                DIRECTORY_SEPARATOR . 'Lumynus' .
-                DIRECTORY_SEPARATOR . 'Memory' .
-                DIRECTORY_SEPARATOR . 'encryptions' .
-                DIRECTORY_SEPARATOR . $file . '.luma';
+            $file = self::sanitizeFileName($file);
+            $filePath = $dir . DIRECTORY_SEPARATOR . $file . '.luma';
 
             if (!file_exists($filePath)) {
                 throw new \RuntimeException("File not found: {$filePath}");
@@ -198,7 +162,6 @@ class Encryption extends LumaClasses
             $decrypted = self::decrypt($encrypted, $keyName);
 
             $value = @unserialize($decrypted);
-
             if ($value === false && $decrypted !== serialize(false)) {
                 throw new \RuntimeException("Failed to unserialize data from file: {$filePath}");
             }
@@ -206,20 +169,11 @@ class Encryption extends LumaClasses
             $results[$file] = $value;
         }
 
-        // Se só tinha um arquivo, retorna só o valor direto
-        if (count($results) === 1) {
-            return array_shift($results);
-        }
-
-        // Senão retorna o array associativo
-        return $results;
+        return count($results) === 1 ? array_shift($results) : $results;
     }
 
-
     /**
-     * Verifica se a extensão OpenSSL está habilitada
-     *
-     * @throws \RuntimeException Se a extensão não estiver disponível
+     * Verifica extensão OpenSSL
      */
     private static function verificaExtensaoOpenSSL(): void
     {
@@ -229,25 +183,22 @@ class Encryption extends LumaClasses
     }
 
     /**
-     * Lê a chave do arquivo e retorna os primeiros 32 bytes (para AES-256)
-     *
-     * @param string|null $keyName Nome do arquivo da chave PEM (opcional)
-     * @return string Chave de 32 bytes
-     * @throws \RuntimeException Se o arquivo não for encontrado ou inválido
+     * Lê chave do arquivo PEM (32 bytes)
      */
     private static function obterChave(?string $keyName): string
     {
+        $keyName = self::sanitizeFileName($keyName ?? 'key');
+
         $caminho = Config::pathProject() .
             DIRECTORY_SEPARATOR .
-            'vendor' .  DIRECTORY_SEPARATOR .
-            'Lumynus' .  DIRECTORY_SEPARATOR .
-            'Memory' .  DIRECTORY_SEPARATOR .
-            'keys' .
-            DIRECTORY_SEPARATOR .
-            ($keyName ?? 'key') . '.pem';
+            'vendor' . DIRECTORY_SEPARATOR .
+            'Lumynus' . DIRECTORY_SEPARATOR .
+            'Memory' . DIRECTORY_SEPARATOR .
+            'keys' . DIRECTORY_SEPARATOR .
+            $keyName . '.pem';
 
         if (!file_exists($caminho)) {
-            throw new \RuntimeException("Key file not found in: {$caminho}");
+            throw new \RuntimeException("Key file not found: {$caminho}");
         }
 
         $keyContent = file_get_contents($caminho);
@@ -258,5 +209,18 @@ class Encryption extends LumaClasses
         }
 
         return $chave;
+    }
+
+    /**
+     * Proteção contra Path Traversal
+     */
+    private static function sanitizeFileName(string $name): string
+    {
+        $filename = basename($name);
+        $filename = preg_replace('/[^a-zA-Z0-9_\-]/', '', $filename);
+        if (empty($filename)) {
+            throw new \InvalidArgumentException("Invalid file name provided.");
+        }
+        return $filename;
     }
 }

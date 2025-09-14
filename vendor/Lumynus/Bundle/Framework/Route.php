@@ -211,7 +211,7 @@ class Route extends LumaClasses
 
         ob_start();
         foreach ($routerFiles as $file) {
-            if (is_file($file)) {
+            if (is_file($file) && !str_contains($file, '..')) {
                 require_once $file;
             }
         }
