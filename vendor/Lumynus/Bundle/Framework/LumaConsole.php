@@ -364,7 +364,7 @@ class LumaConsole extends LumaClasses
 
         if (empty($data) || count($data) < 2) {
             echo "\n\nPlease provide a key name and data to encrypt\n";
-            echo "(Por favor, forneça um nome de chave e dados para criptografar)\nExample: php luma {$roxo}key_name{$roxo} '{$ciano}data{$reset}'\n\n";
+            echo "(Por favor, forneça um nome de chave e dados para criptografar)\nExample: php luma encrypt {$roxo}key_name{$roxo} '{$ciano}data{$reset}'\n\n";
             return;
         }
 
@@ -398,7 +398,7 @@ class LumaConsole extends LumaClasses
         $reset = "\033[0m";
         if (empty($data) || count($data) < 2) {
             echo "\n\nPlease provide a key name and data to decrypt\n";
-            echo "(Por favor, forneça um nome de chave e dados para descriptografar)\nExample: php luma {$roxo}key_name{$reset} '{$ciano}data{$reset}'\n\n";
+            echo "(Por favor, forneça um nome de chave e dados para descriptografar)\nExample: php luma decrypt {$roxo}key_name{$reset} '{$ciano}data{$reset}'\n\n";
             return;
         }
 
@@ -426,7 +426,7 @@ class LumaConsole extends LumaClasses
 
         if (empty($data) || count($data) < 3) {
             echo "\n\nPlease provide a key name and data to encrypt and save\n";
-            echo "(Por favor, forneça um nome de chave e dados para criptografar e salvar)\nExample: php luma {$verde}key_name{$reset} '{$ciano}data{$reset}' {$roxo}nameFile{$reset}\n\n";
+            echo "(Por favor, forneça um nome de chave e dados para criptografar e salvar)\nExample: php luma encrypt_save {$verde}key_name{$reset} '{$ciano}data{$reset}' {$roxo}nameFile{$reset}\n\n";
             return;
         }
 

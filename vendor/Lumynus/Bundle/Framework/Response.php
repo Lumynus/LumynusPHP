@@ -273,9 +273,10 @@ class Response extends LumaClasses
     public function redirect(string $url): void
     {
         http_response_code(302);
-        header('Location: ' . $url);
+        header('Location: ' . $url); 
         exit;
     }
+
 
     /**
      * Retorna o código de status HTTP atual.
@@ -285,6 +286,9 @@ class Response extends LumaClasses
     public function return(string $text = ''): void
     {
         http_response_code($this->statusCode);
+        foreach ($this->headers as $key => $value) {
+            header("$key: $value");
+        }
         echo !empty($text) ? $text : $this->responses[$this->statusCode] ?? '500 Internal Server Error';
         exit;
     }
