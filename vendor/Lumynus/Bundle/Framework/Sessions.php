@@ -32,10 +32,11 @@ class Sessions extends LumaClasses implements \Lumynus\Bundle\Contracts\SessionI
 
             session_set_cookie_params([
                 'lifetime' => 0,
-                'path' => Config::getAplicationConfig()['App']['host'],
+                'path' => '/',
+                'domain' => Config::getAplicationConfig()['App']['host'],
                 'secure' => Config::modeProduction(),
                 'httponly' => Config::modeProduction(),
-                'samesite' => 'Strict'
+                'samesite' => 'Lax'
             ]);
 
             ini_set('session.use_strict_mode', Config::modeProduction());

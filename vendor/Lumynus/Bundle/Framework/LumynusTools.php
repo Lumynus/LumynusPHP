@@ -18,6 +18,8 @@ use Lumynus\Bundle\Framework\Validate;
 use Lumynus\Bundle\Framework\Logs;
 use Lumynus\Bundle\Framework\Cookies;
 use Lumynus\Bundle\Framework\QueueManager;
+use Lumynus\Bundle\Framework\CSRF;
+use Lumynus\Bundle\Framework\Memory;
 
 /**
  * Trait com métodos utilitários comuns do framework Lumynus.
@@ -91,6 +93,15 @@ trait LumynusTools
     protected function queue(): QueueManager
     {
         return new QueueManager;
+    }
+
+    protected function csrf(): CSRF
+    {
+        return new CSRF;
+    }
+
+    protected function memory() : Memory {
+        return new Memory;
     }
 
 

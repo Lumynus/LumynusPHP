@@ -20,6 +20,8 @@ use Lumynus\Bundle\Framework\Validate;
 use Lumynus\Bundle\Framework\Logs;
 use Lumynus\Bundle\Framework\Cookies;
 use Lumynus\Bundle\Framework\QueueManager;
+use Lumynus\Bundle\Framework\CSRF;
+use Lumynus\Bundle\Framework\Memory;
 
 abstract class LumynusMiddleware extends LumaClasses
 {
@@ -159,6 +161,22 @@ abstract class LumynusMiddleware extends LumaClasses
         return new QueueManager;
     }
 
+    /**
+     * Método para obter a instância da classe CSRF
+     * @return CSRF Retorna uma nova instância da classe CSRF
+     */
+    protected function csrf(): CSRF
+    {
+        return new CSRF;
+    }
+
+    /**
+     * Método para obter a instância da classe Memory
+     * @return Memory Retorna uma nova instância da classe Memory
+     */
+    protected function memory() : Memory {
+        return new Memory;
+    }
 
     /**
      * Método para obter a instância da classe Luma.
