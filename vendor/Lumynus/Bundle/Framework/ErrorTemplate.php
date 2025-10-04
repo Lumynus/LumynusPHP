@@ -274,6 +274,7 @@ class ErrorTemplate extends LumaClasses
                 text-align: center;
                 position: relative;
                 backdrop-filter: blur(10px);
+                overflow: hidden;
             }
 
             [data-theme="light"] .error-header {
@@ -340,6 +341,9 @@ class ErrorTemplate extends LumaClasses
                 margin-bottom: 16px;
                 line-height: 1.1;
                 text-shadow: 0 2px 4px rgba(220, 38, 38, 0.1);
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+                hyphens: auto;
             }
 
             [data-theme="light"] .error-title {
@@ -374,6 +378,9 @@ class ErrorTemplate extends LumaClasses
                 display: inline-block;
                 font-weight: 600;
                 box-shadow: var(--shadow-card);
+                word-wrap: break-word;
+                overflow-wrap: break-word;
+                max-width: 100%;
             }
 
             [data-theme="light"] .error-location {
@@ -542,7 +549,8 @@ class ErrorTemplate extends LumaClasses
                 }
 
                 .error-title {
-                    font-size: 36px;
+                     font-size: 28px;
+                    word-break: break-word;
                 }
 
                 .error-message {

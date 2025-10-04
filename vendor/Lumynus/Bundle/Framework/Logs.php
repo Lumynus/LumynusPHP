@@ -61,7 +61,7 @@ class Logs extends LumaClasses
     /**
      * Remove todos os arquivos da pasta de logs caso haja 30 ou mais arquivos
      */
-    public static function limpaLogs(): void
+    public static function clear(): void
     {
         $dir = self::path();
         $arquivos = array_diff(scandir($dir), ['.', '..']);
