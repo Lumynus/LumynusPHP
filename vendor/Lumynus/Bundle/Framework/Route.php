@@ -481,6 +481,11 @@ class Route extends LumaClasses
             elseif (!empty($_POST[$tokenName])) {
                 $token = $_POST[$tokenName];
             }
+            // 4. Fallback para header HTTP alternativo
+            elseif (!empty($_SERVER['HTTP_X_CSRF_TOKEN'])) {
+                $token = $_SERVER['HTTP_X_CSRF_TOKEN'];
+            }
+
 
             if (!$token || CSRF::isValidToken($token) === false) {
                 Logs::register("CSRF Token Mismatch Error", [
