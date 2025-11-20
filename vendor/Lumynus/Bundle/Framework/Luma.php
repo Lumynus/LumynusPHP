@@ -93,11 +93,11 @@ class Luma extends LumaClasses
             self::validateView($view);
 
             if (in_array($view, self::$viewStack)) {
-                throw new TemplateCompilationException("Loop de renderização detectado: '{$view}'");
+                throw new TemplateCompilationException("Rendering loop detected: '{$view}'");
             }
 
             if (count(self::$viewStack) >= self::MAX_NESTING_LEVEL) {
-                throw new TemplateSecurityException("Nível máximo de aninhamento excedido");
+                throw new TemplateSecurityException("Maximum nesting level exceeded");
             }
 
             self::$viewStack[] = $view;
@@ -131,11 +131,11 @@ class Luma extends LumaClasses
     private static function validateView(string $view): void
     {
         if (!preg_match('/^[a-zA-Z0-9\/_\-\.]+$/', $view)) {
-            throw new TemplateSecurityException("Nome de view contém caracteres inválidos: {$view}");
+            throw new TemplateSecurityException("The view name contains invalid characters: {$view}");
         }
 
         if (str_contains($view, '..')) {
-            throw new TemplateSecurityException("Path traversal detectado: {$view}");
+            throw new TemplateSecurityException("Path traversal detected: {$view}");
         }
     }
 
@@ -156,7 +156,7 @@ class Luma extends LumaClasses
         }
 
         if (++self::$compilationCount[$key]['count'] > self::RATE_LIMIT_PER_MINUTE) {
-            throw new TemplateSecurityException("Rate limit excedido para compilação de templates");
+            throw new TemplateSecurityException("Rate limit exceeded for template compilation.");
         }
     }
 
@@ -169,11 +169,11 @@ class Luma extends LumaClasses
         $viewFile = realpath($basePath . $config['path']['views'] . $view);
 
         if (!$viewFile || !str_starts_with($viewFile, $viewsPath)) {
-            throw new ViewNotFoundException("Caminho de view não permitido: {$view}");
+            throw new ViewNotFoundException("View path not allowed: {$view}");
         }
 
         if (!is_file($viewFile)) {
-            throw new ViewNotFoundException("View não encontrada: {$view}");
+            throw new ViewNotFoundException("View not found: {$view}");
         }
 
         return $viewFile;
@@ -188,7 +188,7 @@ class Luma extends LumaClasses
 
         if (!is_dir($cacheDir)) {
             if (!mkdir($cacheDir, 0755, true)) {
-                throw new TemplateCompilationException("Não foi possível criar diretório de cache");
+                throw new TemplateCompilationException("Unable to create cache directory.");
             }
         }
 
@@ -203,27 +203,27 @@ class Luma extends LumaClasses
         $original = file_get_contents($viewFile);
 
         if (strlen($original) > self::MAX_TEMPLATE_SIZE) {
-            throw new TemplateSecurityException("Template muito grande");
+            throw new TemplateSecurityException("Template too large.");
         }
 
         if (substr_count($original, '@') > self::MAX_DIRECTIVES) {
-            throw new TemplateSecurityException("Muitas diretivas no template");
+            throw new TemplateSecurityException("Many directives in the template");
         }
 
         $compiled = self::compile($original);
 
         if (empty($compiled)) {
-            throw new TemplateCompilationException("Falha na compilação do template");
+            throw new TemplateCompilationException("Template compilation failed.");
         }
 
         $tmpFile = $cacheFile . '.tmp';
         if (file_put_contents($tmpFile, $compiled, LOCK_EX) === false) {
-            throw new TemplateCompilationException("Erro ao escrever cache");
+            throw new TemplateCompilationException("Error writing cache");
         }
 
         if (!rename($tmpFile, $cacheFile)) {
             unlink($tmpFile);
-            throw new TemplateCompilationException("Erro ao finalizar cache");
+            throw new TemplateCompilationException("Error clearing cache");
         }
     }
 
@@ -247,7 +247,7 @@ class Luma extends LumaClasses
 
             return $template;
         } catch (\Exception $e) {
-            throw new TemplateCompilationException("Erro na compilação: " . $e->getMessage());
+            throw new TemplateCompilationException("Compilation error: " . $e->getMessage());
         }
     }
 

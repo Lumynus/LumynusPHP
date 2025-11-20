@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Lumynus\Bundle\Framework;
 use Lumynus\Bundle\Framework\LumaClasses;
 
-class Sanitizantes extends LumaClasses
+class Sanitizer extends LumaClasses
 {
     /**
      * Limpa uma string, removendo tags HTML e, opcionalmente, escapando entidades HTML.

@@ -2,7 +2,7 @@
 
 namespace App\Helpers;
 
-use Lumynus\Bundle\Framework\Sanitizantes;
+use Lumynus\Bundle\Framework\Sanitizer;
 
 
 /**
@@ -53,8 +53,8 @@ trait Tables
             $order = 'ASC';
         }
 
-        return (string) Sanitizantes::string($orderBy) . ' ' . (string) Sanitizantes::string($order) === ' '
-            ? '' : ' ' . (string) Sanitizantes::string($orderBy) . ' ' . (string) strtoupper(Sanitizantes::string($order)) . '';
+        return (string) Sanitizer::string($orderBy) . ' ' . (string) Sanitizer::string($order) === ' '
+            ? '' : ' ' . (string) Sanitizer::string($orderBy) . ' ' . (string) strtoupper(Sanitizer::string($order)) . '';
     }
 
     /**

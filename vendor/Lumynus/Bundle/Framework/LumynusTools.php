@@ -6,7 +6,7 @@ namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\Sessions;
 use Lumynus\Bundle\Framework\Response;
-use Lumynus\Bundle\Framework\Sanitizantes;
+use Lumynus\Bundle\Framework\Sanitizer;
 use Lumynus\Bundle\Framework\Converts;
 use Lumynus\Bundle\Framework\LumaHTTP;
 use Lumynus\Bundle\Framework\HttpClient;
@@ -55,9 +55,9 @@ trait LumynusTools
         return new Response();
     }
 
-    protected function sanitizer(): Sanitizantes
+    protected function sanitizer(): Sanitizer
     {
-        return new Sanitizantes();
+        return new Sanitizer();
     }
 
     protected function converter(): Converts

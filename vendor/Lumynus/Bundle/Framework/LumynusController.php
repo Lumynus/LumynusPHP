@@ -7,7 +7,7 @@ namespace Lumynus\Bundle\Framework;
 use Lumynus\Bundle\Framework\Luma;
 use Lumynus\Bundle\Framework\Sessions;
 use Lumynus\Bundle\Framework\Response;
-use Lumynus\Bundle\Framework\Sanitizantes;
+use Lumynus\Bundle\Framework\Sanitizer;
 use Lumynus\Bundle\Framework\Converts;
 use Lumynus\Bundle\Framework\LumaClasses;
 use Lumynus\Bundle\Framework\LumaHTTP;
@@ -89,12 +89,12 @@ abstract class LumynusController extends LumaClasses
     }
 
     /**
-     * Método para obter a instância da classe Sanitizantes.
-     * @return Sanitizantes Retorna uma nova instância da classe Sanitizantes.
+     * Método para obter a instância da classe Sanitizer.
+     * @return Sanitizer Retorna uma nova instância da classe Sanitizer.
      */
-    protected function sanitizer(): Sanitizantes
+    protected function sanitizer(): Sanitizer
     {
-        return new Sanitizantes();
+        return new Sanitizer();
     }
 
     /**
