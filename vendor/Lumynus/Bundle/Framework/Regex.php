@@ -73,7 +73,7 @@ class Regex extends LumaClasses
 
         // Procura o primeiro grupo de colchetes
         $start = strpos($patternBody, '[');
-        $end = strpos($patternBody, ']', $start);
+        $end = strpos($patternBody, ']', empty($start) ? 0 : $start);
         if ($start !== false && $end !== false) {
             $allowed = substr($patternBody, $start + 1, $end - $start - 1);
         } else {

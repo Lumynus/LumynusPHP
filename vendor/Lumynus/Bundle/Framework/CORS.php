@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 namespace Lumynus\Bundle\Framework;
-use Lumynus\Bundle\Framework\ErrorTemplate;
 use Lumynus\Bundle\Framework\LumaClasses;
 use Lumynus\Templates\Errors;
 

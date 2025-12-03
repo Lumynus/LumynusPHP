@@ -178,7 +178,7 @@ class Brasil extends LumaClasses
      */
     public static function ufParaEstado(string $uf): string
     {
-        $map = array_flip([
+        $map = [
             'AC' => 'Acre',
             'AL' => 'Alagoas',
             'AP' => 'Amapá',
@@ -206,10 +206,12 @@ class Brasil extends LumaClasses
             'SP' => 'São Paulo',
             'SE' => 'Sergipe',
             'TO' => 'Tocantins'
-        ]);
+        ];
+
         $uf = strtoupper($uf);
         return $map[$uf] ?? 'Não encontrado';
     }
+
 
     /**
      * Converte DDD para o nome do estado.

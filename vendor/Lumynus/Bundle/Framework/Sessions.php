@@ -20,31 +20,32 @@ class Sessions extends LumaClasses implements \Lumynus\Bundle\Contracts\SessionI
     {
         $this->autostart = $autostart;
         $this->secret = Config::getAplicationConfig()['security']['session']['secret'] ?? 'LumynusApp';
+
         if (!$autostart) {
             return;
         }
+
         if (session_status() === PHP_SESSION_NONE) {
+
             session_name('LumynusSession_' . Config::getAplicationConfig()['App']['nameApplication']);
 
-            ini_set('session.use_trans_sid', 0);
-            ini_set('session.use_only_cookies', 1);
-            ini_set('session.cookie_httponly', 1);
+            session_start([
+                'use_trans_sid'        => 0,
+                'use_only_cookies'     => 1,
+                'cookie_httponly'      => 1,
+                'cookie_lifetime'      => 0,
+                'cookie_path'          => '/',
+                'cookie_domain'        => Config::getAplicationConfig()['App']['host'],
+                'cookie_secure'        => Config::modeProduction(),
+                'cookie_samesite'      => 'Lax',
+                'use_strict_mode'      => Config::modeProduction(),
 
-            session_set_cookie_params([
-                'lifetime' => 0,
-                'path' => '/',
-                'domain' => Config::getAplicationConfig()['App']['host'],
-                'secure' => Config::modeProduction(),
-                'httponly' => Config::modeProduction(),
-                'samesite' => 'Lax'
+                // Caso queira só leitura:
+                // 'read_and_close'     => true,
             ]);
-
-            ini_set('session.use_strict_mode', Config::modeProduction());
-            ini_set('session.use_only_cookies', Config::modeProduction());
-
-            session_start();
         }
     }
+
 
     /**
      * Inserir uma chave e valor na sessão.
