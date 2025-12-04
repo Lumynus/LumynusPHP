@@ -428,17 +428,28 @@ class Route extends LumaClasses
             self::cacheRoutes(); // salva para as próximas execuções
         }
 
-        // Obtém o método da requisição e a URI
         $requestMethod = $_SERVER['REQUEST_METHOD'];
-        $uri = strtok($_SERVER['REQUEST_URI'], '?');
-        $queryString = $_SERVER['QUERY_STRING'];
 
-        $route = $queryString;
-        $params = [];
+        $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+        $basePath = dirname($_SERVER['SCRIPT_NAME']);
+
+        if (str_starts_with($uri, $basePath)) {
+            $uri = substr($uri, strlen($basePath));
+        }
+
+        $route = trim($uri, '/');
+        if ($route === '') {
+            $route = '/';
+        }
+        $params = $_GET;
+
+        $queryString = $_SERVER['QUERY_STRING'] ?? '';
 
         if (str_contains($queryString, ':')) {
-            [$route, $query] = explode(':', $queryString);
-            parse_str($query, $params);
+            [, $query] = explode(':', $queryString);
+            parse_str($query, $customParams);
+            $params = array_merge($params, $customParams);
         }
 
         if (!isset(self::$routes[$requestMethod][$route])) {
