@@ -79,62 +79,72 @@ class Route extends LumaClasses
      * @param string $route Rota com ou sem definição de campos entre colchetes.
      * @return array Um array contendo [rota limpa, campos permitidos].
      */
-    /**
-     * Analisa a string da rota e extrai os campos permitidos e seus tipos.
-     *
-     * @param string $route Rota com ou sem definição de campos entre colchetes.
-     * @return array Um array contendo [rota limpa, campos permitidos].
-     */
     private static function parseRouteConfig(string $route): array
     {
         $isApi = false;
         $fieldsPermitted = [];
+        $queryConfigString = '';
 
         // 1. Verifica e remove a flag {api} do final
         if (str_ends_with($route, '{api}')) {
             $isApi = true;
-            $route = substr($route, 0, -5); // Remove '{api}'
+            $route = substr($route, 0, -5);
         }
 
-        // 2. Se não tiver chaves {}, é uma rota Estática simples
+        // 2. Separa a Rota Física da Configuração de Query String (?)
+        if (str_contains($route, '?')) {
+            // Divide em [0] => 'meu/{id}[int]', [1] => '[string nome][int *]'
+            [$routePath, $queryConfigString] = explode('?', $route, 2);
+            $route = rtrim($routePath, '/'); // Remove barra extra se houver antes da ?
+        }
+
+        // 3. Processa configurações da Query String: [tipo nome]
+        if (!empty($queryConfigString)) {
+            // Regex para capturar: [tipo nome] ou [tipo *]
+            // Ex: [string va] -> Match 1: string, Match 2: va
+            preg_match_all('/\[([a-zA-Z]+)\s+([a-zA-Z0-9_*]+)\]/', $queryConfigString, $matches, PREG_SET_ORDER);
+
+            foreach ($matches as $match) {
+                $type = $match[1]; // ex: string
+                $name = $match[2]; // ex: va (ou *)
+
+                // Salva no array de campos permitidos
+                $fieldsPermitted[$name] = $type;
+            }
+        }
+
+        // 4. Se não tiver chaves {}, é uma rota Estática (mas pode ter query string processada acima)
         if (!str_contains($route, '{')) {
             return [
                 'isDynamic' => false,
-                'cleanRoute' => $route, // Rota limpa sem regex
+                'cleanRoute' => $route,
                 'regex' => null,
-                'fields' => [], // Sem campos variáveis
+                'fields' => $fieldsPermitted, // Inclui os campos da QueryString
                 'api' => $isApi
             ];
         }
 
-        // 3. Processamento de Rota Dinâmica
-        // Escapa a string para ser segura em Regex (pontos viram \., barras viram \/)
+        // 5. Processamento de Rota Dinâmica (Caminho)
         $safeRoute = preg_quote($route, '~');
-
-        // Regex Mágica para encontrar: \{nome\} OU \{nome\}[tipo]
-        // Como usamos preg_quote, as chaves e colchetes estão escapados (\{\})
         $pattern = '/\\\\\{(\w+)\\\\\}(?:\\\\\[(\w+)\\\\\])?/';
 
-        // Substitui cada ocorrência pelo regex de captura (?P<name>[^/]+)
-        // E popula o array $fieldsPermitted
         $regexRoute = preg_replace_callback($pattern, function ($matches) use (&$fieldsPermitted) {
             $paramName = $matches[1];
-            $paramType = $matches[2] ?? '*'; // Se não tiver [tipo], assume '*'
+            $paramType = $matches[2] ?? '*';
 
+            // Adiciona/Sobrescreve com os campos da URL
             $fieldsPermitted[$paramName] = $paramType;
 
-            // Retorna o grupo de captura regex para a URL
             return '(?P<' . $paramName . '>[^/]+)';
         }, $safeRoute);
 
-        // Adiciona âncoras de inicio e fim para o Regex final
         $finalRegex = '~^' . $regexRoute . '$~';
 
         return [
             'isDynamic' => true,
-            'cleanRoute' => $route, // A rota original "legível" (sem {api})
+            'cleanRoute' => $route, // A rota para o cache/chave
             'regex' => $finalRegex,
-            'fields' => $fieldsPermitted,
+            'fields' => $fieldsPermitted, // Combinação de URL params + Query params
             'api' => $isApi
         ];
     }
@@ -257,27 +267,29 @@ class Route extends LumaClasses
      */
     private static function validateParams(array $params, mixed $fieldsPermitted): array
     {
+        // Se a rota permite tudo sem restrição de tipo
         if ($fieldsPermitted === '*') {
             return ['valid' => true];
         }
 
-        if (isset($fieldsPermitted['*'])) {
-            $expectedType = $fieldsPermitted['*'];
-            foreach ($params as $key => $value) {
-                if (!self::validateType($value, $expectedType)) {
-                    return ['valid' => false, 'error' => "Invalid type for '$key'. Expected $expectedType."];
-                }
-            }
-            return ['valid' => true];
-        }
-
         foreach ($params as $key => $value) {
-            if (!array_key_exists($key, $fieldsPermitted)) {
+            $expectedType = null;
+
+            // 1. Verifica se existe uma regra Específica para este campo (Prioridade Alta)
+            if (array_key_exists($key, $fieldsPermitted)) {
+                $expectedType = $fieldsPermitted[$key];
+            }
+            // 2. Se não, verifica se existe um Curinga Global [*] (Prioridade Baixa)
+            elseif (isset($fieldsPermitted['*'])) {
+                $expectedType = $fieldsPermitted['*'];
+            }
+
+            // 3. Se não achou regra nem curinga, o campo é Proibido (Whitelist estrita)
+            if ($expectedType === null) {
                 return ['valid' => false, 'error' => "Field '$key' is not permitted."];
             }
 
-            $expectedType = $fieldsPermitted[$key];
-
+            // 4. Valida o tipo
             if (!self::validateType($value, $expectedType)) {
                 return ['valid' => false, 'error' => "Invalid type for '$key'. Expected $expectedType."];
             }
@@ -389,13 +401,36 @@ class Route extends LumaClasses
      *
      * @return bool Retorna true se as rotas foram carregadas do cache, false caso contrário.
      */
+    /**
+     * Carrega as rotas do cache, se existir e estiver atualizado.
+     * Verifica a data de modificação dos arquivos originais para invalidar o cache automaticamente.
+     *
+     * @return bool
+     */
     private static function loadRoutesFromCache(): bool
     {
         $basePath = Config::pathProject();
-        $cacheFile = $basePath . Config::getAplicationConfig()['path']['cache'] . 'routers' . DIRECTORY_SEPARATOR . 'routes.cache.php';
+        $cachePathRelative = Config::getAplicationConfig()['path']['cache'] . 'routers' . DIRECTORY_SEPARATOR;
+        $cacheFile = $basePath . $cachePathRelative . 'routes.cache.php';
 
-        if (!file_exists($cacheFile)) return false;
+        if (!file_exists($cacheFile)) {
+            return false;
+        }
 
+        $cacheTime = filemtime($cacheFile);
+
+        $routerPattern = $basePath . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'routers' . DIRECTORY_SEPARATOR . '*.php';
+        $routerFiles = glob($routerPattern);
+
+        if ($routerFiles === false) {
+            return false;
+        }
+
+        foreach ($routerFiles as $file) {
+            if (is_file($file) && filemtime($file) > $cacheTime) {
+                return false;
+            }
+        }
         $cachedData = require $cacheFile;
 
         if (isset($cachedData['static']) || isset($cachedData['dynamic'])) {

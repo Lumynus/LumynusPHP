@@ -1,0 +1,115 @@
+[
+    {
+        "who": "Validation Params",
+        "timestamp": "2025-12-06T12:19:20-03:00",
+        "error": {
+            "Message": "Invalid fields sent. Some parameters are not allowed or type mismatch.",
+            "params": {
+                "mensage": "oi"
+            },
+            "fieldsPermitted": {
+                "mensage": "int"
+            }
+        }
+    },
+    {
+        "who": "Validation Params",
+        "timestamp": "2025-12-06T12:19:36-03:00",
+        "error": {
+            "Message": "Invalid fields sent. Some parameters are not allowed or type mismatch.",
+            "params": {
+                "va": "4",
+                "mensage": "oi"
+            },
+            "fieldsPermitted": {
+                "mensage": "string"
+            }
+        }
+    },
+    {
+        "who": "Validation Params",
+        "timestamp": "2025-12-06T12:36:55-03:00",
+        "error": {
+            "Message": "Invalid fields sent. Some parameters are not allowed or type mismatch.",
+            "params": {
+                "va": "4",
+                "mensage": "oi"
+            },
+            "fieldsPermitted": {
+                "mensage": "string"
+            }
+        }
+    },
+    {
+        "who": "Validation Params",
+        "timestamp": "2025-12-06T12:37:18-03:00",
+        "error": {
+            "Message": "Invalid fields sent. Some parameters are not allowed or type mismatch.",
+            "params": {
+                "va": "4",
+                "mensage": "oi"
+            },
+            "fieldsPermitted": {
+                "mensage": "string"
+            }
+        }
+    },
+    {
+        "who": "Validation Params",
+        "timestamp": "2025-12-06T12:37:19-03:00",
+        "error": {
+            "Message": "Invalid fields sent. Some parameters are not allowed or type mismatch.",
+            "params": {
+                "va": "4",
+                "mensage": "oi"
+            },
+            "fieldsPermitted": {
+                "mensage": "string"
+            }
+        }
+    },
+    {
+        "who": "Validation Params",
+        "timestamp": "2025-12-06T12:37:19-03:00",
+        "error": {
+            "Message": "Invalid fields sent. Some parameters are not allowed or type mismatch.",
+            "params": {
+                "va": "4",
+                "mensage": "oi"
+            },
+            "fieldsPermitted": {
+                "mensage": "string"
+            }
+        }
+    },
+    {
+        "who": "Validation Params",
+        "timestamp": "2025-12-06T12:39:51-03:00",
+        "error": {
+            "Message": "Invalid fields sent. Some parameters are not allowed or type mismatch.",
+            "params": {
+                "va": "laass",
+                "mensage": "oi"
+            },
+            "fieldsPermitted": {
+                "va": "int",
+                "mensage": "string"
+            }
+        }
+    },
+    {
+        "who": "Validation Params",
+        "timestamp": "2025-12-06T12:44:09-03:00",
+        "error": {
+            "Message": "Invalid fields sent. Some parameters are not allowed or type mismatch.",
+            "params": {
+                "va": "laass",
+                "mensage": "oi"
+            },
+            "fieldsPermitted": {
+                "va": "int",
+                "mensage": "string"
+            }
+        }
+    }
+]

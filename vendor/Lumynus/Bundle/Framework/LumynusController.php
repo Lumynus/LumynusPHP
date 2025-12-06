@@ -22,6 +22,7 @@ use Lumynus\Bundle\Framework\Cookies;
 use Lumynus\Bundle\Framework\QueueManager;
 use Lumynus\Bundle\Framework\CSRF;
 use Lumynus\Bundle\Framework\Memory;
+use Lumynus\Bundle\Framework\CORS;
 
 abstract class LumynusController extends LumaClasses
 {
@@ -173,8 +174,18 @@ abstract class LumynusController extends LumaClasses
      * Método para obter a instância da classe Memory
      * @return Memory Retorna uma nova instância da classe Memory
      */
-    protected function memory() : Memory {
+    protected function memory(): Memory
+    {
         return new Memory;
+    }
+
+    /**
+     * Método para obter a instância da classe CORS.
+     * @return CORS Retorna uma nova instância da classe CORS.
+     */
+    protected function cors(): CORS
+    {
+        return new CORS();
     }
 
     /**

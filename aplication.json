@@ -9,9 +9,10 @@
       "host": "www.exemple.com"
     },
     "path": {
-      "js": "/public/resources/js/",
-      "css": "/public/resources/css/",
-      "img": "./resources/img/",
+      "public": "/public/",
+      "js": "/resources/js/",
+      "css": "/resources/css/",
+      "img": "/resources/img/",
       "views": "/src/views/",
       "routers": "/src/routers/",
       "cache": "/storage/cache/"
@@ -25,10 +26,10 @@
         "enabled": false
       },
       "session": {
-        "secret": "qrmida2025_txt444@session"
+        "secret": "lum_txt444@session"
       },
       "cookie": {
-        "secret": "qrmida2025_txt444@cookie5"
+        "secret": "lum_txt444@cookie5"
       }
     }
   }

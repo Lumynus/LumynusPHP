@@ -20,6 +20,7 @@ use Lumynus\Bundle\Framework\Cookies;
 use Lumynus\Bundle\Framework\QueueManager;
 use Lumynus\Bundle\Framework\CSRF;
 use Lumynus\Bundle\Framework\Memory;
+use Lumynus\Bundle\Framework\CORS;
 
 /**
  * Trait com métodos utilitários comuns do framework Lumynus.
@@ -103,7 +104,11 @@ trait LumynusTools
     protected function memory() : Memory {
         return new Memory;
     }
-
+    
+    protected function cors(): CORS
+    {
+        return new CORS();
+    }
 
     public function __debugInfo(): array
     {

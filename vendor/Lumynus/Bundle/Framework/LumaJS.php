@@ -2,7 +2,6 @@
 
 namespace Lumynus\Bundle\Framework;
 
-
 class LumaJS
 {
 
@@ -83,9 +82,5 @@ class LumaJS
     }
 
 
-    private function __js()
-    {
-
-       
-    }
+    private function __js() {}
 }

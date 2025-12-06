@@ -52,6 +52,7 @@ class Config extends LumaClasses
                 "host" => "www.exemple.com"
             ],
             "path" => [
+                "public" => "/public/",
                 "js" => "./resources/js/",
                 "css" => "./resources/css/",
                 "img" => "./resources/img/",

@@ -466,7 +466,7 @@ class Luma extends LumaClasses
         }
 
         $url = "/" . ltrim($assetPath, '/');
-        $url = str_replace('/public/', './', $url);
+        $url = str_replace($config['path']['public'], './', $url);
 
         if ($type === 'js') {
             return "<script type='module' src=\"{$url}\" {$integrity}></script>";
