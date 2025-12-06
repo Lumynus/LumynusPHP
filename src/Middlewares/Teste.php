@@ -7,10 +7,9 @@ use Lumynus\Bundle\Framework\LumynusMiddleware;
 class Teste extends LumynusMiddleware
 {
 
-    public function handle($teste,$v)
+    public function handle($teste)
     {
 
-        var_dump($v);
         
         return true;
      

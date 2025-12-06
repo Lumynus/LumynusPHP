@@ -7,9 +7,11 @@
 </head>
 <body>
 
-    <link rel="stylesheet" href="/Lumynus/public/resources/css/ava.css?v=1765051828" >
+    <link rel="stylesheet" href="/resources/css/ava.css?v=1765051828" >
     
-    <script type='module' src="/Lumynus/public/resources/js/ava.js?v=1765049216" ></script>
+    <script type='module' src="/resources/js/ava.js?v=1765049216" ></script>
+
+    
 
 <input type="hidden" name="<?= $csrf_name ?? "csrf" ?>" value="<?= $csrf_token ?? "" ?>">
 </body>
