@@ -32,6 +32,13 @@ class Route extends LumaClasses
     private static array $middlewareStack = [];
 
     /**
+     * Armazena rotas dinâmicas.
+     *
+     * @var array
+     */
+    private static array $dynamicRoutes = [];
+
+    /**
      * Registra uma rota com base no método HTTP.
      *
      * @param string $method Método HTTP (GET, POST, PUT, DELETE).
@@ -42,7 +49,6 @@ class Route extends LumaClasses
      */
     private static function register(string $method, string|array $route, string $controller, string $action): void
     {
-
         if (is_array($route)) {
             foreach ($route as $r) {
                 self::register($method, $r, $controller, $action);
@@ -50,15 +56,21 @@ class Route extends LumaClasses
             return;
         }
 
-        [$cleanRoute, $fieldsPermitted, $isApi] = self::parseRouteFields($route);
+        $parsed = self::parseRouteConfig($route);
 
-        self::$routes[strtoupper($method)][$cleanRoute] = [
-            'controller' => $controller,
-            'action' => $action,
-            'fieldsPermitted' => $fieldsPermitted,
-            'middlewares' => self::$middlewareStack,
-            'api' => $isApi
+        $config = [
+            'controller'      => $controller,
+            'action'          => $action,
+            'fieldsPermitted' => $parsed['fields'],
+            'middlewares'     => self::$middlewareStack,
+            'api'             => $parsed['api']
         ];
+
+        if ($parsed['isDynamic']) {
+            self::$dynamicRoutes[strtoupper($method)][$parsed['regex']] = $config;
+        } else {
+            self::$routes[strtoupper($method)][$parsed['cleanRoute']] = $config;
+        }
     }
 
     /**
@@ -73,40 +85,58 @@ class Route extends LumaClasses
      * @param string $route Rota com ou sem definição de campos entre colchetes.
      * @return array Um array contendo [rota limpa, campos permitidos].
      */
-    private static function parseRouteFields(string $route): array
+    private static function parseRouteConfig(string $route): array
     {
-        $fieldsPermitted = [];
-        $cleanRoute = $route;
         $isApi = false;
+        $fieldsPermitted = [];
 
-        // Verifica se tem marcador {api}
-        if (preg_match('/\{api\}$/', $route)) {
+        // 1. Verifica e remove a flag {api} do final
+        if (str_ends_with($route, '{api}')) {
             $isApi = true;
-            $cleanRoute = str_replace('{api}', '', $cleanRoute);
+            $route = substr($route, 0, -5); // Remove '{api}'
         }
 
-        if (preg_match('/^(.*?)\[(.*?)\]$/', $cleanRoute, $matches)) {
-            $cleanRoute = $matches[1];
-            $fieldsRaw = trim($matches[2]);
-
-            if ($fieldsRaw === '*') {
-                $fieldsPermitted = '*';
-            } elseif (preg_match('/^(string|int|float|bool)\s+\*$/', $fieldsRaw, $typeMatch)) {
-                $fieldsPermitted = ['*' => $typeMatch[1]];
-            } else {
-
-                $fields = preg_split('/\s*,\s*/', $fieldsRaw); // Remove espaços ao redor das vírgulas
-                foreach ($fields as $field) {
-                    $field = trim($field);
-                    if (preg_match('/^(string|int|float|bool)\s+(\w+)$/', $field, $fieldMatch)) {
-                        [, $type, $name] = $fieldMatch;
-                        $fieldsPermitted[$name] = $type;
-                    }
-                }
-            }
+        // 2. Se não tiver chaves {}, é uma rota Estática simples
+        if (!str_contains($route, '{')) {
+            return [
+                'isDynamic' => false,
+                'cleanRoute' => $route, // Rota limpa sem regex
+                'regex' => null,
+                'fields' => [], // Sem campos variáveis
+                'api' => $isApi
+            ];
         }
 
-        return [$cleanRoute, $fieldsPermitted, $isApi];
+        // 3. Processamento de Rota Dinâmica
+        // Escapa a string para ser segura em Regex (pontos viram \., barras viram \/)
+        $safeRoute = preg_quote($route, '~');
+
+        // Regex Mágica para encontrar: \{nome\} OU \{nome\}[tipo]
+        // Como usamos preg_quote, as chaves e colchetes estão escapados (\{\})
+        $pattern = '/\\\\\{(\w+)\\\\\}(?:\\\\\[(\w+)\\\\\])?/';
+
+        // Substitui cada ocorrência pelo regex de captura (?P<name>[^/]+)
+        // E popula o array $fieldsPermitted
+        $regexRoute = preg_replace_callback($pattern, function ($matches) use (&$fieldsPermitted) {
+            $paramName = $matches[1];
+            $paramType = $matches[2] ?? '*'; // Se não tiver [tipo], assume '*'
+
+            $fieldsPermitted[$paramName] = $paramType;
+
+            // Retorna o grupo de captura regex para a URL
+            return '(?P<' . $paramName . '>[^/]+)';
+        }, $safeRoute);
+
+        // Adiciona âncoras de inicio e fim para o Regex final
+        $finalRegex = '~^' . $regexRoute . '$~';
+
+        return [
+            'isDynamic' => true,
+            'cleanRoute' => $route, // A rota original "legível" (sem {api})
+            'regex' => $finalRegex,
+            'fields' => $fieldsPermitted,
+            'api' => $isApi
+        ];
     }
 
 
@@ -266,6 +296,7 @@ class Route extends LumaClasses
     private static function validateType($value, string $type): bool
     {
         return match ($type) {
+            '*'      => true,
             'string' => is_string($value),
             'int'    => filter_var($value, FILTER_VALIDATE_INT) !== false,
             'float'  => filter_var($value, FILTER_VALIDATE_FLOAT) !== false,
@@ -363,31 +394,19 @@ class Route extends LumaClasses
         $basePath = Config::pathProject();
         $cacheFile = $basePath . Config::getAplicationConfig()['path']['cache'] . 'routers' . DIRECTORY_SEPARATOR . 'routes.cache.php';
 
-        if (!file_exists($cacheFile)) {
+        if (!file_exists($cacheFile)) return false;
+
+        $cachedData = require $cacheFile;
+
+        if (isset($cachedData['static']) || isset($cachedData['dynamic'])) {
+            self::$routes = $cachedData['static'] ?? [];
+            self::$dynamicRoutes = $cachedData['dynamic'] ?? [];
+        } else {
             return false;
         }
 
-        $cacheTime = filemtime($cacheFile);
-
-        $routerPath = $basePath . Config::getAplicationConfig()['path']['routers'];
-        $routerFiles = glob($routerPath . '/*.php');
-
-        $lastModified = 0;
-        foreach ($routerFiles as $file) {
-            $mtime = filemtime($file);
-            if ($mtime > $lastModified) {
-                $lastModified = $mtime;
-            }
-        }
-
-        if ($cacheTime < $lastModified) {
-            return false;
-        }
-
-        self::$routes = require $cacheFile;
         return true;
     }
-
 
     /**
      * Salva as rotas registradas em um arquivo de cache.
@@ -400,28 +419,29 @@ class Route extends LumaClasses
         $basePath = Config::pathProject();
         $cacheFile = $basePath . Config::getAplicationConfig()['path']['cache'] . 'routers' . DIRECTORY_SEPARATOR . 'routes.cache.php';
 
-        $export = var_export(self::$routes, true);
+        $dataToCache = [
+            'static'  => self::$routes,
+            'dynamic' => self::$dynamicRoutes
+        ];
+
+        $export = var_export($dataToCache, true);
         $content = "<?php\n\nreturn {$export};";
 
-        // Cria diretório de cache se não existir
         $cacheDir = dirname($cacheFile);
-
-        if (!is_dir($cacheDir)) {
-            mkdir($cacheDir, 0755, true);
-        }
+        if (!is_dir($cacheDir)) mkdir($cacheDir, 0755, true);
 
         file_put_contents($cacheFile, $content);
     }
 
+
     /**
      * Inicia o roteamento da aplicação.
-     * Lê a URI da requisição, valida parâmetros e executa o controlador.
+     * Lê a URI da requisição, busca rotas estáticas ou dinâmicas, valida e executa.
      *
      * @return void
      */
     public static function start(): void
     {
-
         // Verifica se as rotas foram carregadas
         if (!self::loadRoutesFromCache()) {
             self::requireRouters();
@@ -430,20 +450,38 @@ class Route extends LumaClasses
 
         $requestMethod = $_SERVER['REQUEST_METHOD'];
 
+        // Obtém apenas o caminho da URL
         $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-        $basePath = dirname($_SERVER['SCRIPT_NAME']);
+        /////// TRATAMENTO DE DIRETÓRIO / BASE PATH ///////
 
-        if (str_starts_with($uri, $basePath)) {
+        $scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME']);
+        $basePath = rtrim(dirname($scriptName), '/');
+
+        if ($basePath === '.' || $basePath === '/') {
+            $basePath = '';
+        }
+
+        if ($basePath !== '' && str_starts_with($uri, $basePath)) {
             $uri = substr($uri, strlen($basePath));
         }
 
-        $route = trim($uri, '/');
-        if ($route === '') {
-            $route = '/';
+        $index = basename($scriptName);
+        if (str_starts_with($uri, '/' . $index)) {
+            $uri = substr($uri, strlen('/' . $index));
         }
-        $params = $_GET;
 
+        //////// FIM DO TRATAMENTO ////////
+
+        // Limpa barras extras no início/fim
+        $route = trim($uri, '/');
+
+        if ($route === '') {
+            $route = '';
+        }
+
+        // Prepara os parâmetros iniciais (GET e QueryString manual)
+        $params = $_GET;
         $queryString = $_SERVER['QUERY_STRING'] ?? '';
 
         if (str_contains($queryString, ':')) {
@@ -452,22 +490,54 @@ class Route extends LumaClasses
             $params = array_merge($params, $customParams);
         }
 
-        if (!isset(self::$routes[$requestMethod][$route])) {
+        $routeConfig = null;
+        $routeParams = []; // Para armazenar IDs capturados (ex: id=10)
+
+        // 1. Tenta encontrar uma Rota Estática (Exata) - É mais rápido
+        if (isset(self::$routes[$requestMethod][$route])) {
+            $routeConfig = self::$routes[$requestMethod][$route];
+        }
+        // 2. Se não achou, tenta encontrar uma Rota Dinâmica (Regex)
+        else {
+            if (isset(self::$dynamicRoutes[$requestMethod])) {
+                foreach (self::$dynamicRoutes[$requestMethod] as $regex => $config) {
+                    if (preg_match($regex, $route, $matches)) {
+                        $routeConfig = $config;
+
+                        // Extrai apenas as chaves de texto (os nomes dos parâmetros)
+                        foreach ($matches as $key => $value) {
+                            if (is_string($key)) {
+                                $routeParams[$key] = $value;
+                            }
+                        }
+                        break; // Parar o loop assim que encontrar
+                    }
+                }
+            }
+        }
+
+        // 3. Se não encontrou em nenhum lugar, lança 404
+        if (!$routeConfig) {
             self::throwError('Route not found', 404, 'html');
             return;
         }
 
-        $routeConfig = self::$routes[$requestMethod][$route];
+        // 4. MERGE FINAL: Junta os parâmetros da URL ({id}) com os do GET
+        // Os parâmetros da rota têm prioridade ou complementam o GET
+        $params = array_merge($params, $routeParams);
+
+        // Validação de Tipos (Agora usa o array configurado no parse)
         $validation = self::validateParams($params, $routeConfig['fieldsPermitted']);
 
         if (!$validation['valid']) {
             Logs::register("Validation Params", [
-                'Message' => 'Invalid fields sent. Some parameters are not allowed.'
+                'Message' => 'Invalid fields sent. Some parameters are not allowed or type mismatch.',
+                'params'  => $params,
+                'fieldsPermitted' => $routeConfig['fieldsPermitted']
             ]);
             self::throwError('Forbidden', 403, 'html');
             return;
         }
-
 
         // VERIFICA SE O TOKEN CSRF FOI ENVIADO E É VÁLIDO (apenas para rotas Web)
         $isApi = $routeConfig['api'] ?? false;
@@ -497,7 +567,6 @@ class Route extends LumaClasses
                 $token = $_SERVER['HTTP_X_CSRF_TOKEN'];
             }
 
-
             if (!$token || CSRF::isValidToken($token) === false) {
                 Logs::register("CSRF Token Mismatch Error", [
                     'Sent Token'    => $token,
@@ -510,13 +579,12 @@ class Route extends LumaClasses
         }
 
         $customizeParamsPosts = array_merge(
-            ['GET' => $params ?? []],
+            ['GET' => $params ?? []], // $params agora contém os dados da URL validada
             ['POST' => $_POST ?? []],
             ['INPUT' => $input ?? []],
             ['FILE' => $_FILES ?? []],
             ['HEADER' => self::getRequestHeaders() ?? []]
         );
-
 
         // Executa os middlewares registrados para a rota
         $returnMidd = null;
@@ -549,7 +617,6 @@ class Route extends LumaClasses
         }
 
         // Se chegou aqui, significa que a rota é válida e os middlewares passaram
-        // Instancia o controlador e chama a ação correspondente
         $controller = $routeConfig['controller'];
         $action = $routeConfig['action'];
 

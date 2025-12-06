@@ -1,3 +1,0 @@
-Oiiii
-----------------------------
-<?= htmlspecialchars($conteudo) ?>

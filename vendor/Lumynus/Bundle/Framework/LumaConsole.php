@@ -284,26 +284,52 @@ class LumaConsole extends LumaClasses
                 continue;
             }
 
-            $files = glob($dir . '/*');
-            $deleted = 0;
-
-            foreach ($files as $file) {
-                if (is_file($file)) {
-                    if (!@unlink($file)) {
-                        echo "\n(Cannot delete file {$file}. Check permissions)\n";
-                        echo "(Não foi possível deletar o arquivo {$file}. Verifique permissões)\n\n";
-                        self::fixPermissions($file);
-                    } else {
-                        $deleted++;
-                    }
-                }
-            }
+            $deleted = self::deleteRecursive($dir);
 
             echo "\n\n({$type} cleared successfully. {$deleted} file(s) deleted)\n";
             echo "({$type} limpo com sucesso. {$deleted} arquivo(s) deletado(s))\n\n";
         }
 
         echo "\n";
+    }
+
+    /**
+     * Deleta arquivos e pastas recursivamente
+     *
+     * @param string $path Caminho do diretório
+     * @return int Número de arquivos deletados
+     */
+    private static function deleteRecursive(string $path): int
+    {
+        $count = 0;
+
+        if (!is_dir($path)) {
+            return 0;
+        }
+
+        $items = scandir($path);
+
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') continue;
+
+            $full = $path . DIRECTORY_SEPARATOR . $item;
+
+            if (is_dir($full)) {
+        
+                $count += self::deleteRecursive($full);
+
+                @rmdir($full);
+            } else {
+                if (@unlink($full)) {
+                    $count++;
+                } else {
+                    echo "\n(Não foi possível deletar {$full})\n";
+                    self::fixPermissions($full);
+                }
+            }
+        }
+
+        return $count;
     }
 
     /**

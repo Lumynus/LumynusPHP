@@ -1,0 +1,18 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Trata cabeçalho de autorização (necessário para alguns servidores)
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Se o arquivo existir (ex: imagem, css, js), não faz nada e abre o arquivo
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+
+    # Para qualquer outra coisa, redireciona para o index.php
+    RewriteRule ^ index.php [L]
+</IfModule>
