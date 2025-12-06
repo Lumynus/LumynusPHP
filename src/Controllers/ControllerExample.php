@@ -14,7 +14,9 @@ class ControllerExample extends LumynusController
     {
 
        
-        var_dump($req);
+        $this->response()->html($this->renderView(
+            'index.html'
+        ));
 
     }
 

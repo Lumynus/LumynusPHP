@@ -111,5 +111,135 @@
                 "mensage": "string"
             }
         }
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:28:06-03:00",
+        "error": "Asset not found: C:\\Users\\welen\\Desktop\\Projetos\\Lumynus/resources/js/ava.js"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:28:06-03:00",
+        "error": "Slow template render: index.html took 262ms"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:28:46-03:00",
+        "error": "Asset not found: C:\\Users\\welen\\Desktop\\Projetos\\Lumynus/resources/js/ava.js"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:28:46-03:00",
+        "error": "Slow template render: index.html took 283ms"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:29:13-03:00",
+        "error": "Asset not found: C:\\Users\\welen\\Desktop\\Projetos\\Lumynusresources/js/ava.js"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:29:13-03:00",
+        "error": "Slow template render: index.html took 206ms"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:30:34-03:00",
+        "error": "Asset not found: C:\\Users\\welen\\Desktop\\Projetos\\Lumynus./resources/js/ava.js"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:30:34-03:00",
+        "error": "Slow template render: index.html took 166ms"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:33:28-03:00",
+        "error": "Asset not found: C:\\Users\\welen\\Desktop\\Projetos\\Lumynus./resources/js/ava.js"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:33:28-03:00",
+        "error": "Slow template render: index.html took 120ms"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:35:59-03:00",
+        "error": "Asset not found: C:\\Users\\welen\\Desktop\\Projetos\\Lumynus./resources/js/ava.js"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:35:59-03:00",
+        "error": "Slow template render: index.html took 127ms"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:38:01-03:00",
+        "error": "Asset not found: C:\\Users\\welen\\Desktop\\Projetos\\Lumynus"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:38:01-03:00",
+        "error": "Asset not found: C:\\Users\\welen\\Desktop\\Projetos\\Lumynus/resources/js/ava.js"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:38:01-03:00",
+        "error": "Slow template render: index.html took 206ms"
+    },
+    {
+        "who": "Teste",
+        "timestamp": "2025-12-06T16:38:26-03:00",
+        "error": "Asset not found: C:\\Users\\welen\\Desktop\\Projetos\\Lumynus"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:38:26-03:00",
+        "error": "Asset not found: C:\\Users\\welen\\Desktop\\Projetos\\Lumynus/resources/js/ava.js"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:38:26-03:00",
+        "error": "Slow template render: index.html took 181ms"
+    },
+    {
+        "who": "Teste",
+        "timestamp": "2025-12-06T16:40:51-03:00",
+        "error": "Asset not found: C:\\Users\\welen\\Desktop\\Projetos\\Lumynus"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:40:51-03:00",
+        "error": "Asset not found: /resources/js/ava.js"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:40:51-03:00",
+        "error": "Slow template render: index.html took 264ms"
+    },
+    {
+        "who": "Teste",
+        "timestamp": "2025-12-06T16:41:20-03:00",
+        "error": "Asset not found: C:\\Users\\welen\\Desktop\\Projetos\\Lumynus"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:41:20-03:00",
+        "error": "Slow template render: index.html took 401ms"
+    },
+    {
+        "who": "Teste",
+        "timestamp": "2025-12-06T16:47:09-03:00",
+        "error": "Asset not found: C:\\Users\\welen\\Desktop\\Projetos\\Lumynus"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T16:50:43-03:00",
+        "error": "Asset not found: C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\public\\public\\resources\\js\\ava.js"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-06T17:10:37-03:00",
+        "error": "Slow template render: index.html took 145ms"
     }
 ]

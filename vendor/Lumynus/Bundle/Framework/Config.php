@@ -53,9 +53,8 @@ class Config extends LumaClasses
             ],
             "path" => [
                 "public" => "/public/",
-                "js" => "./resources/js/",
-                "css" => "./resources/css/",
-                "img" => "./resources/img/",
+                "js" => "/resources/js/",
+                "css" => "/resources/css/",
                 "views" => "/src/views/",
                 "routers" => "/src/routers/",
                 "cache" => "/storage/cache/"
@@ -74,7 +73,10 @@ class Config extends LumaClasses
                 "cookie" => [
                     "secret" => "2025_trx$#@@lum@nysCryptCookiesDates"
                 ]
-            ]
+            ],
+            "frontend" => [
+                "versionAssets" => true
+            ],
         ];
     }
 

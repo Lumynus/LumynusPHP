@@ -446,12 +446,22 @@ class Luma extends LumaClasses
         })($cacheFile, $data);
     }
 
+    /**
+     * Gera HTML para assets com validação de integridade.
+     */
     private static function getAssetHtml(string $path, string $type): string
     {
         $config = Config::getAplicationConfig();
         $basePath = Config::pathProject();
-        $assetPath = $config['path'][$type] . $path . '.' . $type;
-        $fullPath = $basePath . $assetPath;
+
+        // 1. Prepara os nomes das pastas removendo barras extras
+        $publicDirName = trim($config['path']['public'], '/'); // ex: "public"
+        $resourcePath = trim($config['path'][$type], '/');     // ex: "resources/js"
+        $fileName = $path . '.' . $type;                       // ex: "ava.js"
+
+        $fullPath = $basePath . DIRECTORY_SEPARATOR . $publicDirName . DIRECTORY_SEPARATOR . $resourcePath . DIRECTORY_SEPARATOR . $fileName;
+
+        $fullPath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $fullPath);
 
         if (!file_exists($fullPath)) {
             Logs::register("Error", "Asset not found: {$fullPath}");
@@ -465,8 +475,15 @@ class Luma extends LumaClasses
             $integrity = "integrity='sha384-{$hash}' crossorigin='anonymous'";
         }
 
-        $url = "/" . ltrim($assetPath, '/');
-        $url = str_replace($config['path']['public'], './', $url);
+        $baseUrl = dirname($_SERVER['SCRIPT_NAME']);
+
+        $baseUrl = str_replace('\\', '/', $baseUrl);
+        $baseUrl = rtrim($baseUrl, '/');
+        $url = $baseUrl . '/' . $resourcePath . '/' . $fileName;
+
+        if (($config['frontend']['versionAssets'] ?? false) === true) {
+            $url .= "?v=" . filemtime($fullPath);
+        }
 
         if ($type === 'js') {
             return "<script type='module' src=\"{$url}\" {$integrity}></script>";
