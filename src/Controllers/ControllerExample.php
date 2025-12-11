@@ -13,8 +13,6 @@ class ControllerExample extends LumynusController
     public function index($req,mixed $a = 'oi')
     {
 
-        
-        
         return  $this->response()
         ->header('Content-Type', 'application/json')
          ->status(200)

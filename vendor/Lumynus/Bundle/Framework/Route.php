@@ -333,13 +333,13 @@ class Route extends LumaClasses
         foreach ($_SERVER as $key => $value) {
             if (str_starts_with($key, 'HTTP_')) {
                 // Transforma HTTP_AUTHORIZATION → Authorization
-                $header = str_replace('', '-', ucwords(strtolower(substr($key, 5)), ''));
+                $header = str_replace(' ', '-', ucwords(strtolower(substr($key, 5)), ''));
                 $headers[$header] = $value;
             }
 
             // Alguns headers não vêm com HTTP_ (como CONTENT_TYPE)
             if (in_array($key, ['CONTENT_TYPE', 'CONTENT_LENGTH'])) {
-                $header = str_replace('', '-', ucwords(strtolower($key), ''));
+                $header = str_replace(' ', '-', ucwords(strtolower($key), ''));
                 $headers[$header] = $value;
             }
         }

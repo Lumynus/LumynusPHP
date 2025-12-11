@@ -6,7 +6,7 @@
       "description": "A simple PHP framework for building web applications.",
       "author": "Weleny Santos",
       "email": "",
-      "host": "www.exemple.com"
+      "host": ""
     },
     "path": {
       "public": "/public/",
