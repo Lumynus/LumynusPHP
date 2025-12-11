@@ -48,5 +48,15 @@
         "who": "Error",
         "timestamp": "2025-12-11T17:53:04-03:00",
         "error": "Slow template render: index.html took 133ms"
+    },
+    {
+        "who": "Undefined variable $data",
+        "timestamp": "2025-12-11T19:12:09-03:00",
+        "error": "C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\LumaConsole.php 483"
+    },
+    {
+        "who": "Uncaught TypeError: count(): Argument #1 ($value) must be of type Countable|array, null given in C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\LumaConsole.php:483\nStack trace:\n#0 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\LumaConsole.php(483): count(NULL)\n#1 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\LumaConsole.php(65): Lumynus\\Bundle\\Framework\\LumaConsole::server(Array)\n#2 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\bootstrap\\useConsole.php(26): Lumynus\\Bundle\\Framework\\LumaConsole::run(Array)\n#3 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\luma(8): require_once('C:\\\\Users\\\\welen\\\\...')\n#4 {main}\n  thrown",
+        "timestamp": "2025-12-11T19:12:09-03:00",
+        "error": "C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\LumaConsole.php 483"
     }
 ]

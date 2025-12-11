@@ -38,6 +38,7 @@ class LumaConsole extends LumaClasses
             'version' => 'Mostrar versão do aplicativo',
             'info' => 'Mostrar informações do sistema',
             'mode' => 'Mostrar modo atual do aplicativo',
+            'server' => 'Iniciar servidor de desenvolvimento',
 
             # Limpar arquivos
             'clear' => 'Limpar arquivos temporários e cache',
@@ -108,6 +109,8 @@ class LumaConsole extends LumaClasses
         $PURPLE = "\033[95m";
         $RESET = "\033[0m";
 
+        echo PHP_EOL;
+        echo PHP_EOL;
         echo $BOLD . $BLUE . "════════════════════════════════════════════" . $RESET . PHP_EOL;
         echo $BOLD . $YELLOW;
         echo "    ██╗     ██╗   ██╗ ███╗   ███╗ ██╗   ██╗ ███╗   ██╗ ██╗   ██╗ ███████╗" . PHP_EOL;
@@ -129,6 +132,7 @@ class LumaConsole extends LumaClasses
         echo "  {$CYAN}help{$RESET}               - Show this help menu | Mostrar opções do menu\n";
         echo "  {$CYAN}version{$RESET}            - Show application version | Mostrar versão do aplicativo\n";
         echo "  {$CYAN}info{$RESET}               - Show system information | Mostrar informações do sistema\n";
+        echo "  {$CYAN}server{$RESET}             - Start development server | Iniciar servidor de desenvolvimento\n";
         echo "  {$CYAN}mode{$RESET}               - Show current application mode | Mostrar modo atual do aplicativo\n";
         echo "  {$CYAN}clear{$RESET}              - Clear temporary files and cache | Limpar arquivos temporários e cache\n";
         echo "  {$CYAN}key{$RESET}                - Generate encryption key | Gerar chave de criptografia\n";
@@ -471,6 +475,26 @@ class LumaConsole extends LumaClasses
             echo "(Não foi possível criptografar e salvar os dados com a chave '{$keyName}'. Verifique permissões)\n\n";
         }
     }
+
+    private static function server($dados) {
+
+        $ciano = "\033[96m";
+        $reset = "\033[0m";
+        $roxo = "\033[95m";
+        $verde = "\033[92m";
+
+        if (empty($dados) && count($dados) > 1) {
+            echo "\n\nPlease provide a door you wish to serve.\n";
+            echo "(Por favor, forneça uma porta que deseja servir)\nExample: php luma {$verde}server{$reset} {$ciano}8000{$reset}\n\n";
+            return;
+        }
+
+        $caminho = Config::pathProject(). DIRECTORY_SEPARATOR . Config::getAplicationConfig()['path']['public'];
+        $caminho = preg_replace('#[\/\\\\]+#', DIRECTORY_SEPARATOR, $caminho);
+
+        shell_exec('php -S localhost:' . ($dados[0] ?? '8000') . ' -t ' . $caminho);
+    }
+
 
     private static function controller($dados)
     {
