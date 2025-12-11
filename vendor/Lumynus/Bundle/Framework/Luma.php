@@ -26,6 +26,7 @@ class Luma extends LumaClasses
     private static array $shareData = [];
     private static array $patterns = [];
     private static array $compilationCount = [];
+    private static array $queuedHeaderAssets = [];
 
     // Limites de segurança
     private const MAX_TEMPLATE_SIZE = 1024 * 1024; // 1MB
@@ -53,6 +54,7 @@ class Luma extends LumaClasses
             'else'       => '/@else/',
             'endif'      => '/@endif/',
             'selected' => '/@selected\s*\(\s*(.*?)\s*,\s*(.*?)\s*\)/',
+            'checked' => '/@checked\s*\(\s*(.*?)\s*,\s*(.*?)\s*\)/',
 
             // Exist / Not
             'exist'      => '/@exist\s*\((.*?)\)/',
@@ -72,10 +74,15 @@ class Luma extends LumaClasses
             'raw_var'    => '/\{\{\s*raw\s+(\$[a-zA-Z_][a-zA-Z0-9_\[\]\'"]*)\s*\}\}/',
             'typed_var'  => '/\{\{\s*(int|float|string|bool)\s+(\$[a-zA-Z_][a-zA-Z0-9_\[\]\'"]*)\s*(raw)?\s*\}\}/',
             'simple_var' => '/\{\{\s*(\$[a-zA-Z_][a-zA-Z0-9_\[\]\'"]*)\s*\}\}/',
+            'use'        => '/@use\s*\(\s*([\'"])([\w\/_\-\.]+)\1\s*,\s*([\'"])([\w\-_]+)\3\s*\)/',
 
             // Assets
             'js'  => '/@js\s*\(\s*(?:([\'"])([a-zA-Z0-9\/_\-\.]+)\1|(\$[a-zA-Z_][a-zA-Z0-9_]*))\s*\)/',
             'css' => '/@css\s*\(\s*(?:([\'"])([a-zA-Z0-9\/_\-\.]+)\1|(\$[a-zA-Z_][a-zA-Z0-9_]*))\s*\)/',
+
+            //Alterando headers de forma segura
+            'header:css' => '/@header:css\s*\(\s*(?:([\'"])([a-zA-Z0-9\/_\-\.]+)\1|(\$[a-zA-Z_][a-zA-Z0-9_]*))\s*\)/',
+            'header:js'  => '/@header:js\s*\(\s*(?:([\'"])([a-zA-Z0-9\/_\-\.]+)\1|(\$[a-zA-Z_][a-zA-Z0-9_]*))\s*\)/',
 
         ];
     }
@@ -88,8 +95,16 @@ class Luma extends LumaClasses
     {
         $startTime = microtime(true);
 
+        // Verifica se esta é a view principal (Raiz)
+        $isRootView = empty(self::$viewStack);
+
         try {
-            self::checkRateLimit();
+            if ($isRootView) {
+                // Limpa a fila de assets anteriores se for uma nova requisição principal
+                self::$queuedHeaderAssets = [];
+                self::checkRateLimit();
+            }
+
             self::validateView($view);
 
             if (in_array($view, self::$viewStack)) {
@@ -115,15 +130,32 @@ class Luma extends LumaClasses
 
             $output = self::getRenderedContent($cacheFile, self::$shareData, $regenerateCSRF);
 
+            if ($isRootView && !empty(self::$queuedHeaderAssets)) {
+                $injection = implode(PHP_EOL, self::$queuedHeaderAssets);
+
+                if (preg_match('/<\/head>/i', $output)) {
+                    $output = preg_replace(
+                        '/<\/head>/i',
+                        $injection . PHP_EOL . '</head>',
+                        $output,
+                        1
+                    );
+                } else {
+                    $output = $injection . PHP_EOL . $output;
+                }
+            }
+
             self::logPerformance($view, $startTime);
             return $output;
         } finally {
             array_pop(self::$viewStack);
             if (empty(self::$viewStack)) {
                 self::$shareData = [];
+                self::$queuedHeaderAssets = [];
             }
         }
     }
+
 
     /**
      * Valida o nome da view contra caracteres perigosos.
@@ -237,6 +269,7 @@ class Luma extends LumaClasses
         }
 
         try {
+
             // Ordem importante para evitar conflitos
             $template = self::compileControlStructures($template);
             $template = self::compileIncludes($template);
@@ -294,8 +327,9 @@ class Luma extends LumaClasses
      */
     private static function compileIncludes(string $template): string
     {
-        return preg_replace_callback(self::$patterns['include'], function ($matches) {
-            $view = $matches[2]; // Já validado pela regex
+        // 1. Processa @include normal
+        $template = preg_replace_callback(self::$patterns['include'], function ($matches) {
+            $view = $matches[2];
             $data = $matches[3] ?? '[]';
 
             if ($data === 'all') {
@@ -309,14 +343,18 @@ class Luma extends LumaClasses
 
             return "<?php echo \Lumynus\\Bundle\\Framework\\Luma::render('{$view}', {$data}, false); ?>";
         }, $template);
+
+
+        return $template;
     }
 
 
     /**
-     * Compila assets com validação de integridade.
+     * Compila assets com validação de integridade e gerencia injeção no header.
      */
     private static function compileAssets(string $template): string
     {
+
         $template = preg_replace_callback(self::$patterns['js'], function ($m) {
             if (!empty($m[2])) {
                 return self::getAssetHtml($m[2], 'js');
@@ -333,9 +371,21 @@ class Luma extends LumaClasses
             }
         }, $template);
 
+        $template = preg_replace_callback(self::$patterns['header:css'], function ($m) {
+            $param = !empty($m[2]) ? "'{$m[2]}'" : $m[3]; // String literal ou variável
+            return "<?php \Lumynus\Bundle\Framework\Luma::registerHeaderAsset({$param}, 'css'); ?>";
+        }, $template);
+
+
+        $template = preg_replace_callback(self::$patterns['header:js'], function ($m) {
+            $param = !empty($m[2]) ? "'{$m[2]}'" : $m[3];
+            return "<?php \Lumynus\Bundle\Framework\Luma::registerHeaderAsset({$param}, 'js'); ?>";
+        }, $template);
+
 
         return $template;
     }
+
 
     /**
      * Compila escape de variáveis com validação rigorosa.
@@ -382,7 +432,7 @@ class Luma extends LumaClasses
         }, $template);
 
         // @checked($var, $value)
-        $template = preg_replace_callback('/@checked\s*\(\s*(.*?)\s*,\s*(.*?)\s*\)/', function ($m) {
+        $template = preg_replace_callback(self::$patterns['checked'], function ($m) {
             $var = $m[1];
             $value = $m[2];
             return "<?= (htmlspecialchars(($var ?? ''), ENT_QUOTES, 'UTF-8') === htmlspecialchars($value, ENT_QUOTES, 'UTF-8')) ? 'checked' : '' ?>";
@@ -446,10 +496,25 @@ class Luma extends LumaClasses
         })($cacheFile, $data);
     }
 
+
+    /**
+     * Registra um asset na fila para injeção posterior no head.
+     * Deve ser público pois será chamado pelos arquivos de cache compilados.
+     */
+    public static function registerHeaderAsset(string $pathOrVar, string $type): void
+    {
+        // Gera o HTML do asset (link ou script)
+        $html = self::getAssetHtml($pathOrVar, $type);
+
+        if (!empty($html) && !in_array($html, self::$queuedHeaderAssets)) {
+            self::$queuedHeaderAssets[] = $html;
+        }
+    }
+
     /**
      * Gera HTML para assets com validação de integridade.
      */
-    private static function getAssetHtml(string $path, string $type): string
+    public static function getAssetHtml(string $path, string $type): string
     {
         $config = Config::getAplicationConfig();
         $basePath = Config::pathProject();
@@ -457,7 +522,7 @@ class Luma extends LumaClasses
         // 1. Prepara os nomes das pastas removendo barras extras
         $publicDirName = trim($config['path']['public'], '/'); // ex: "public"
         $resourcePath = trim($config['path'][$type], '/');     // ex: "resources/js"
-        $fileName = $path . '.' . $type;                       // ex: "ava.js"
+        $fileName = $path . '.' . $type;
 
         $fullPath = $basePath . DIRECTORY_SEPARATOR . $publicDirName . DIRECTORY_SEPARATOR . $resourcePath . DIRECTORY_SEPARATOR . $fileName;
 

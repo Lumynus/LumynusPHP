@@ -475,6 +475,12 @@ class Route extends LumaClasses
      *
      * @return void
      */
+    /**
+     * Inicia o roteamento da aplicação.
+     * Lê a URI da requisição, busca rotas estáticas ou dinâmicas, valida e executa.
+     *
+     * @return void
+     */
     public static function start(): void
     {
         // Verifica se as rotas foram carregadas
@@ -614,44 +620,75 @@ class Route extends LumaClasses
         }
 
         $customizeParamsPosts = array_merge(
-            ['GET' => $params ?? []], // $params agora contém os dados da URL validada
+            ['GET' => $params ?? []], 
             ['POST' => $_POST ?? []],
             ['INPUT' => $input ?? []],
             ['FILE' => $_FILES ?? []],
             ['HEADER' => self::getRequestHeaders() ?? []]
         );
 
-        // Executa os middlewares registrados para a rota
-        $returnMidd = null;
+        // ======================
+        // MIDDLEWARES
+        // ======================
+        
+        $middlewareData = []; 
+
         if (!empty($routeConfig['middlewares'])) {
 
-            foreach ($routeConfig['middlewares'] as $key => $midd) {
-                $middlewareClass =  $midd['midd'];
+            foreach ($routeConfig['middlewares'] as $midd) {
+                $middlewareClass = $midd['midd'];
+                $methodAction = $midd['action'];
 
-                if (!class_exists($middlewareClass)) {
-                    throw new \Exception("Error Processing Request - Midd", 1);
-                }
-
-                $middleware = new $middlewareClass();
-
-                if (!method_exists($middleware, $midd['action'])) {
-                    throw new \Exception("Error Processing Request - Midd", 1);
-                }
-
-                $returnMidd = call_user_func_array([$middleware, $midd['action']], [$customizeParamsPosts]);
-
-                if ($returnMidd === false) {
-                    Logs::register("System Interrupted", [
-                        'Code'    => 403,
-                        'Message' => 'Request blocked by middleware: user is not authorized or action is forbidden.'
+                // Validação de Classe/Método
+                if (!class_exists($middlewareClass) || !method_exists($middlewareClass, $methodAction)) {
+                    Logs::register("Middleware Config Error", [
+                        'Message' => "Class '$middlewareClass' or method '$methodAction' not found."
                     ]);
-                    self::throwError('Forbidden', 403, 'html');
+                    self::throwError('Internal server error', 500, 'html');
+                    return;
+                }
+
+                try {
+                    $middlewareInstance = new $middlewareClass();
+
+                    // Chamada direta ao invés de call_user_func_array
+                    $result = $middlewareInstance->{$methodAction}($customizeParamsPosts);
+
+                    // Bloqueio: Se retornar FALSE, interrompe tudo
+                    if ($result === false) {
+                        Logs::register("System Interrupted", [
+                            'Code'    => 403,
+                            'Message' => 'Request blocked by middleware.'
+                        ]);
+                        self::throwError('Forbidden', 403, 'html');
+                        return;
+                    }
+
+                    // Acúmulo de dados: Se retornar algo útil, guarda
+                    if ($result !== null && $result !== true) {
+                        if (is_array($result)) {
+                            $middlewareData = array_merge($middlewareData, $result);
+                        } else {
+                            // Se for objeto/string, salva em uma chave genérica
+                            $middlewareData['data'] = $result;
+                        }
+                    }
+
+                } catch (\Throwable $e) {
+                    Logs::register("Middleware Exception", [
+                        'Message' => $e->getMessage(),
+                        'Trace'   => $e->getTraceAsString()
+                    ]);
+                    self::throwError('Internal server error', 500, 'html');
                     return;
                 }
             }
         }
 
-        // Se chegou aqui, significa que a rota é válida e os middlewares passaram
+        // ============
+        // CONTROLLER
+        // ============
+
         $controller = $routeConfig['controller'];
         $action = $routeConfig['action'];
 
@@ -659,10 +696,29 @@ class Route extends LumaClasses
 
             $instance = new $controller();
 
-            call_user_func_array(
-                [$instance, $action],
-                [$customizeParamsPosts, ($returnMidd !== null && $returnMidd !== false) ? $returnMidd : null]
-            );
+            if (!is_callable([$instance, $action])) {
+                Logs::register("System Interrupted", ['Code' => 500, 'Message' => "Action {$action} not callable"]);
+                self::throwError('Internal server error', 500, 'html');
+                return;
+            }
+
+            // Define os parâmetros na ordem fixa:
+            // 1. Dados da Requisição (GET, POST, etc)
+            // 2. Dados do Middleware (Array ou NULL)
+            $params = [
+                $customizeParamsPosts,
+                !empty($middlewareData) ? $middlewareData : null
+            ];
+
+            try {
+                // Executa a ação
+                $instance->{$action}(...$params);
+                
+            } catch (\Throwable $e) {
+                Logs::register("Controller Error", ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+                self::throwError('Internal server error', 500, 'html');
+            }
+
         } else {
             Logs::register("System Interrupted", [
                 'Code'    => 500,
@@ -671,7 +727,6 @@ class Route extends LumaClasses
             self::throwError('Internal server error', 500, 'html');
         }
     }
-
 
     /**
      * Retorna uma instância de ErrorTemplate.

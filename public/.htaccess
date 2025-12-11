@@ -1,18 +1,17 @@
 <IfModule mod_rewrite.c>
-    <IfModule mod_negotiation.c>
-        Options -MultiViews -Indexes
-    </IfModule>
+    Options -Indexes
 
     RewriteEngine On
+    #RewriteBase /Lumynus/
 
-    # Trata cabeçalho de autorização (necessário para alguns servidores)
+    # Fix para Authorization
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
-    # Se o arquivo existir (ex: imagem, css, js), não faz nada e abre o arquivo
-    RewriteCond %{REQUEST_FILENAME} !-d
+    # Ignora arquivos/diretórios existentes
     RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
 
-    # Para qualquer outra coisa, redireciona para o index.php
+    # Redireciona tudo para index.php
     RewriteRule ^ index.php [L]
 </IfModule>

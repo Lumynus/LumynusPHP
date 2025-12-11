@@ -11,7 +11,8 @@
     
     <script type='module' src="/resources/js/ava.js?v=1765049216" ></script>
 
-    
+
+    OIIIII
 
 <input type="hidden" name="<?= $csrf_name ?? "csrf" ?>" value="<?= $csrf_token ?? "" ?>">
 </body>

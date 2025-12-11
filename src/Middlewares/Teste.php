@@ -10,8 +10,7 @@ class Teste extends LumynusMiddleware
     public function handle($teste)
     {
 
-        
-        return true;
+        return ['a'=>'Valor vindo do Middleware'];
      
     }
 }
