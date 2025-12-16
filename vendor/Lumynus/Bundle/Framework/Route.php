@@ -14,7 +14,7 @@ use Lumynus\Bundle\Framework\Logs;
  * Classe responsável pelo gerenciamento de rotas no framework Lumynus.
  * Permite o registro de rotas com validação de parâmetros e tipos.
  */
-class Route extends LumaClasses
+final class Route extends LumaClasses
 {
 
     use Errors;
@@ -395,12 +395,6 @@ class Route extends LumaClasses
         array_pop(self::$middlewareStack);
     }
 
-    /**
-     * Carrega as rotas do cache, se existir.
-     * Caso contrário, chama o método para requerer os arquivos de roteadores.
-     *
-     * @return bool Retorna true se as rotas foram carregadas do cache, false caso contrário.
-     */
     /**
      * Carrega as rotas do cache, se existir e estiver atualizado.
      * Verifica a data de modificação dos arquivos originais para invalidar o cache automaticamente.

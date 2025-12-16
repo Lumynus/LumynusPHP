@@ -7,7 +7,7 @@ use RuntimeException;
 use Lumynus\Bundle\Framework\Config;
 use Lumynus\Bundle\Framework\LumaClasses;
 
-class Memory extends LumaClasses
+final class Memory extends LumaClasses
 {
     private string $memoryDir;
 

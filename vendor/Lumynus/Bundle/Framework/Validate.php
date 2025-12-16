@@ -6,7 +6,7 @@ namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\LumaClasses;
 
-class Validate extends LumaClasses
+final class Validate extends LumaClasses
 {
 
     /**

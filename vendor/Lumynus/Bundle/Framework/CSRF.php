@@ -6,7 +6,7 @@ use Lumynus\Bundle\Framework\LumaClasses;
 use Lumynus\Bundle\Framework\Sessions;
 use Lumynus\Bundle\Framework\Config;
 
-class CSRF extends LumaClasses
+final class CSRF extends LumaClasses
 {
     /**
      * @var Sessions Instância da sessão compartilhada.

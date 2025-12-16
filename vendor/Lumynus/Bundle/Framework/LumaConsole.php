@@ -28,8 +28,19 @@ class LumaConsole extends LumaClasses
         }
 
         // Comando e argumentos restantes
-        $command = $args[0];
-        $commandArgs = array_slice($args, 1);
+        $rawCommand = $args[0];
+
+        // aceita: make:User, make:user, make:user:create
+        if (str_contains($rawCommand, ':')) {
+            [$command, $subCommand] = explode(':', $rawCommand, 2);
+
+            // reescreve os argumentos
+            $commandArgs = array_merge([$subCommand], array_slice($args, 1));
+        } else {
+            $command = $rawCommand;
+            $commandArgs = array_slice($args, 1);
+        }
+
 
         // Lista de comandos disponíveis
         $commands = [
@@ -52,7 +63,10 @@ class LumaConsole extends LumaClasses
 
             # Criações
             'controller' => 'Criar um novo controlador',
+            # Criações
+            'command' => 'Criar um novo comando',
             //'model' => 'Criar um novo modelo',
+            'make' => 'Executar um comando',
             'middleware' => 'Criar um novo middleware',
             'middleware_login' => 'Cria um novo middleware de login',
             'apache_htaccess' => 'Cria um arquivo .htaccess',
@@ -141,6 +155,8 @@ class LumaConsole extends LumaClasses
         echo "  {$CYAN}encrypt_save{$RESET}       - Encrypt data and save | Criptografar dados e salvar\n";
         echo "  {$CYAN}decrypt{$RESET}            - Decrypt data | Descriptografar dados\n";
         echo "  {$CYAN}controller{$RESET}         - Create a new controller | Criar um novo controlador\n";
+        echo "  {$CYAN}command{$RESET}            - Create a new Command | Criar um novo comando\n";
+        echo "  {$CYAN}make{$RESET}               - Execute a command | Executar um comando\n";
         echo "  {$CYAN}middleware{$RESET}         - Create a new middleware | Criar um novo middleware\n";
         echo "  {$CYAN}middleware_login{$RESET}   - Create a new middleware Login | Criar um novo middleware de Login\n";
         echo "  {$CYAN}apache_htaccess{$RESET}    - Create a .htaccess: /public | Cria .htaccess na /public\n";
@@ -319,7 +335,7 @@ class LumaConsole extends LumaClasses
             $full = $path . DIRECTORY_SEPARATOR . $item;
 
             if (is_dir($full)) {
-        
+
                 $count += self::deleteRecursive($full);
 
                 @rmdir($full);
@@ -476,7 +492,8 @@ class LumaConsole extends LumaClasses
         }
     }
 
-    private static function server($dados) {
+    private static function server($dados)
+    {
 
         $ciano = "\033[96m";
         $reset = "\033[0m";
@@ -489,7 +506,7 @@ class LumaConsole extends LumaClasses
             return;
         }
 
-        $caminho = Config::pathProject(). DIRECTORY_SEPARATOR . Config::getAplicationConfig()['path']['public'];
+        $caminho = Config::pathProject() . DIRECTORY_SEPARATOR . Config::getAplicationConfig()['path']['public'];
         $caminho = preg_replace('#[\/\\\\]+#', DIRECTORY_SEPARATOR, $caminho);
 
         shell_exec('php -S localhost:' . ($dados[0] ?? '8000') . ' -t ' . $caminho);
@@ -656,6 +673,85 @@ EOL;
             echo "(Arquivo criado com sucesso: {$file})\n\n";
         } catch (\Throwable $e) {
             self::fixPermissions($file);
+        }
+    }
+
+    private static function command($dados)
+    {
+        $name = $dados[0];
+
+        $result = <<<'EOL'
+<?php
+
+declare(strict_types=1);
+
+namespace App\Commands;
+use Lumynus\Bundle\Framework\Commands;
+
+class {{NAME}} extends Commands
+{
+    public function handle($commands)
+    {
+        // $this->respond()->success('Command executado com sucesso.');
+        // $this->respond()->error(
+        //     'Nenhum argumento informado.',
+        //     'Command executado sem argumentos'
+        // );
+    }
+}
+EOL;
+
+        // Substitui {{NAME}} pelo nome real da classe
+        $result = str_replace('{{NAME}}', $name, $result);
+
+        $file = Config::pathProject() . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Commands' . DIRECTORY_SEPARATOR . $name . '.php';
+
+        if (file_exists($file)) {
+            echo "\nFile exists, not created\n";
+            echo "(Arquivo existe, não criado.)\n\n";
+            return;
+        }
+
+        try {
+            $bytes = @file_put_contents($file, $result);
+
+            if ($bytes === false) {
+                echo "\nFile could not be created\n";
+                echo "(Não foi possível criar o arquivo)\n\n";
+                return;
+            }
+
+            echo "\nFile successfully created: {$file}\n";
+            echo "(Arquivo criado com sucesso: {$file})\n\n";
+        } catch (\Throwable $e) {
+            self::fixPermissions($file);
+        }
+    }
+
+    private static function make($dados)
+    {
+
+        if (count($dados) < 2) {
+
+                echo "\n";
+                echo "Invalid command usage.\n";
+                echo "At minimum, you must provide: command, method and values (if required).\n";
+                echo "\nUso inválido do comando.\n";
+                echo "São necessários, no mínimo: comando, método e valores (se necessário).\n\n";
+
+                echo "Example / Exemplo:\n";
+                echo "  luma make:User create admin\n\n";
+
+            return;
+        }
+
+        try {
+            CommandDispatcher::boot($dados);
+        } catch (\Throwable $th) {
+
+            echo "\nAn error occurred while trying to execute; please verify that the data entered matches a command.\n";
+            echo "(Ocorreu um erro ao tentar executar, verifique os dados digitasos correspondem a um comando.)\n\n";
+            return;
         }
     }
 

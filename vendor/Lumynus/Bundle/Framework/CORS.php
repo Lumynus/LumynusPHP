@@ -5,7 +5,7 @@ namespace Lumynus\Bundle\Framework;
 use Lumynus\Bundle\Framework\LumaClasses;
 use Lumynus\Templates\Errors;
 
-class CORS extends LumaClasses
+final class CORS extends LumaClasses
 {
 
     use Errors;

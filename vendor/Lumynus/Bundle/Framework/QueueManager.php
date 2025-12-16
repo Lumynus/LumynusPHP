@@ -15,7 +15,7 @@ use Lumynus\Bundle\Framework\Logs;
  * Each queue is stored in NDJSON files in the specified directory.
  * Has locking mechanism to avoid concurrency issues.
  */
-class QueueManager extends LumaClasses
+final class QueueManager extends LumaClasses
 {
     private string $queueDir = '';
 

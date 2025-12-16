@@ -1,0 +1,17 @@
+[
+    {
+        "who": "Uncaught RuntimeException: No command informed. in C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\CommandDispatcher.php:37\nStack trace:\n#0 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\CommandDispatcher.php(27): Lumynus\\Bundle\\Framework\\CommandDispatcher->dispatch(Array)\n#1 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\LumaConsole.php(727): Lumynus\\Bundle\\Framework\\CommandDispatcher::boot(Array)\n#2 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\LumaConsole.php(68): Lumynus\\Bundle\\Framework\\LumaConsole::make(Array)\n#3 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\bootstrap\\useConsole.php(26): Lumynus\\Bundle\\Framework\\LumaConsole::run(Array)\n#4 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\luma(8): require_once('C:\\\\Users\\\\welen\\\\...')\n#5 {main}\n  thrown",
+        "timestamp": "2025-12-16T04:46:01-03:00",
+        "error": "C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\CommandDispatcher.php 37"
+    },
+    {
+        "who": "Uncaught RuntimeException: Command App\\Commands\\oi not found. in C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\CommandDispatcher.php:59\nStack trace:\n#0 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\CommandDispatcher.php(27): Lumynus\\Bundle\\Framework\\CommandDispatcher->dispatch(Array)\n#1 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\LumaConsole.php(727): Lumynus\\Bundle\\Framework\\CommandDispatcher::boot(Array)\n#2 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\LumaConsole.php(68): Lumynus\\Bundle\\Framework\\LumaConsole::make(Array)\n#3 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\bootstrap\\useConsole.php(26): Lumynus\\Bundle\\Framework\\LumaConsole::run(Array)\n#4 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\luma(8): require_once('C:\\\\Users\\\\welen\\\\...')\n#5 {main}\n  thrown",
+        "timestamp": "2025-12-16T04:50:17-03:00",
+        "error": "C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\CommandDispatcher.php 59"
+    },
+    {
+        "who": "Uncaught RuntimeException: Invalid command usage.\n\nMinimum required:\n  <command> <method> [values]\n\nExample:\n  luma make User create admin\n in C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\LumaConsole.php:735\nStack trace:\n#0 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\LumaConsole.php(79): Lumynus\\Bundle\\Framework\\LumaConsole::make(Array)\n#1 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\bootstrap\\useConsole.php(26): Lumynus\\Bundle\\Framework\\LumaConsole::run(Array)\n#2 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\luma(8): require_once('C:\\\\Users\\\\welen\\\\...')\n#3 {main}\n  thrown",
+        "timestamp": "2025-12-16T05:17:25-03:00",
+        "error": "C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\LumaConsole.php 735"
+    }
+]

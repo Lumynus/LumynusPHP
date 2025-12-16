@@ -6,7 +6,7 @@ namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\LumaClasses;
 
-class Response extends LumaClasses
+final class Response extends LumaClasses
 {
 
     /**

@@ -7,7 +7,7 @@ namespace Lumynus\Bundle\Framework;
 use Lumynus\Bundle\Framework\LumaClasses;
 use Lumynus\Bundle\Framework\Config;
 
-class Encryption extends LumaClasses
+final class Encryption extends LumaClasses
 {
     /**
      * Criptografa um conteúdo com AES-256-CBC

@@ -6,7 +6,7 @@ namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\LumaClasses;
 
-class Brasil extends LumaClasses
+final class Brasil extends LumaClasses
 {
 
     /**

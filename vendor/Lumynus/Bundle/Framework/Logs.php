@@ -7,7 +7,7 @@ namespace Lumynus\Bundle\Framework;
 use Lumynus\Bundle\Framework\Config;
 use Lumynus\Bundle\Framework\LumaClasses;
 
-class Logs extends LumaClasses
+final class Logs extends LumaClasses
 {
     /**
      * Caminho para o diretório de logs.

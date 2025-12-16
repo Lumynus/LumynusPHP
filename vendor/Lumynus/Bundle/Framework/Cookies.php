@@ -6,7 +6,7 @@ namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\Config;
 
-class Cookies extends LumaClasses implements \Lumynus\Bundle\Contracts\SessionInterface
+final class Cookies extends LumaClasses implements \Lumynus\Bundle\Contracts\SessionInterface
 {
     private bool $autostart = true;
     private array $cookieParams = [];

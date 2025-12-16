@@ -4,22 +4,17 @@ namespace App\Controllers;
 
 
 use Lumynus\Bundle\Framework\LumynusController;
-
+use Lumynus\Bundle\Framework\Response;
+use Lumynus\Bundle\Framework\Route;
 
 class ControllerExample extends LumynusController
 {
 
-
+    #[Route('/exemplo', methods: ['GET'])]
     public function index($req,mixed $a = 'oi')
     {
 
-        return  $this->response()
-        ->header('Content-Type', 'application/json')
-         ->status(200)
-         ->json([
-            'mensage' => 'Olá, Mundo!',
-            'data_from_middleware' => $a
-        ]);
+        var_dump(Route::listRoutes());
        
 
     }

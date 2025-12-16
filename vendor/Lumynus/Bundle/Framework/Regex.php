@@ -7,7 +7,7 @@ namespace Lumynus\Bundle\Framework;
 use Lumynus\Bundle\Framework\LumaClasses;
 
 
-class Regex extends LumaClasses
+final class Regex extends LumaClasses
 {
     /**
      * Testa se um valor corresponde a uma expressão regular.

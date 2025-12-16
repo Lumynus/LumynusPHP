@@ -5,7 +5,7 @@ declare(strict_types=1);
 use Lumynus\Bundle\Framework\LumaClasses;
 
 
-class Resolver extends LumaClasses
+final class Resolver extends LumaClasses
 {
     /** @var array<string,mixed> Results of executed methods */
     protected array $methodResults = [];

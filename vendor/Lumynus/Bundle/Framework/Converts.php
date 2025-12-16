@@ -6,7 +6,7 @@ namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\LumaClasses;
 
-class Converts extends LumaClasses
+final class Converts extends LumaClasses
 {
 
     /**

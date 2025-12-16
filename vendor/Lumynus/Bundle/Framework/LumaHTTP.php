@@ -12,7 +12,7 @@ use Lumynus\Bundle\Framework\LumaClasses;
  * @author Lumynus Framework
  * @version 2.0
  */
-class LumaHTTP extends LumaClasses
+final class LumaHTTP extends LumaClasses
 {
     /** @var array<string> Lista de cabeçalhos HTTP */
     private array $headers = [];

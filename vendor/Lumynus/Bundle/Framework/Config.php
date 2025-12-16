@@ -6,7 +6,7 @@ namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\LumaClasses;
 
-class Config extends LumaClasses
+final class Config extends LumaClasses
 {
 
     /**
