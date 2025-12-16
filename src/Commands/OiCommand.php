@@ -10,6 +10,6 @@ class OiCommand extends Commands
     public function oi($commands)
     {
         
-        echo "Oi, tudo bem? Você está executando o comando: " . implode(' ', $commands) . "\n";
+        $this->respond()->info("Oi! Comandos recebidos: " . implode(", ", $commands));
     }
 }

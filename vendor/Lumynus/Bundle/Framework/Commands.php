@@ -58,6 +58,24 @@ abstract class Commands extends LumaClasses
     }
 
     /**
+     * Método para indicar informação no comando.
+     *
+     * @param string $message
+     * @return self
+     */
+    protected function info(string $message, string $colorANSI = "\033[94m"): self
+    {
+        if ($this->responded) {
+            return $this;
+        }
+
+        $this->responded = true;
+
+        echo $colorANSI . $message . self::RESET . PHP_EOL;
+        return $this;
+    }
+
+    /**
      * Método para indicar erro no comando.
      *
      * @param string      $message
