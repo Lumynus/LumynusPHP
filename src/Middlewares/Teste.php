@@ -7,10 +7,10 @@ use Lumynus\Bundle\Framework\LumynusMiddleware;
 class Teste extends LumynusMiddleware
 {
 
-    public function handle($teste)
+    public function handle($requeste)
     {
 
-        return ['a'=>'Valor vindo do Middleware'];
+        return false;
      
     }
 }
