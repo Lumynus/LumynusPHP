@@ -1,20 +1,23 @@
 # Lumynus
 
-[Lumynus Logo](https://avatars.githubusercontent.com/u/201226349?s=200&v=4)
+<p align="center">
+  <img src="https://raw.githubusercontent.com/Lumynus/LumynusPHP/main/.github/logo.png" alt="Lumynus Logo" width="160" />
+</p>
 
 **Lumynus Framework**
 *Simple. Fast. Elegant.*
 
 > Tradicional no que importa. Visionário no que acelera.
 
-[![Build Status](https://github.com/lumynus/framework/workflows/tests/badge.svg)](https://github.com/lumynus/framework/actions)
-[![Total Downloads](https://img.shields.io/packagist/dt/lumynus/framework)](https://packagist.org/packages/lumynus/framework)
-[![Latest Stable Version](https://img.shields.io/packagist/v/lumynus/framework)](https://packagist.org/packages/lumynus/framework)
-[![License](https://img.shields.io/packagist/l/lumynus/framework)](https://packagist.org/packages/lumynus/framework)
+[![Packagist](https://img.shields.io/packagist/v/lumynus/lumynus)](https://packagist.org/packages/lumynus/lumynus)
+[![Downloads](https://img.shields.io/packagist/dt/lumynus/lumynus)](https://packagist.org/packages/lumynus/lumynus)
+[![License](https://img.shields.io/packagist/l/lumynus/lumynus)](https://packagist.org/packages/lumynus/lumynus)
 
 ---
 
 ## About Lumynus
+
+Lumynus is the official PHP framework of the **Lumynus ecosystem**, hosted on GitHub at [https://github.com/Lumynus/LumynusPHP](https://github.com/Lumynus/LumynusPHP) and distributed via Packagist.
 
 **Lumynus** is a modern PHP framework designed for developers who value clarity, performance, and control.
 
@@ -52,7 +55,7 @@ No bloat. No ceremony. Just tools that work.
 Create a new Lumynus project using Composer:
 
 ```bash
-composer create-project lumynus/framework my-app
+composer create-project lumynus/lumynus my-app
 ```
 
 Start coding immediately. The structure is ready. The path is clear.
@@ -96,7 +99,7 @@ Security matters.
 
 If you discover a vulnerability, please report it responsibly:
 
-📧 **[security@lumynus.dev](mailto:security@lumynus.dev)**
+📧 [**security@lumynus.dev**](mailto:security@lumynus.dev)
 
 All reports are reviewed and addressed promptly.
 
@@ -110,5 +113,4 @@ You are free to use, modify, and distribute it — responsibly.
 
 ---
 
-> Lumynus is not about trends.
-> It’s about building software that lasts.
+> Lumynus is not about trends. It’s about building software that lasts.
