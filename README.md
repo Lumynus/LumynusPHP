@@ -1,7 +1,7 @@
 # Lumynus
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Lumynus/LumynusPHP/main/.github/logo.png" alt="Lumynus Logo" width="160" />
+  <img src="https://avatars.githubusercontent.com/u/201226349?s=200&v=4" alt="Lumynus Logo" width="160" />
 </p>
 
 **Lumynus Framework**
