@@ -48,10 +48,8 @@ final class Encryption extends LumaClasses
     public static function createKey(?string $keyName = null): string
     {
         $keyDir = Config::pathProject() .
-            DIRECTORY_SEPARATOR . 'vendor' .
-            DIRECTORY_SEPARATOR . 'Lumynus' .
-            DIRECTORY_SEPARATOR . 'Memory' .
-            DIRECTORY_SEPARATOR . 'keys';
+            DIRECTORY_SEPARATOR . 'storage'
+            . DIRECTORY_SEPARATOR . 'keys';
 
         if (!is_dir($keyDir) && !mkdir($keyDir, 0755, true)) {
             throw new \RuntimeException("Failed to create key directory: {$keyDir}");
@@ -76,9 +74,7 @@ final class Encryption extends LumaClasses
         $keyName = self::sanitizeFileName($keyName ?? 'key');
 
         $keyFile = Config::pathProject() .
-            DIRECTORY_SEPARATOR . 'vendor' .
-            DIRECTORY_SEPARATOR . 'Lumynus' .
-            DIRECTORY_SEPARATOR . 'Memory' .
+            DIRECTORY_SEPARATOR . 'storage' .
             DIRECTORY_SEPARATOR . 'keys' .
             DIRECTORY_SEPARATOR . $keyName . '.pem';
 
@@ -93,9 +89,7 @@ final class Encryption extends LumaClasses
     public static function saveToFile(string $nameFile, $value, ?string $keyName = null): bool
     {
         $dir = Config::pathProject() .
-            DIRECTORY_SEPARATOR . 'vendor' .
-            DIRECTORY_SEPARATOR . 'Lumynus' .
-            DIRECTORY_SEPARATOR . 'Memory' .
+            DIRECTORY_SEPARATOR . 'storage' .
             DIRECTORY_SEPARATOR . 'encryptions';
 
         if (!is_dir($dir) && !mkdir($dir, 0755, true)) return false;
@@ -119,9 +113,7 @@ final class Encryption extends LumaClasses
     public static function removeToFile(string $nameFile): bool
     {
         $dir = Config::pathProject() .
-            DIRECTORY_SEPARATOR . 'vendor' .
-            DIRECTORY_SEPARATOR . 'Lumynus' .
-            DIRECTORY_SEPARATOR . 'Memory' .
+            DIRECTORY_SEPARATOR . 'storage' .
             DIRECTORY_SEPARATOR . 'encryptions';
 
         $nameFile = self::sanitizeFileName($nameFile);
@@ -138,9 +130,7 @@ final class Encryption extends LumaClasses
     public static function readFiles(string|array $nameFile, ?string $keyName = null)
     {
         $dir = Config::pathProject() .
-            DIRECTORY_SEPARATOR . 'vendor' .
-            DIRECTORY_SEPARATOR . 'Lumynus' .
-            DIRECTORY_SEPARATOR . 'Memory' .
+            DIRECTORY_SEPARATOR . 'storage' .
             DIRECTORY_SEPARATOR . 'encryptions';
 
         $files = is_array($nameFile) ? $nameFile : [$nameFile];
@@ -190,11 +180,9 @@ final class Encryption extends LumaClasses
         $keyName = self::sanitizeFileName($keyName ?? 'key');
 
         $caminho = Config::pathProject() .
+            DIRECTORY_SEPARATOR . 'storage' .
+            DIRECTORY_SEPARATOR . 'keys' .
             DIRECTORY_SEPARATOR .
-            'vendor' . DIRECTORY_SEPARATOR .
-            'Lumynus' . DIRECTORY_SEPARATOR .
-            'Memory' . DIRECTORY_SEPARATOR .
-            'keys' . DIRECTORY_SEPARATOR .
             $keyName . '.pem';
 
         if (!file_exists($caminho)) {

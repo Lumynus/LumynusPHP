@@ -108,6 +108,36 @@ final class Config extends LumaClasses
     }
 
     /**
+     * Define o modo de produção ou desenvolvimento no arquivo config.ini.
+     *
+     * @param bool $isProduction Define se o modo é produção (true) ou desenvolvimento (false).
+     * @return void
+     */
+    public static function setModeProduction(bool $isProduction): void
+    {
+        $file = self::pathProject() . DIRECTORY_SEPARATOR . 'config.ini';
+        $config = self::getINI() ?? [];
+
+        if (!isset($config['app'])) {
+            $config['app'] = [];
+        }
+
+        $config['app']['mode'] = $isProduction ? 'production' : 'development';
+        $config['app']['debug'] = $isProduction ? 'false' : 'true';
+
+        $iniContent = '';
+        foreach ($config as $section => $values) {
+            $iniContent .= "[$section]\n";
+            foreach ($values as $key => $value) {
+                $iniContent .= "$key = $value\n";
+            }
+            $iniContent .= "\n";
+        }
+
+        file_put_contents($file, $iniContent);
+    }
+
+    /**
      * Método para obter a instância da classe Luma.
      * @return Luma Retorna uma nova instância da classe Luma.
      */

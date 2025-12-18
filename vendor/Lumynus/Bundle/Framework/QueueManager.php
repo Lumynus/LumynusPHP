@@ -29,7 +29,10 @@ final class QueueManager extends LumaClasses
     public function __construct()
     {
 
-        $this->queueDir = Config::pathProject() . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'Lumynus' . DIRECTORY_SEPARATOR . 'Memory' . DIRECTORY_SEPARATOR . 'queues' . DIRECTORY_SEPARATOR;
+        $this->queueDir = Config::pathProject() 
+        . DIRECTORY_SEPARATOR . 'storage' 
+        . DIRECTORY_SEPARATOR . 'queues' 
+        . DIRECTORY_SEPARATOR;
 
         if (!is_dir($this->queueDir) && !mkdir($this->queueDir, 0755, true)) {
             throw new \RuntimeException("Failed to create queue directory: {$this->queueDir}");

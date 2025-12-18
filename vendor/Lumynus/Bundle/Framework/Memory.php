@@ -14,10 +14,8 @@ final class Memory extends LumaClasses
     public function __construct()
     {
         $this->memoryDir = Config::pathProject()
-            . DIRECTORY_SEPARATOR . 'vendor'
-            . DIRECTORY_SEPARATOR . 'Lumynus'
-            . DIRECTORY_SEPARATOR . 'Memory'
             . DIRECTORY_SEPARATOR . 'storage'
+            . DIRECTORY_SEPARATOR . 'memory'
             . DIRECTORY_SEPARATOR;
 
         if (!is_dir($this->memoryDir) && !mkdir($this->memoryDir, 0755, true)) {

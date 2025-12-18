@@ -270,7 +270,29 @@ class LumaConsole extends LumaClasses
      */
     private static function mode($data)
     {
-        echo "\n\nLumynus run: " . (Config::modeProduction() ? 'Production' : 'Development') . PHP_EOL . PHP_EOL;
+        if (empty($data)) {
+            echo "\n\nLumynus run: " . (Config::modeProduction() ? 'Production' : 'Development') . PHP_EOL;
+            echo "(Lumynus está rodando em modo: " . (Config::modeProduction() ? 'Produção' : 'Desenvolvimento') . ")\n\n";
+
+            echo "To change the mode, use:\n";
+            echo "  php luma mode production   (to set Production mode)\n";
+            echo "  php luma mode development  (to set Development mode)\n\n";
+            return;
+        }
+
+        $permissions = ['production', 'development'];
+        if (in_array($data[0], $permissions)) {
+
+            $isProduction = $data[0] === 'production';
+            Config::setModeProduction($isProduction);
+
+            echo "\n\nApplication mode set to: " . ($isProduction ? 'Production' : 'Development') . PHP_EOL;
+            echo "(Modo do aplicativo definido para: " . ($isProduction ? 'Produção' : 'Desenvolvimento') . ")\n\n";
+        } else {
+            echo "\n\nInvalid mode. Use 'production' or 'development'.\n";
+            echo "(Modo inválido. Use 'production' ou 'development'.)\n\n";
+            return;
+        }
     }
 
     /**
@@ -733,14 +755,14 @@ EOL;
 
         if (count($dados) < 2) {
 
-                echo "\n";
-                echo "Invalid command usage.\n";
-                echo "At minimum, you must provide: command, method and values (if required).\n";
-                echo "\nUso inválido do comando.\n";
-                echo "São necessários, no mínimo: comando, método e valores (se necessário).\n\n";
+            echo "\n";
+            echo "Invalid command usage.\n";
+            echo "At minimum, you must provide: command, method and values (if required).\n";
+            echo "\nUso inválido do comando.\n";
+            echo "São necessários, no mínimo: comando, método e valores (se necessário).\n\n";
 
-                echo "Example / Exemplo:\n";
-                echo "  luma make:User create admin\n\n";
+            echo "Example / Exemplo:\n";
+            echo "  luma make:User create admin\n\n";
 
             return;
         }
