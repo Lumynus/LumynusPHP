@@ -203,6 +203,20 @@ final class Route extends LumaClasses
     }
 
     /**
+     * Registra uma rota do tipo PATCH.
+     *
+     * @param string|array $route
+     * @param string $controller
+     * @param string $action
+     * @return void
+     */
+    public static function patch(string|array $route, string $controller, string $action): void
+    {
+        self::register('PATCH', $route, $controller, $action);
+    }
+
+
+    /**
      * Registra uma rota de qualquer tipo (GET, POST, PUT, DELETE).
      *
      * @param string|array $route
@@ -216,7 +230,10 @@ final class Route extends LumaClasses
         self::register('POST', $route, $controller, $action);
         self::register('PUT', $route, $controller, $action);
         self::register('DELETE', $route, $controller, $action);
+        self::register('PATCH', $route, $controller, $action);
     }
+
+
 
     /**
      * Requer todos os arquivos de roteadores disponíveis no diretório src/Routers.
@@ -581,7 +598,7 @@ final class Route extends LumaClasses
         if (
             !$isApi &&
             Config::getAplicationConfig()['security']['csrf']['enabled'] === true
-            && in_array($requestMethod, ['POST', 'PUT', 'DELETE'])
+            && in_array($requestMethod, ['POST', 'PUT', 'PATCH', 'DELETE'])
         ) {
             $tokenName = Config::getAplicationConfig()['security']['csrf']['nameToken'];
             $token = null;
@@ -614,7 +631,7 @@ final class Route extends LumaClasses
         }
 
         $customizeParamsPosts = array_merge(
-            ['GET' => $params ?? []], 
+            ['GET' => $params ?? []],
             ['POST' => $_POST ?? []],
             ['INPUT' => $input ?? []],
             ['FILE' => $_FILES ?? []],
@@ -624,8 +641,8 @@ final class Route extends LumaClasses
         // ======================
         // MIDDLEWARES
         // ======================
-        
-        $middlewareData = []; 
+
+        $middlewareData = [];
 
         if (!empty($routeConfig['middlewares'])) {
 
@@ -667,7 +684,6 @@ final class Route extends LumaClasses
                             $middlewareData['data'] = $result;
                         }
                     }
-
                 } catch (\Throwable $e) {
                     Logs::register("Middleware Exception", [
                         'Message' => $e->getMessage(),
@@ -707,12 +723,10 @@ final class Route extends LumaClasses
             try {
                 // Executa a ação
                 $instance->{$action}(...$params);
-                
             } catch (\Throwable $e) {
                 Logs::register("Controller Error", ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
                 self::throwError('Internal server error', 500, 'html');
             }
-
         } else {
             Logs::register("System Interrupted", [
                 'Code'    => 500,
