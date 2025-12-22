@@ -189,6 +189,15 @@ abstract class LumynusController extends LumaClasses
     }
 
     /**
+     * Método para chamar funções em molde estático
+     * @return self
+     */
+    protected static function static(): static
+    {
+        return new static();
+    }
+
+    /**
      * Método para obter a instância da classe Luma.
      * @return Luma Retorna uma nova instância da classe Luma.
      */

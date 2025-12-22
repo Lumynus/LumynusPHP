@@ -174,8 +174,18 @@ abstract class LumynusMiddleware extends LumaClasses
      * Método para obter a instância da classe Memory
      * @return Memory Retorna uma nova instância da classe Memory
      */
-    protected function memory() : Memory {
+    protected function memory(): Memory
+    {
         return new Memory;
+    }
+
+    /**
+     * Método para chamar funções em molde estático
+     * @return self
+     */
+    protected static function static(): static
+    {
+        return new static();
     }
 
     /**

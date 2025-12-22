@@ -1,0 +1,42 @@
+[
+    {
+        "who": "System Interrupted",
+        "timestamp": "2025-12-22T13:26:32-03:00",
+        "error": {
+            "Code": 403,
+            "Message": "Request blocked by middleware."
+        }
+    },
+    {
+        "who": "Controller Error",
+        "timestamp": "2025-12-22T13:29:44-03:00",
+        "error": {
+            "message": "Cannot instantiate abstract class Lumynus\\Bundle\\Framework\\LumynusController",
+            "trace": "#0 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\src\\Controllers\\ControllerExample.php(21): Lumynus\\Bundle\\Framework\\LumynusController::static()\n#1 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\src\\Controllers\\ControllerExample.php(15): App\\Controllers\\ControllerExample::oi()\n#2 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\Route.php(725): App\\Controllers\\ControllerExample->index(Array, NULL)\n#3 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\bootstrap\\useRoutes.php(13): Lumynus\\Bundle\\Framework\\Route::start()\n#4 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\public\\index.php(13): require_once('C:\\\\Users\\\\welen\\\\...')\n#5 {main}"
+        }
+    },
+    {
+        "who": "Controller Error",
+        "timestamp": "2025-12-22T13:30:01-03:00",
+        "error": {
+            "message": "Cannot instantiate abstract class Lumynus\\Bundle\\Framework\\LumynusController",
+            "trace": "#0 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\src\\Controllers\\ControllerExample.php(21): Lumynus\\Bundle\\Framework\\LumynusController::static()\n#1 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\src\\Controllers\\ControllerExample.php(15): App\\Controllers\\ControllerExample::oi()\n#2 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\Route.php(725): App\\Controllers\\ControllerExample->index(Array, NULL)\n#3 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\bootstrap\\useRoutes.php(13): Lumynus\\Bundle\\Framework\\Route::start()\n#4 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\public\\index.php(13): require_once('C:\\\\Users\\\\welen\\\\...')\n#5 {main}"
+        }
+    },
+    {
+        "who": "Controller Error",
+        "timestamp": "2025-12-22T13:30:41-03:00",
+        "error": {
+            "message": "Cannot instantiate abstract class Lumynus\\Bundle\\Framework\\LumynusController",
+            "trace": "#0 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\src\\Controllers\\ControllerExample.php(21): Lumynus\\Bundle\\Framework\\LumynusController::static()\n#1 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\src\\Controllers\\ControllerExample.php(15): App\\Controllers\\ControllerExample::oi()\n#2 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\Route.php(725): App\\Controllers\\ControllerExample->index(Array, NULL)\n#3 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\bootstrap\\useRoutes.php(13): Lumynus\\Bundle\\Framework\\Route::start()\n#4 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\public\\index.php(13): require_once('C:\\\\Users\\\\welen\\\\...')\n#5 {main}"
+        }
+    },
+    {
+        "who": "Controller Error",
+        "timestamp": "2025-12-22T13:31:23-03:00",
+        "error": {
+            "message": "Cannot instantiate abstract class Lumynus\\Bundle\\Framework\\LumynusController",
+            "trace": "#0 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\src\\Controllers\\ControllerExample.php(22): Lumynus\\Bundle\\Framework\\LumynusController::static()\n#1 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\src\\Controllers\\ControllerExample.php(15): App\\Controllers\\ControllerExample::oi()\n#2 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\Route.php(725): App\\Controllers\\ControllerExample->index(Array, NULL)\n#3 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\bootstrap\\useRoutes.php(13): Lumynus\\Bundle\\Framework\\Route::start()\n#4 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\public\\index.php(13): require_once('C:\\\\Users\\\\welen\\\\...')\n#5 {main}"
+        }
+    }
+]

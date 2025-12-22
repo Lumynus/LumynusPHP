@@ -23,6 +23,19 @@ return array (
         ),
         'api' => false,
       ),
+      'testy' => 
+      array (
+        'controller' => 'App\\Controllers\\ControllerExample',
+        'action' => 'index',
+        'fieldsPermitted' => 
+        array (
+          'a' => 'string',
+        ),
+        'middlewares' => 
+        array (
+        ),
+        'api' => false,
+      ),
     ),
   ),
   'dynamic' => 

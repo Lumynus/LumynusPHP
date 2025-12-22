@@ -104,10 +104,15 @@ trait LumynusTools
     protected function memory() : Memory {
         return new Memory;
     }
-    
+
     protected function cors(): CORS
     {
         return new CORS();
+    }
+
+    protected static function static(): static
+    {
+        return new static();
     }
 
     public function __debugInfo(): array

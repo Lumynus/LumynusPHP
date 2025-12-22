@@ -1,17 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Controllers;
 
 use Lumynus\Bundle\Framework\LumynusController;
-use Lumynus\Bundle\Framework\Route;
 
 class ControllerExample extends LumynusController
 {
 
-    public function index($req,mixed $a = 'oi')
+    public function index($request)
     {
-
-        var_dump(Route::listRoutes());
-    
+        $this->response()->json(['success' => true, 'data' => 'Em pleno funcionamento']);
     }
 }
