@@ -708,9 +708,9 @@ EOL;
 declare(strict_types=1);
 
 namespace App\Commands;
-use Lumynus\Bundle\Framework\Commands;
+use Lumynus\Bundle\Framework\LumynusCommands;
 
-class {{NAME}} extends Commands
+class {{NAME}} extends LumynusCommands
 {
     public function handle($commands)
     {
@@ -800,31 +800,31 @@ EOL;
                     # PROTEÇÃO ULTRA-ESPECÍFICA
                     # Só bloqueia quando há CERTEZA de ataque
                     # =========================================================
-                    
+
                     # 1. Null bytes - SEMPRE malicioso
                     RewriteCond %{QUERY_STRING} (%00|\x00) [NC,OR]
-                    
+
                     # 2. Directory traversal extremo (3+ níveis)
                     RewriteCond %{QUERY_STRING} (\.\.\/.*\.\.\/.*\.\.\/) [NC,OR]
-                    
+
                     # 3. SQL Injection com múltiplos comandos PERIGOSOS
                     RewriteCond %{QUERY_STRING} (;\s*(drop\s+table|truncate\s+table|delete\s+from.*where.*=|update.*set.*where.*=)) [NC,OR]
-                    
+
                     # 4. UNION SELECT com FROM (ataque real)
                     RewriteCond %{QUERY_STRING} (union\s+select.*from) [NC,OR]
-                    
+
                     # 5. XSS com javascript ativo
                     RewriteCond %{QUERY_STRING} (\<script[^>]*javascript:|javascript:\s*[^;]*[;(]|data:text/html.*script) [NC,OR]
-                    
+
                     # 6. PHP code execution
                     RewriteCond %{QUERY_STRING} (eval\s*\(\s*base64_decode|exec\s*\(\s*[\"\']|system\s*\(\s*[\"\']) [NC,OR]
-                    
+
                     # 7. File inclusion perigoso
                     RewriteCond %{QUERY_STRING} (php://input|php://filter.*convert|file://.*etc/passwd) [NC,OR]
-                    
+
                     # 8. Command injection óbvio
                     RewriteCond %{QUERY_STRING} (;\s*cat\s+/etc/|;\s*ls\s+-la|;\s*wget\s+http|;\s*curl\s+http) [NC]
-                    
+
                     RewriteRule ^ - [F,L]
 
                     # =========================================================
@@ -832,7 +832,7 @@ EOL;
                     # =========================================================
                     # RewriteCond %{REQUEST_URI} ^/(admin|editor|docs)/ [NC]
                     # RewriteRule ^ - [S=20]  # Pula as regras de segurança
-                    
+
                     # =========================================================
                     # LOG DE ATAQUES BLOQUEADOS (opcional)
                     # =========================================================
@@ -875,7 +875,7 @@ EOL;
                     # Enable X-Frame-Options
                     # Habilita X-Frame-Options
                     Header always set X-Frame-Options "SAMEORIGIN"
-                    
+
                     # Enable X-Content-Type-Options
                     # Habilita X-Content-Type-Options
                     Header set X-Content-Type-Options "nosniff"
@@ -912,7 +912,7 @@ EOL;
                     AddOutputFilterByType DEFLATE application/xhtml+xml application/rss+xml application/atom+xml
                     AddOutputFilterByType DEFLATE application/font-woff application/font-woff2 font/woff font/woff2
                     AddOutputFilterByType DEFLATE image/svg+xml
-                    
+
                     # Don't compress images, videos, or already compressed files
                     # Não comprimir imagens, vídeos ou arquivos já comprimidos
                     SetEnvIfNoCase Request_URI \.(?:gif|jpe?g|png|zip|gz|bz2|sit|rar|pdf|mov|avi|mp3|mp4|rm)$ no-gzip dont-vary
@@ -1003,7 +1003,7 @@ EOL;
                 listen 80;
                 listen [::]:80;
                 server_name {$domain} www.{$domain};
-                
+
                 # Caminho para a pasta public do projeto
                 root {$project_path}/public;
                 index index.php;
@@ -1015,10 +1015,10 @@ EOL;
                 add_header X-Frame-Options "SAMEORIGIN" always;
                 add_header X-Content-Type-Options "nosniff" always;
                 add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-                
+
                 # Content Security Policy (básica mas funcional)
                 add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'self'" always;
-                
+
                 # Permissions Policy
                 add_header Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), accelerometer=(), gyroscope=()" always;
 
@@ -1026,42 +1026,42 @@ EOL;
                 # PROTEÇÃO ULTRA-ESPECÍFICA
                 # Só bloqueia quando há CERTEZA de ataque
                 # =========================================================
-                
+
                 # 1. Null bytes - SEMPRE malicioso
                 if (\$query_string ~ "(%00|\\x00)") {
                     return 403;
                 }
-                
+
                 # 2. Directory traversal extremo (3+ níveis)
                 if (\$query_string ~ "(\\.\\.\/.*\\.\\.\/.*\\.\\.\/)") {
                     return 403;
                 }
-                
+
                 # 3. SQL Injection com múltiplos comandos PERIGOSOS
                 if (\$query_string ~* "(;\\s*(drop\\s+table|truncate\\s+table|delete\\s+from.*where.*=|update.*set.*where.*=))") {
                     return 403;
                 }
-                
+
                 # 4. UNION SELECT com FROM (ataque real)
                 if (\$query_string ~* "(union\\s+select.*from)") {
                     return 403;
                 }
-                
+
                 # 5. XSS com javascript ativo
                 if (\$query_string ~* "(<script[^>]*javascript:|javascript:\\s*[^;]*[;(]|data:text/html.*script)") {
                     return 403;
                 }
-                
+
                 # 6. PHP code execution
                 if (\$query_string ~* "(eval\\s*\\(\\s*base64_decode|exec\\s*\\(\\s*[\"']|system\\s*\\(\\s*[\"'])") {
                     return 403;
                 }
-                
+
                 # 7. File inclusion perigoso
                 if (\$query_string ~* "(php://input|php://filter.*convert|file://.*etc/passwd)") {
                     return 403;
                 }
-                
+
                 # 8. Command injection óbvio
                 if (\$query_string ~* "(;\\s*cat\\s+/etc/|;\\s*ls\\s+-la|;\\s*wget\\s+http|;\\s*curl\\s+http)") {
                     return 403;
@@ -1075,13 +1075,13 @@ EOL;
                     deny all;
                     return 404;
                 }
-                
+
                 # Protect composer files
                 location ~* ^/(composer\\.(json|lock))\$ {
                     deny all;
                     return 404;
                 }
-                
+
                 # Protect config files
                 location ~* ^/(config\\.php|README\\.md|package\\.json)\$ {
                     deny all;
@@ -1105,7 +1105,7 @@ EOL;
                     expires 1M;
                     add_header Cache-Control "public, immutable";
                     add_header X-Content-Type-Options "nosniff" always;
-                    
+
                     # Opcional: Prevent hotlinking
                     # valid_referers none blocked server_names ~\\.seudominio\\.com;
                     # if (\$invalid_referer) {
@@ -1158,12 +1158,12 @@ EOL;
                     fastcgi_index index.php;
                     fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
                     include fastcgi_params;
-                    
+
                     # Timeout settings
                     fastcgi_connect_timeout 60s;
                     fastcgi_send_timeout 60s;
                     fastcgi_read_timeout 60s;
-                    
+
                     # Buffer settings
                     fastcgi_buffer_size 128k;
                     fastcgi_buffers 256 16k;
@@ -1179,7 +1179,7 @@ EOL;
                     deny all;
                     return 404;
                 }
-                
+
                 # =========================================================
                 # Optional: Block common exploit attempts
                 # Opcional: Bloquear tentativas de exploit comuns
@@ -1187,7 +1187,7 @@ EOL;
                 location ~* (wp-admin|wp-login|xmlrpc\\.php|wp-content) {
                     return 404;
                 }
-                
+
                 # =========================================================
                 # Rate limiting (opcional - descomente para ativar)
                 # =========================================================
@@ -1205,10 +1205,10 @@ EOL;
             #     listen 443 ssl http2;
             #     listen [::]:443 ssl http2;
             #     server_name seudominio.com www.seudominio.com;
-            #     
+            #
             #     root /var/www/html/public;
             #     index index.php;
-            #     
+            #
             #     # SSL Configuration
             #     ssl_certificate /path/to/certificate.crt;
             #     ssl_certificate_key /path/to/private.key;
@@ -1217,7 +1217,7 @@ EOL;
             #     ssl_prefer_server_ciphers off;
             #     ssl_session_cache shared:SSL:10m;
             #     ssl_session_timeout 10m;
-            #     
+            #
             #     # Include all the location blocks from above here
             #     # (copie todos os blocos location de cima)
             # }

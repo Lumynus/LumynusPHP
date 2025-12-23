@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 namespace App\Commands;
-use Lumynus\Bundle\Framework\Commands;
+use Lumynus\Bundle\Framework\LumynusCommands;
 
-class TesteCommand extends Commands
+class TesteCommand extends LumynusCommands
 {
     public function handle($commands)
     {

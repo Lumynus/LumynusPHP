@@ -6,6 +6,7 @@ namespace Lumynus\Bundle\Framework;
 
 use ReflectionClass;
 use RuntimeException;
+use Lumynus\Bundle\Framework\LumynusCommands;
 
 final class CommandDispatcher
 {
@@ -57,7 +58,7 @@ final class CommandDispatcher
 
         $ref = new ReflectionClass($class);
 
-        if (!$ref->isSubclassOf(Commands::class)) {
+        if (!$ref->isSubclassOf(LumynusCommands::class)) {
             throw new RuntimeException("{$class} is not a valid Command.");
         }
 

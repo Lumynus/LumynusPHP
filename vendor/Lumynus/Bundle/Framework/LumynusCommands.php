@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Lumynus\Bundle\Framework;
 
-abstract class Commands extends LumaClasses
+abstract class LumynusCommands extends LumaClasses
 {
     use \Lumynus\Bundle\Framework\LumynusTools;
 
@@ -92,6 +92,15 @@ abstract class Commands extends LumaClasses
         $this->logs()->register('Error in command: ', ($logMessage ?? $message));
         echo self::RED . $message . self::RESET . PHP_EOL;
         return $this;
+    }
+
+    /**
+     * Método para chamar funções em molde estático
+     * @return self
+     */
+    protected static function static(): static
+    {
+        return new static();
     }
 
     /**
