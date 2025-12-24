@@ -47,6 +47,9 @@ final class CommandDispatcher
         }
 
         $methodInput = $argv[1] ?? null;
+        if($methodInput !== null && str_starts_with($methodInput, '--')) {
+            $methodInput = str_replace('--', '', $methodInput);
+        }
 
         $params = array_slice($argv, 2);
 
