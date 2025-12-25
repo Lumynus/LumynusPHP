@@ -8,3 +8,4 @@ Route::midd([App\Middlewares\Teste::class], 'handle', function () {
 });
 
 Route::get('testy?[string a]', ControllerExample::class, 'index');
+

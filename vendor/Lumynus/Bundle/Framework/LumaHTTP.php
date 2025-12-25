@@ -8,7 +8,7 @@ use Lumynus\Bundle\Framework\LumaClasses;
 
 /**
  * Classe responsável por gerenciar requisições HTTP com suporte a autenticação e rate limiting.
- * 
+ *
  * @author Lumynus Framework
  * @version 2.0
  */
@@ -53,7 +53,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Construtor da classe
-     * 
+     *
      * @throws \RuntimeException Se cURL não estiver disponível
      */
     public function __construct()
@@ -67,7 +67,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Configura autenticação Bearer Token
-     * 
+     *
      * @param string $token Token de autenticação
      * @param string $contentType Tipo de conteúdo (json, xml, form, text)
      * @param string $accept Tipo de resposta aceita
@@ -86,7 +86,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Configura autenticação API Key
-     * 
+     *
      * @param string $apiKey Chave da API
      * @param string $contentType Tipo de conteúdo
      * @param string $accept Tipo de resposta aceita
@@ -105,7 +105,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Configura autenticação Basic
-     * 
+     *
      * @param string $username Nome de usuário
      * @param string $password Senha
      * @param string $contentType Tipo de conteúdo
@@ -127,7 +127,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Adiciona cabeçalhos customizados
-     * 
+     *
      * @param array<string, string> $headers Cabeçalhos no formato ['chave' => 'valor']
      * @return self
      */
@@ -142,7 +142,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Configura timeout da requisição
-     * 
+     *
      * @param int $seconds Timeout em segundos
      * @return self
      */
@@ -154,7 +154,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Configura verificação SSL
-     * 
+     *
      * @param bool $verify Se deve verificar SSL
      * @return self
      */
@@ -166,7 +166,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Configura rate limiting
-     * 
+     *
      * @param int $requests Número máximo de requisições
      * @param int $seconds Período em segundos
      * @param string $strategy Estratégia de rate limiting ('wait', 'throw', 'skip')
@@ -185,7 +185,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Realiza uma requisição GET
-     * 
+     *
      * @param string $url URL da requisição
      * @return self
      */
@@ -196,7 +196,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Realiza uma requisição POST
-     * 
+     *
      * @param string $url URL da requisição
      * @param mixed $data Dados para envio
      * @return self
@@ -208,7 +208,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Realiza uma requisição PUT
-     * 
+     *
      * @param string $url URL da requisição
      * @param mixed $data Dados para envio
      * @return self
@@ -220,7 +220,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Realiza uma requisição DELETE
-     * 
+     *
      * @param string $url URL da requisição
      * @return self
      */
@@ -231,7 +231,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Realiza a requisição HTTP
-     * 
+     *
      * @param string $method Método HTTP
      * @param string $url URL da requisição
      * @param mixed $data Dados para envio
@@ -260,7 +260,11 @@ final class LumaHTTP extends LumaClasses
             $this->statusCode = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
             $curlError = curl_error($curl);
 
-            curl_close($curl);
+            if (PHP_VERSION_ID < 80500) {
+                curl_close($curl);
+            } else {
+                unset($curl);
+            }
 
             if ($response === false) {
                 $this->error = $curlError ?: 'Unknown cURL request failure';
@@ -289,7 +293,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Verifica se pode fazer uma nova requisição com base no rate limit
-     * 
+     *
      * @return bool
      */
     public function canMakeRequest(): bool
@@ -311,7 +315,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Retorna quantas requisições ainda podem ser feitas no período atual
-     * 
+     *
      * @return int|string
      */
     public function getRemainingRequests()
@@ -333,7 +337,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Retorna o tempo em segundos até o próximo reset do rate limit
-     * 
+     *
      * @return int
      */
     public function getTimeUntilReset(): int
@@ -350,7 +354,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Retorna o código de status da última requisição
-     * 
+     *
      * @return int
      */
     public function getStatusCode(): int
@@ -360,7 +364,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Retorna a resposta como string
-     * 
+     *
      * @return string
      */
     public function getResponse(): string
@@ -370,7 +374,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Retorna a resposta como array (decodifica JSON)
-     * 
+     *
      * @return array<mixed>
      */
     public function getArray(): array
@@ -381,7 +385,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Retorna a resposta como objeto (decodifica JSON)
-     * 
+     *
      * @return object|null
      */
     public function getObject(): ?object
@@ -392,7 +396,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Retorna se a requisição foi bem-sucedida (status 2xx)
-     * 
+     *
      * @return bool
      */
     public function isSuccess(): bool
@@ -402,7 +406,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Retorna o erro da última requisição
-     * 
+     *
      * @return string
      */
     public function getError(): string
@@ -412,7 +416,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Salva a resposta em um arquivo
-     * 
+     *
      * @param string $filePath Caminho do arquivo
      * @return bool True se salvou com sucesso
      */
@@ -432,7 +436,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Cria e configura o handle do cURL
-     * 
+     *
      * @param string $url URL da requisição
      * @param string $method Método HTTP
      * @param mixed $data Dados para envio
@@ -471,7 +475,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Prepara os dados para envio
-     * 
+     *
      * @param mixed $data Dados para preparar
      * @return string|array<mixed>
      */
@@ -497,7 +501,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Verifica se há uploads de arquivo nos dados
-     * 
+     *
      * @param array<mixed> $data
      * @return bool
      */
@@ -512,7 +516,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Verifica recursivamente por arquivos em arrays/objetos
-     * 
+     *
      * @param mixed $data
      * @return bool
      */
@@ -532,7 +536,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Verifica se o Content-Type é JSON
-     * 
+     *
      * @return bool
      */
     private function isJsonContentType(): bool
@@ -547,7 +551,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Verifica se um valor específico é um upload de arquivo
-     * 
+     *
      * @param mixed $value
      * @return bool
      */
@@ -600,7 +604,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Aplica rate limiting se configurado
-     * 
+     *
      * @return void
      */
     private function applyRateLimit(): bool
@@ -670,7 +674,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Valida a URL
-     * 
+     *
      * @param string $url
      * @throws \InvalidArgumentException
      */
@@ -726,7 +730,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Valida se o host é válido
-     * 
+     *
      * @param string $host
      * @return bool
      */
@@ -755,7 +759,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Valida o método HTTP de forma mais robusta
-     * 
+     *
      * @param string $method
      * @throws \InvalidArgumentException
      */
@@ -794,7 +798,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Valida dados de entrada de forma mais robusta
-     * 
+     *
      * @param mixed $data
      * @param string $method
      * @throws \InvalidArgumentException
@@ -832,7 +836,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Valida configurações antes da requisição
-     * 
+     *
      * @throws \InvalidArgumentException
      */
     private function validateConfiguration(): void
@@ -866,7 +870,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Retorna o cabeçalho Content-Type baseado no tipo
-     * 
+     *
      * @param string $type
      * @return string
      */
@@ -885,7 +889,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Retorna o cabeçalho Accept baseado no tipo
-     * 
+     *
      * @param string $type
      * @return string
      */
@@ -906,7 +910,7 @@ final class LumaHTTP extends LumaClasses
     /**
      * Exibe estatísticas detalhadas das requisições e rate limiting
      * Útil para debugging e monitoramento durante desenvolvimento
-     * 
+     *
      * @param bool $formatted Se deve retornar formatado para exibição ou array
      * @return array<string, mixed>|string
      */
@@ -949,7 +953,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Formata a saída das estatísticas para exibição legível
-     * 
+     *
      * @param array<string, mixed> $stats
      * @return string
      */
@@ -1005,7 +1009,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Cria uma barra de progresso visual
-     * 
+     *
      * @param float $percentage
      * @return string
      */
@@ -1031,7 +1035,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Exibe as estatísticas diretamente no output (útil para debugging)
-     * 
+     *
      * @return void
      */
     public function showStats(): void
@@ -1041,7 +1045,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Salva as estatísticas em um arquivo de log
-     * 
+     *
      * @param string $filePath Caminho do arquivo
      * @param bool $append Se deve anexar ao arquivo existente
      * @return bool
@@ -1058,7 +1062,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Retorna um resumo rápido das estatísticas em uma linha
-     * 
+     *
      * @return string
      */
     public function getQuickStats(): string
@@ -1080,7 +1084,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Teste de debug completo
-     * 
+     *
      * Este método executa uma série de testes para verificar se a classe LumaHTTP está funcionando corretamente.
      * Ele inclui validações de pré-requisitos, criação de instância, requisições GET e POST, e exibição de resultados.
      */
@@ -1153,7 +1157,7 @@ final class LumaHTTP extends LumaClasses
 
     /**
      * Informações de debug
-     * 
+     *
      * @return array<string, mixed>
      */
     public function __debugInfo(): array

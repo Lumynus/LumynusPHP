@@ -11,5 +11,6 @@ class ControllerExample extends LumynusController
     public function index($request)
     {
         $this->response()->json(['success' => true, 'data' => 'Em pleno funcionamento']);
+
     }
 }

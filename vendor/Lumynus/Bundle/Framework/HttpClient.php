@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 namespace Lumynus\Bundle\Framework;
+
 use Lumynus\Bundle\Framework\LumaClasses;
 
 final class HttpClient extends LumaClasses
@@ -20,7 +21,7 @@ final class HttpClient extends LumaClasses
      *               - 'status_code' (int): Código de resposta HTTP.
      *               - 'response' (string): Corpo da resposta ou mensagem de erro.
      */
-    public static function request(string $url, string $metodo = "GET", array $headers = [], array|string $body = ""): array
+    public static function request(string $url, string $metodo = "GET", array $headers = [], array|string $body = "", $sslVerify = true): array
     {
         $metodos = ["GET", "POST", "PUT", "DELETE"];
 
@@ -59,7 +60,7 @@ final class HttpClient extends LumaClasses
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $metodo);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $sslVerify);
 
         if ($metodo !== "GET") {
             curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
@@ -69,7 +70,11 @@ final class HttpClient extends LumaClasses
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $curlError = curl_error($ch);
-        curl_close($ch);
+        if (PHP_VERSION_ID < 80500) {
+            curl_close($ch);
+        } else {
+            unset($ch);
+        }
 
         if ($curlError) {
             return ["status_code" => 500, "response" => "Erro na requisição -> " . $curlError];
