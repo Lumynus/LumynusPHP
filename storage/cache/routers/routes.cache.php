@@ -23,13 +23,12 @@ return array (
         ),
         'api' => false,
       ),
-      'testy' => 
+      'is' => 
       array (
-        'controller' => 'App\\Controllers\\ControllerExample',
+        'controller' => 'App\\Controllers\\TT',
         'action' => 'index',
         'fieldsPermitted' => 
         array (
-          'a' => 'string',
         ),
         'middlewares' => 
         array (

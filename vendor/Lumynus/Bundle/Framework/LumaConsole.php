@@ -66,6 +66,7 @@ class LumaConsole extends LumaClasses
             # Criações
             'command' => 'Criar um novo comando',
             //'model' => 'Criar um novo modelo',
+            'inspect' => 'Iniciar o inspector',
             'make' => 'Executar um comando',
             'middleware' => 'Criar um novo middleware',
             'middleware_login' => 'Cria um novo middleware de login',
@@ -148,6 +149,7 @@ class LumaConsole extends LumaClasses
         echo "  {$CYAN}info{$RESET}               - Show system information | Mostrar informações do sistema\n";
         echo "  {$CYAN}server{$RESET}             - Start development server | Iniciar servidor de desenvolvimento\n";
         echo "  {$CYAN}mode{$RESET}               - Show current application mode | Mostrar modo atual do aplicativo\n";
+        echo "  {$CYAN}inspect{$RESET}            - Start inspector | Iniciar o inspector\n";
         echo "  {$CYAN}clear{$RESET}              - Clear temporary files and cache | Limpar arquivos temporários e cache\n";
         echo "  {$CYAN}key{$RESET}                - Generate encryption key | Gerar chave de criptografia\n";
         echo "  {$CYAN}remove_key{$RESET}         - Remove encryption key | Remover chave de criptografia\n";
@@ -532,6 +534,27 @@ class LumaConsole extends LumaClasses
         $caminho = preg_replace('#[\/\\\\]+#', DIRECTORY_SEPARATOR, $caminho);
 
         shell_exec('php -S localhost:' . ($dados[0] ?? '8000') . ' -t ' . $caminho);
+    }
+
+    private static function inspect($dados)
+    {
+
+        $ciano = "\033[96m";
+        $reset = "\033[0m";
+        $roxo = "\033[95m";
+        $verde = "\033[92m";
+
+        if (empty($dados) && count($dados) > 1) {
+            echo "\n\nPlease provide a door you wish to serve Inspector.\n";
+            echo "(Por favor, forneça uma porta que deseja servir)\nExample: php luma {$verde}inspect{$reset} {$ciano}8759{$reset}\n\n";
+            return;
+        }
+
+        $caminho = Config::pathProject() . DIRECTORY_SEPARATOR . 'bootstrap' . DIRECTORY_SEPARATOR . 'inspector' . DIRECTORY_SEPARATOR;
+        $caminho = preg_replace('#[\/\\\\]+#', DIRECTORY_SEPARATOR, $caminho);
+
+
+        shell_exec('php -S localhost:' . ($dados[0] ?? '8759') . ' -t ' . $caminho);
     }
 
 
