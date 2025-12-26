@@ -80,6 +80,8 @@ final class Inspector
      */
     private function analyzeDependencies(string $className): void
     {
+        if (!class_exists($className)) return;
+
         $ref = new ReflectionClass($className);
         $file = $ref->getFileName();
         if (!$file) return;
@@ -87,44 +89,110 @@ final class Inspector
         $tokens = token_get_all(file_get_contents($file));
         $dependencies = [];
 
-        foreach ($tokens as $index => $token) {
+        $count = count($tokens);
+        for ($i = 0; $i < $count; $i++) {
+            $token = $tokens[$i];
             if (!is_array($token)) continue;
+
             [$id, $text] = $token;
 
-            // Detect 'use Full\Namespace\Class'
+            if (in_array($id, [T_STRING, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED], true)) {
+                $k = $i + 1;
+
+                while (isset($tokens[$k]) && is_array($tokens[$k]) && $tokens[$k][0] === T_WHITESPACE) {
+                    $k++;
+                }
+
+                if (($tokens[$k][0] ?? null) === T_VARIABLE) {
+                    $dependencies[] = ltrim($text, '\\');
+                    continue;
+                }
+            }
+
+
             if ($id === T_USE) {
                 $current = '';
-                for ($i = $index + 1; $i < count($tokens); $i++) {
-                    if ($tokens[$i] === ';') break;
-                    if (is_array($tokens[$i])) $current .= $tokens[$i][1];
+                for ($j = $i + 1; $j < $count && $tokens[$j] !== ';'; $j++) {
+                    if (is_array($tokens[$j])) $current .= $tokens[$j][1];
                 }
-                $dependencies[] = trim($current);
-            }
 
-            // Detect 'new ClassName'
-            if ($id === T_NEW) {
-                $next = $tokens[$index + 2] ?? null;
-                if (is_array($next) && $next[0] === T_STRING) {
-                    $dependencies[] = $next[1];
-                }
-            }
-
-            // Detect 'ClassName::method'
-            if ($id === T_DOUBLE_COLON) {
-                $prev = $tokens[$index - 1] ?? null;
-                if (is_array($prev) && $prev[0] === T_STRING) {
-                    if (!in_array($prev[1], ['self', 'static', 'parent'])) {
-                        $dependencies[] = $prev[1];
+                foreach (preg_split('/[\s,]+/', trim($current)) as $use) {
+                    if ($use !== '') {
+                        $dependencies[] = ltrim($use, '\\');
                     }
+                }
+            }
+
+            if ($id === T_NEW) {
+                for ($j = $i + 1; $j < $count; $j++) {
+                    if (!is_array($tokens[$j])) continue;
+
+                    if (in_array($tokens[$j][0], [
+                        T_STRING,
+                        T_NAME_QUALIFIED,
+                        T_NAME_FULLY_QUALIFIED
+                    ])) {
+                        $dependencies[] = ltrim($tokens[$j][1], '\\');
+                        break;
+                    }
+
+
+                    if ($tokens[$j][0] === T_VARIABLE) break;
+                }
+            }
+
+
+            if ($id === T_DOUBLE_COLON) {
+                $prev = $tokens[$i - 1] ?? null;
+
+                if (
+                    is_array($prev)
+                    && in_array($prev[0], [
+                        T_STRING,
+                        T_NAME_QUALIFIED,
+                        T_NAME_FULLY_QUALIFIED
+                    ])
+                    && !in_array(strtolower($prev[1]), ['self', 'static', 'parent'])
+                ) {
+                    $dependencies[] = ltrim($prev[1], '\\');
+                }
+            }
+
+            if ($id === T_EXTENDS || $id === T_IMPLEMENTS) {
+                $next = $tokens[$i + 2] ?? null;
+                if (is_array($next) && in_array($next[0], [T_STRING, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED])) {
+                    $dependencies[] = ltrim($next[1], '\\');
                 }
             }
         }
 
-        $cleanDeps = array_unique(array_filter($dependencies));
-        // Filter out the class itself
-        $shortName = substr($className, strrpos($className, '\\') + 1);
-        $this->architectureMap['couplings'][$className] = array_values(array_filter($cleanDeps, fn($d) => $d !== $shortName && $d !== $className));
+        $cleanDeps = [];
+        $seen = [];
+
+        foreach ($dependencies as $dep) {
+            if (!is_string($dep) || stripos($dep, 'Lumynus') !== false) continue;
+
+            $parts = explode('\\', $dep);
+            $name = end($parts);
+
+            $aliasKey = $name;
+            if (stripos($name, ' as ') !== false) {
+                [$namePart, $aliasPart] = array_map('trim', explode(' as ', $name));
+                $aliasKey = $aliasPart ?: $namePart;
+            }
+
+            if (!isset($seen[$aliasKey])) {
+                $cleanDeps[] = $dep;
+                $seen[$aliasKey] = true;
+            }
+        }
+
+        $shortName = $ref->getShortName();
+        $this->architectureMap['couplings'][$className] = array_values(
+            array_filter($cleanDeps, fn($d) => $d !== $shortName && $d !== $className)
+        );
     }
+
 
     private function analyzeComplexityAndSize(string $className, ReflectionClass $ref): void
     {
@@ -145,7 +213,7 @@ final class Inspector
         $this->architectureMap['metrics'][$className]['complexity'] = $complexity;
 
         if ($complexity > 10) $this->classesWithProblems[$className][] = "High complexity ($complexity). Consider breaking down methods.";
-        if (count($lines) > 250) $this->classesWithProblems[$className][] = "Large class size (".count($lines)." LOC). Potential God Object.";
+        if (count($lines) > 250) $this->classesWithProblems[$className][] = "Large class size (" . count($lines) . " LOC). Potential God Object.";
     }
 
     private function analyzeNamingConventions(string $className, array $methods): void
@@ -235,9 +303,9 @@ final class Inspector
         </header>
 
         <div class="error-cards">
-            <div class="card"><div class="card-header">Total Classes</div><div class="stat-val">'.$totalClasses.'</div></div>
-            <div class="card"><div class="card-header">Global Health</div><div class="stat-val">'.$avgScore.'%</div></div>
-            <div class="card"><div class="card-header">Open Issues</div><div class="stat-val '.($totalIssues > 0 ? 'text-error':'').'">'.$totalIssues.'</div></div>
+            <div class="card"><div class="card-header">Total Classes</div><div class="stat-val">' . $totalClasses . '</div></div>
+            <div class="card"><div class="card-header">Global Health</div><div class="stat-val">' . $avgScore . '%</div></div>
+            <div class="card"><div class="card-header">Open Issues</div><div class="stat-val ' . ($totalIssues > 0 ? 'text-error' : '') . '">' . $totalIssues . '</div></div>
         </div>
 
         <div class="main-layout">
@@ -272,16 +340,16 @@ final class Inspector
         foreach ($grouped as $ns => $classes) {
             $id = 'ns-' . md5($ns);
             $html .= '<div class="tree-ns">
-                <div class="ns-folder" onclick="toggleNS(\''.$id.'\')">
+                <div class="ns-folder" onclick="toggleNS(\'' . $id . '\')">
                     <span class="folder-arrow">▶</span>
-                    <span class="folder-name">'.$ns.'</span>
-                    <span class="folder-badge">'.count($classes).'</span>
+                    <span class="folder-name">' . $ns . '</span>
+                    <span class="folder-badge">' . count($classes) . '</span>
                 </div>
-                <div id="'.$id.'" class="ns-content" style="display:none;">';
+                <div id="' . $id . '" class="ns-content" style="display:none;">';
             foreach ($classes as $full => $data) {
                 $status = empty($data['problems']) ? 'dot-success' : 'dot-error';
-                $html .= '<div class="class-node" onclick="showDetail(\''.md5($full).'\', this)" data-search="'.strtolower($data['name']).'">
-                    <span class="status-dot '.$status.'"></span> '.$data['name'].'
+                $html .= '<div class="class-node" onclick="showDetail(\'' . md5($full) . '\', this)" data-search="' . strtolower($data['name']) . '">
+                    <span class="status-dot ' . $status . '"></span> ' . $data['name'] . '
                 </div>';
             }
             $html .= '</div></div>';
@@ -295,23 +363,23 @@ final class Inspector
         foreach ($grouped as $ns => $classes) {
             foreach ($classes as $full => $data) {
                 $id = md5($full);
-                $html .= '<div id="detail-'.$id.'" class="detail-pane" style="display:none;">
+                $html .= '<div id="detail-' . $id . '" class="detail-pane" style="display:none;">
                     <div class="card detail-header">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div>
-                                <div class="framework-name">'.$ns.'</div>
-                                <h2 style="font-size: 2rem; margin:0; color:var(--accent-color);">'.$data['name'].'</h2>
+                                <div class="framework-name">' . $ns . '</div>
+                                <h2 style="font-size: 2rem; margin:0; color:var(--accent-color);">' . $data['name'] . '</h2>
                             </div>
-                            <div class="score-circle">'.$data['score'].'%</div>
+                            <div class="score-circle">' . $data['score'] . '%</div>
                         </div>
                     </div>
 
                     <div class="detail-grid">
                         <div class="card">
                             <div class="card-header">Metrics</div>
-                            <div class="metric-item"><span>Complexity</span> <span class="badge">'.$data['metrics']['complexity'].'</span></div>
-                            <div class="metric-item"><span>Size (LOC)</span> <span class="badge">'.$data['metrics']['loc'].'</span></div>
-                            <div class="metric-item"><span>Couplings</span> <span class="badge">'.count($data['couplings']).'</span></div>
+                            <div class="metric-item"><span>Complexity</span> <span class="badge">' . $data['metrics']['complexity'] . '</span></div>
+                            <div class="metric-item"><span>Size (LOC)</span> <span class="badge">' . $data['metrics']['loc'] . '</span></div>
+                            <div class="metric-item"><span>Couplings</span> <span class="badge">' . count($data['couplings']) . '</span></div>
                         </div>
 
                         <div class="card">
@@ -321,24 +389,28 @@ final class Inspector
                     $html .= '<div class="alert alert-success">✓ Clean code. No architectural issues found.</div>';
                 } else {
                     foreach ($data['problems'] as $p) {
-                        $html .= '<div class="alert alert-error">⚠ '.$p.'</div>';
+                        $html .= '<div class="alert alert-error">⚠ ' . $p . '</div>';
                     }
                 }
                 $html .= '</div></div>
-                    </div>
+            </div>
 
-                    <div class="card" style="margin-top:1.5rem;">
-                        <div class="card-header">Dependency Map (Couplings)</div>
-                        <div class="coupling-tags">';
+            <div class="card" style="margin-top:1.5rem;">
+                <div class="card-header">Dependency Map (Couplings)</div>
+                <div class="coupling-tags" style="display:flex; flex-direction:column; justify-content:space-between; min-height:100px;">';
+
                 if (empty($data['couplings'])) {
                     $html .= '<em style="color:var(--text-muted); font-size: 0.8rem;">No external or internal couplings detected.</em>';
+                    $html .= '<em style="color:var(--text-muted); font-size: 0.6rem;">Lumynus components are not part of the metrics.</em>';
                 } else {
                     foreach ($data['couplings'] as $c) {
-                        $html .= '<span class="tag">'.$c.'</span>';
+                        $html .= '<span class="tag">' . $c . '</span>';
                     }
+                    $html .= '<em style="color:var(--text-muted); font-size: 0.6rem;">Lumynus components are not part of the metrics.</em>';
                 }
+
                 $html .= '</div></div>
-                </div>';
+        </div>';
             }
         }
         return $html;

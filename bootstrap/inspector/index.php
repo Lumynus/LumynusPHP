@@ -12,7 +12,7 @@ require_once  '../../vendor/autoload.php';
 
 ErrorHandler::register(function () {});
 
-if (Config::modeProduction() == false) {
+if (Config::modeProduction() == false && php_sapi_name() === 'cli-server') {
     $app = new Inspector();
     $app->inspect();
     $app->renderInspectorHtml();
