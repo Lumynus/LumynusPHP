@@ -167,30 +167,41 @@ final class Inspector
         }
 
         $cleanDeps = [];
-        $seen = [];
+    $seen = [];
 
-        foreach ($dependencies as $dep) {
-            if (!is_string($dep) || stripos($dep, 'Lumynus') !== false) continue;
+    $scalars = [
+        'string', 'int', 'float', 'bool', 'array', 'object',
+        'callable', 'iterable', 'mixed', 'void', 'never', 'null'
+    ];
 
-            $parts = explode('\\', $dep);
-            $name = end($parts);
+    foreach ($dependencies as $dep) {
+        $depLower = strtolower($dep);
 
-            $aliasKey = $name;
-            if (stripos($name, ' as ') !== false) {
-                [$namePart, $aliasPart] = array_map('trim', explode(' as ', $name));
-                $aliasKey = $aliasPart ?: $namePart;
-            }
-
-            if (!isset($seen[$aliasKey])) {
-                $cleanDeps[] = $dep;
-                $seen[$aliasKey] = true;
-            }
+        if (!is_string($dep) ||
+            stripos($dep, 'Lumynus') !== false ||
+            in_array($depLower, $scalars)) {
+            continue;
         }
 
-        $shortName = $ref->getShortName();
-        $this->architectureMap['couplings'][$className] = array_values(
-            array_filter($cleanDeps, fn($d) => $d !== $shortName && $d !== $className)
-        );
+        $parts = explode('\\', $dep);
+        $name = end($parts);
+
+        $aliasKey = $name;
+        if (stripos($name, ' as ') !== false) {
+            [$namePart, $aliasPart] = array_map('trim', explode(' as ', $name));
+            $aliasKey = $aliasPart ?: $namePart;
+        }
+
+        if (!isset($seen[$aliasKey])) {
+            $cleanDeps[] = $dep;
+            $seen[$aliasKey] = true;
+        }
+    }
+
+    $shortName = $ref->getShortName();
+    $this->architectureMap['couplings'][$className] = array_values(
+        array_filter($cleanDeps, fn($d) => $d !== $shortName && $d !== $className)
+    );
     }
 
 

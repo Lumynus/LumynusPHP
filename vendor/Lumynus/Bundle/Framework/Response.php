@@ -273,7 +273,7 @@ final class Response extends LumaClasses
     public function redirect(string $url): void
     {
         http_response_code(302);
-        header('Location: ' . $url); 
+        header('Location: ' . $url);
         exit;
     }
 
