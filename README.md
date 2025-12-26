@@ -81,7 +81,7 @@ Lumynus is built with care, and contributions should follow the same spirit: cla
 
 Please read the contribution guide:
 
-* [https://lumynus.dev/docs/contributions](https://lumynus.dev/docs/contributions)
+* [https://lumynus.dev/](https://lumynus.dev/)
 
 ---
 
@@ -89,7 +89,7 @@ Please read the contribution guide:
 
 To keep the Lumynus community healthy and welcoming, all contributors are expected to follow our Code of Conduct:
 
-* [https://lumynus.dev/docs/contributions#code-of-conduct](https://lumynus.dev/docs/contributions#code-of-conduct)
+* [https://lumynus.dev/](https://lumynus.dev/)
 
 ---
 
@@ -99,7 +99,7 @@ Security matters.
 
 If you discover a vulnerability, please report it responsibly:
 
-📧 [**security@lumynus.dev**](mailto:security@lumynus.dev)
+📧 [**fale@lumynus.dev**](mailto:fale@lumynus.dev)
 
 All reports are reviewed and addressed promptly.
 
