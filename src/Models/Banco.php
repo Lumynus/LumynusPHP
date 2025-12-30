@@ -33,7 +33,7 @@ class Banco extends DataBase
 
     /**
      * Executa uma query com prepared statements
-     * 
+     *
      * @param string $query SQL query com placeholders
      * @param array $params Parâmetros para bind
      * @param array $types Tipos dos parâmetros (opcional, será auto-detectado se vazio)
@@ -50,33 +50,35 @@ class Banco extends DataBase
     }
 
     /**
+     * Métodos de Transação (Proxy para o Driver)
+     */
+    protected function beginTransaction()
+    {
+        $this->banco->beginTransaction();
+    }
+    protected function commit()
+    {
+        $this->banco->commit();
+    }
+    protected function rollBack()
+    {
+        $this->banco->rollBack();
+    }
+
+    /**
      * Detecta automaticamente os tipos dos parâmetros
-     * 
+     *
      * @param array $params Array de parâmetros
      * @return array Array de tipos para o framework Lumynus
      */
     private function detectParamTypes(array $params): array
     {
-        $types = [];
-
-        foreach ($params as $param) {
-            if (is_int($param)) {
-                $types[] = 'i'; // integer
-            } elseif (is_float($param) || is_double($param)) {
-                $types[] = 'd'; // double
-            } elseif (is_string($param)) {
-                $types[] = 's'; // string
-            } else {
-                $types[] = 's'; // default para string
-            }
-        }
-
-        return $types;
+        return array_map(fn($p) => is_int($p) ? 'i' : (is_float($p) ? 'd' : 's'), $params);
     }
 
     /**
      * Seleciona registros com filtros, joins e ordenação
-     * 
+     *
      * @param array $filters Filtros WHERE no formato ['coluna' => 'valor']
      * @param string $columns Colunas a selecionar
      * @param string $joins Cláusulas JOIN (ex: 'LEFT JOIN tabela ON condicao')
@@ -155,7 +157,7 @@ class Banco extends DataBase
 
     /**
      * Busca um registro por ID
-     * 
+     *
      * @param int $id ID do registro
      * @return mixed Resultado da consulta
      */
@@ -167,7 +169,7 @@ class Banco extends DataBase
 
     /**
      * Busca um único registro por campo específico
-     * 
+     *
      * @param string $column Nome da coluna
      * @param mixed $value Valor a buscar
      * @return mixed Resultado da consulta
@@ -180,7 +182,7 @@ class Banco extends DataBase
 
     /**
      * Busca múltiplos registros por campo específico
-     * 
+     *
      * @param string $column Nome da coluna
      * @param mixed $value Valor a buscar
      * @param string $orderBy Ordenação opcional
@@ -204,7 +206,7 @@ class Banco extends DataBase
 
     /**
      * Insere um novo registro
-     * 
+     *
      * @param array $data Dados no formato ['coluna' => 'valor']
      * @return mixed Resultado da inserção
      */
@@ -225,7 +227,7 @@ class Banco extends DataBase
 
     /**
      * Insere um registro e retorna o ID gerado
-     * 
+     *
      * @param array $data Dados no formato ['coluna' => 'valor']
      * @return int|false ID do registro inserido ou false em caso de falha
      */
@@ -251,7 +253,7 @@ class Banco extends DataBase
 
     /**
      * Insere múltiplos registros de uma vez
-     * 
+     *
      * @param array $data Array de arrays com dados
      * @return mixed Resultado da inserção
      */
@@ -277,7 +279,7 @@ class Banco extends DataBase
 
     /**
      * Atualiza um registro por ID
-     * 
+     *
      * @param int $id ID do registro
      * @param array $data Dados a atualizar no formato ['coluna' => 'valor']
      * @return mixed Resultado da atualização
@@ -305,7 +307,7 @@ class Banco extends DataBase
 
     /**
      * Atualiza registros por condições específicas
-     * 
+     *
      * @param array $conditions Condições WHERE no formato ['coluna' => 'valor']
      * @param array $data Dados a atualizar no formato ['coluna' => 'valor']
      * @return mixed Resultado da atualização
@@ -339,7 +341,7 @@ class Banco extends DataBase
 
     /**
      * Deleta um registro por ID
-     * 
+     *
      * @param int $id ID do registro
      * @return mixed Resultado da deleção
      */
@@ -351,7 +353,7 @@ class Banco extends DataBase
 
     /**
      * Deleta registros por condições
-     * 
+     *
      * @param array $conditions Condições WHERE no formato ['coluna' => 'valor']
      * @return mixed Resultado da deleção
      */
@@ -376,7 +378,7 @@ class Banco extends DataBase
 
     /**
      * Conta registros na tabela
-     * 
+     *
      * @param array $conditions Condições WHERE opcionais no formato ['coluna' => 'valor']
      * @param string $joins JOINs opcionais
      * @return mixed Resultado da contagem
@@ -405,7 +407,7 @@ class Banco extends DataBase
 
     /**
      * Verifica se um registro existe
-     * 
+     *
      * @param array $conditions Condições no formato ['coluna' => 'valor']
      * @return bool True se existe, false caso contrário
      */
@@ -417,7 +419,7 @@ class Banco extends DataBase
 
     /**
      * Executa query personalizada com prepared statements
-     * 
+     *
      * @param string $sql Query SQL com placeholders
      * @param array $params Parâmetros para bind
      * @return mixed Resultado da query
@@ -429,15 +431,15 @@ class Banco extends DataBase
 
     /**
      * Busca registros com condições avançadas (IN, BETWEEN, LIKE)
-     * 
+     *
      * @param array $conditions Condições complexas
      * @param string $columns Colunas a selecionar
      * @param string $joins JOINs opcionais
      * @param string $orderBy Ordenação
      * @param int|null $limit Limite
      * @return mixed Resultado da consulta
-     * 
-     * Exemplo: 
+     *
+     * Exemplo:
      * $conditions = [
      *     'status' => ['IN', [1, 2, 3]],
      *     'created_at' => ['BETWEEN', ['2023-01-01', '2023-12-31']],
