@@ -26,12 +26,6 @@ caches/*
 *.min.css linguist-vendored
 #*.php linguist-language=PHP
 
-# Arquivos ignorados no export (download ZIP)
-.gitignore     export-ignore
-.gitattributes export-ignore
-.editorconfig  export-ignore
-.github/       export-ignore
-tests/         export-ignore
 
 # Melhor merge de lockfile
 composer.lock merge=union
