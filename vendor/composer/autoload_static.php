@@ -9,10 +9,6 @@ class ComposerStaticInitd4044c589366576ef6fb2dbbf971fe55
     public static $prefixLengthsPsr4 = array (
         'L' =>
         array (
-            'Lumynus\\Templates\\' => 18,
-            'Lumynus\\Http\\' => 13,
-            'Lumynus\\Bundle\\Framework\\' => 25,
-            'Lumynus\\Bundle\\Contracts\\' => 25,
             'Lumynus\\' => 8,
         ),
         'A' =>
@@ -22,22 +18,6 @@ class ComposerStaticInitd4044c589366576ef6fb2dbbf971fe55
     );
 
     public static $prefixDirsPsr4 = array (
-        'Lumynus\\Templates\\' =>
-        array (
-            0 => __DIR__ . '/..' . '/Lumynus/Kernel/Templates',
-        ),
-        'Lumynus\\Http\\' =>
-        array (
-            0 => __DIR__ . '/..' . '/Lumynus/Kernel/Http',
-        ),
-        'Lumynus\\Bundle\\Framework\\' =>
-        array (
-            0 => __DIR__ . '/..' . '/Lumynus/Kernel/Bundle/Framework',
-        ),
-        'Lumynus\\Bundle\\Contracts\\' =>
-        array (
-            0 => __DIR__ . '/..' . '/Lumynus/Kernel/Bundle/Contracts',
-        ),
         'Lumynus\\' =>
         array (
             0 => __DIR__ . '/..' . '/lumynus/kernel',

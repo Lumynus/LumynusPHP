@@ -6,10 +6,6 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Lumynus\\Templates\\' => array($vendorDir . '/Lumynus/Kernel/Templates'),
-    'Lumynus\\Http\\' => array($vendorDir . '/Lumynus/Kernel/Http'),
-    'Lumynus\\Bundle\\Framework\\' => array($vendorDir . '/Lumynus/Kernel/Bundle/Framework'),
-    'Lumynus\\Bundle\\Contracts\\' => array($vendorDir . '/Lumynus/Kernel/Bundle/Contracts'),
     'Lumynus\\' => array($vendorDir . '/lumynus/kernel'),
     'App\\' => array($baseDir . '/src'),
 );

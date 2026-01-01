@@ -5,11 +5,7 @@
   "license": "MIT",
   "autoload": {
     "psr-4": {
-      "App\\": "src/",
-      "Lumynus\\Bundle\\Framework\\": "vendor/lumynus/kernel/bundle/framework/",
-      "Lumynus\\Bundle\\Contracts\\": "vendor/lumynus/kernel/bundle/contracts/",
-      "Lumynus\\Templates\\": "vendor/lumynus/kernel/templates/",
-      "Lumynus\\Http\\": "vendor/lumynus/kernel/Http/"
+      "App\\": "src/"
     }
   },
   "authors": [
