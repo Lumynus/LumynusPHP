@@ -21,7 +21,8 @@
   "minimum-stability": "stable",
   "prefer-stable": true,
   "require": {
-    "php": ">=8.2"
+    "php": ">=8.2",
+    "lumynus/kernel": "^1.0"
   },
   "scripts": {
     "test": "phpunit"
