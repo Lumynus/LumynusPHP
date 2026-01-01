@@ -8,7 +8,8 @@
       "App\\": "src/",
       "Lumynus\\Bundle\\Framework\\": "vendor/Lumynus/Bundle/Framework/",
       "Lumynus\\Bundle\\Contracts\\": "vendor/Lumynus/Bundle/Contracts/",
-      "Lumynus\\Templates\\": "vendor/Lumynus/Templates/"
+      "Lumynus\\Templates\\": "vendor/Lumynus/Templates/",
+      "Lumynus\\Http\\": "vendor/Lumynus/Http/"
     }
   },
   "authors": [
@@ -20,8 +21,7 @@
   "minimum-stability": "stable",
   "prefer-stable": true,
   "require": {
-    "php": ">=8.2",
-    "lumynus/lumynus": "1.1.1"
+    "php": ">=8.2"
   },
   "scripts": {
     "test": "phpunit"
