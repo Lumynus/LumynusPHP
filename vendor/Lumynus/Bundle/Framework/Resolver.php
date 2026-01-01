@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-use Lumynus\Bundle\Framework\LumaClasses;
+namespace Lumynus\Bundle\Framework;
 
+use Lumynus\Bundle\Framework\LumaClasses;
 
 final class Resolver extends LumaClasses
 {
@@ -24,7 +25,7 @@ final class Resolver extends LumaClasses
     public function make(string $class, array $params = []): object
     {
         if (!class_exists($class)) {
-            throw new Exception("Class {$class} does not exist.");
+            throw new \Exception("Class {$class} does not exist.");
         }
 
         $instance = new $class();
@@ -51,7 +52,7 @@ final class Resolver extends LumaClasses
                     if (in_array($setter, $classMethods, true)) {
                         $this->callMethod($instance, $setter, $value);
                     } else {
-                        throw new Exception("Attribute or method '{$key}' not found in class {$class}");
+                        throw new \Exception("Attribute or method '{$key}' not found in class {$class}");
                     }
                 }
             }
@@ -83,14 +84,14 @@ final class Resolver extends LumaClasses
             $assoc = array_keys($args) !== range(0, count($args) - 1);
             if ($assoc) {
                 // named parameters
-                $reflection = new ReflectionMethod($instance, $method);
+                $reflection = new \ReflectionMethod($instance, $method);
                 foreach ($reflection->getParameters() as $param) {
                     if (array_key_exists($param->getName(), $args)) {
                         $arguments[] = $args[$param->getName()];
                     } elseif ($param->isDefaultValueAvailable()) {
                         $arguments[] = $param->getDefaultValue();
                     } else {
-                        throw new Exception("Required parameter '{$param->getName()}' not provided in {$method}()");
+                        throw new \Exception("Required parameter '{$param->getName()}' not provided in {$method}()");
                     }
                 }
             } else {
@@ -103,7 +104,7 @@ final class Resolver extends LumaClasses
         $result = call_user_func_array([$instance, $method], $arguments);
 
         // store result
-        $reflection = new ReflectionMethod($instance, $method);
+        $reflection = new \ReflectionMethod($instance, $method);
         if ($reflection->hasReturnType() && $reflection->getReturnType()->getName() === 'void') {
             $this->methodResults[$method] = "void executed";
         } else {

@@ -23,6 +23,7 @@ use Lumynus\Bundle\Framework\QueueManager;
 use Lumynus\Bundle\Framework\CSRF;
 use Lumynus\Bundle\Framework\Memory;
 use Lumynus\Bundle\Framework\CORS;
+use Lumynus\Bundle\Framework\Resolver;
 
 abstract class LumynusController extends LumaClasses
 {
@@ -186,6 +187,14 @@ abstract class LumynusController extends LumaClasses
     protected function cors(): CORS
     {
         return new CORS();
+    }
+
+    /**
+     * Método para obter a instância da classe Resolver
+     * @return Resolver Retorna uma nova instância da classe Resolver
+     */
+    protected function resolver() : Resolver {
+        return new Resolver;
     }
 
     /**

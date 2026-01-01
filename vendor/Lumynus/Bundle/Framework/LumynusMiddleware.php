@@ -22,6 +22,7 @@ use Lumynus\Bundle\Framework\Cookies;
 use Lumynus\Bundle\Framework\QueueManager;
 use Lumynus\Bundle\Framework\CSRF;
 use Lumynus\Bundle\Framework\Memory;
+use Lumynus\Bundle\Framework\Resolver;
 
 abstract class LumynusMiddleware extends LumaClasses
 {
@@ -177,6 +178,14 @@ abstract class LumynusMiddleware extends LumaClasses
     protected function memory(): Memory
     {
         return new Memory;
+    }
+
+    /**
+     * Método para obter a instância da classe Resolver
+     * @return Resolver Retorna uma nova instância da classe Resolver
+     */
+    protected function resolver() : Resolver {
+        return new Resolver;
     }
 
     /**

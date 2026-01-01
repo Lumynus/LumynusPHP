@@ -21,6 +21,7 @@ use Lumynus\Bundle\Framework\QueueManager;
 use Lumynus\Bundle\Framework\CSRF;
 use Lumynus\Bundle\Framework\Memory;
 use Lumynus\Bundle\Framework\CORS;
+use Lumynus\Bundle\Framework\Resolver;
 
 /**
  * Trait com métodos utilitários comuns do framework Lumynus.
@@ -108,6 +109,10 @@ trait LumynusTools
     protected function cors(): CORS
     {
         return new CORS();
+    }
+
+    protected function resolver() : Resolver {
+        return new Resolver;
     }
 
     protected static function static(): static
