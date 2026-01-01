@@ -69,7 +69,6 @@ class LumaConsole extends LumaClasses
             'inspect' => 'Iniciar o inspector',
             'make' => 'Executar um comando',
             'middleware' => 'Criar um novo middleware',
-            'middleware_login' => 'Cria um novo middleware de login',
             'apache_htaccess' => 'Cria um arquivo .htaccess',
             'nginx_conf' => 'Cria um arquivo conf de exemplo'
         ];
@@ -160,7 +159,6 @@ class LumaConsole extends LumaClasses
         echo "  {$CYAN}command{$RESET}            - Create a new Command | Criar um novo comando\n";
         echo "  {$CYAN}make{$RESET}               - Execute a command | Executar um comando\n";
         echo "  {$CYAN}middleware{$RESET}         - Create a new middleware | Criar um novo middleware\n";
-        echo "  {$CYAN}middleware_login{$RESET}   - Create a new middleware Login | Criar um novo middleware de Login\n";
         echo "  {$CYAN}apache_htaccess{$RESET}    - Create a .htaccess: /public | Cria .htaccess na /public\n";
         echo "  {$CYAN}nginx_conf{$RESET}         - Creates a sample configuration | Cria um exemplo de configuração\n\n";
     }
@@ -568,20 +566,53 @@ class LumaConsole extends LumaClasses
 declare(strict_types=1);
 
 namespace App\Controllers;
-use Lumynus\Bundle\Framework\LumynusController;
 
-class {{NAME}} extends LumynusController
+use Lumynus\Bundle\Framework\LumynusController;
+use Lumynus\Http\Contracts\Request;
+use Lumynus\Http\Contracts\Response;
+
+class ControllerExample extends LumynusController
 {
-    public function index($posts)
+    public function index(Response $res, Request $req, array $dataMiddlewares)
     {
-        // Exemplo para renderizar uma view
-        $this->response()->html(
-            $this->renderView('index.html', [
-                'conteudo' => 'Variavel conteudo'
-            ])
-        );
+
+        /**
+         * Request - Métodos disponíveis
+         */
+        $req->get('slug', null); //Se slug não existir fica null
+        $req->getHeaders();
+        $req->getMethod();
+        $req->getParsedBody();
+        $req->getQueryParams();
+        $req->getUri();
+
+
+        /**
+         * Response - Métodos disponíveis
+         */
+
+        //json
+        $res->status(200)
+        ->json(['Sucesso' => true]);
+
+        //html
+        $res->status(200)
+        ->html('<p>Sucesso: true</p>');
+
+        //text
+        $res->status(200)
+        ->text('Sucesso: true');
+
+        //Redirecionamento
+         $res
+        ->redirect('https://site.com');
+
+        // Arquivos
+        $res
+        ->file('arquivo.pdf',download:true); // forçar o download do arquivo
     }
 }
+
 EOL;
 
         // Substitui {{NAME}} pelo nome real do controller
@@ -620,21 +651,26 @@ EOL;
         $result = <<<'EOL'
 <?php
 
-declare(strict_types=1);
-
 namespace App\Middlewares;
-use Lumynus\Bundle\Framework\LumynusMiddleware;
 
-class {{NAME}} extends LumynusMiddleware
+use Lumynus\Bundle\Framework\LumynusMiddleware;
+use Lumynus\Http\Contracts\Request;
+use Lumynus\Http\Contracts\Response;
+
+class Teste extends LumynusMiddleware
 {
-    public function handle($posts)
+
+    public function handle(Request $req, Response $res)
     {
-        // Example of rendering a view
-        // Returning false will immediately stop execution and respond with 403 Forbidden.
-        // Exemplo de renderização de uma view
-        // Retornar false interrompe imediatamente a execução e responde com 403.
+
+        //Caso queira interromper, um fluxo use Respose ou return false para o framework utilizar métodos próprios de bloqueio
+
+        if (!$req->get('slug', null)) {
+            $res->json(["Error"]);
+        }
     }
 }
+
 EOL;
 
         // Substitui {{NAME}} pelo nome real da classe
@@ -664,62 +700,6 @@ EOL;
         }
     }
 
-    private static function middleware_login()
-    {
-        $result = <<<'EOL'
-<?php
-
-declare(strict_types=1);
-
-namespace App\Middlewares;
-use Lumynus\Bundle\Framework\LumynusMiddleware;
-
-class Login extends LumynusMiddleware
-{
-    public function verificaLogado()
-    {
-        if (!$this->sessions()->has('user')) {
-            $this->Response()->html($this->renderView('pages/login.html'));
-            exit();
-        }
-
-        $analise = (new UsuarioModel)->listar([
-            'email' => $this->sessions()->get('user')['email']
-        ]);
-
-        if (empty($analise)) {
-            $this->Response()->html($this->renderView('pages/login.html'));
-            exit();
-        }
-
-        $this->Response()->html($this->renderView('pages/home.html'));
-    }
-}
-EOL;
-
-        $file = Config::pathProject() . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'Middlewares' . DIRECTORY_SEPARATOR . 'Login.php';
-
-        if (file_exists($file)) {
-            echo "\nFile exists, not created\n";
-            echo "(Arquivo existe, não criado.)\n\n";
-            return;
-        }
-
-        try {
-            $bytes = @file_put_contents($file, $result);
-
-            if ($bytes === false) {
-                echo "\nFile could not be created\n";
-                echo "(Não foi possível criar o arquivo)\n\n";
-                return;
-            }
-
-            echo "\nFile successfully created: {$file}\n";
-            echo "(Arquivo criado com sucesso: {$file})\n\n";
-        } catch (\Throwable $e) {
-            self::fixPermissions($file);
-        }
-    }
 
     private static function command($dados)
     {

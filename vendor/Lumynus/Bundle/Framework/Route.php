@@ -9,6 +9,10 @@ use Lumynus\Bundle\Framework\Config;
 use Lumynus\Bundle\Framework\LumaClasses;
 use Lumynus\Templates\Errors;
 use Lumynus\Bundle\Framework\Logs;
+use Lumynus\Http\Request;
+use Lumynus\Http\Response;
+use Lumynus\Http\Contracts\Request as ContractsRequest;
+use Lumynus\Http\Contracts\Response as ContractsResponse;
 
 /**
  * Classe responsável pelo gerenciamento de rotas no framework Lumynus.
@@ -494,141 +498,148 @@ final class Route extends LumaClasses
      */
     public static function start(): void
     {
-        // Verifica se as rotas foram carregadas
+        // ======================
+        // ROTAS (CACHE)
+        // ======================
         if (!self::loadRoutesFromCache()) {
             self::requireRouters();
-            self::cacheRoutes(); // salva para as próximas execuções
+            self::cacheRoutes();
         }
 
-        $requestMethod = $_SERVER['REQUEST_METHOD'];
+        // ======================
+        // REQUEST BÁSICO
+        // ======================
+        $method = $_SERVER['REQUEST_METHOD'];
+        $uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
 
-        // Obtém apenas o caminho da URL
-        $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        // ======================
+        // BASE PATH
+        // ======================
+        $script = str_replace('\\', '/', $_SERVER['SCRIPT_NAME']);
+        $base   = rtrim(dirname($script), '/');
 
-        /////// TRATAMENTO DE DIRETÓRIO / BASE PATH ///////
-
-        $scriptName = str_replace('\\', '/', $_SERVER['SCRIPT_NAME']);
-        $basePath = rtrim(dirname($scriptName), '/');
-
-        if ($basePath === '.' || $basePath === '/') {
-            $basePath = '';
+        if ($base !== '' && $base !== '.' && str_starts_with($uri, $base)) {
+            $uri = substr($uri, strlen($base));
         }
 
-        if ($basePath !== '' && str_starts_with($uri, $basePath)) {
-            $uri = substr($uri, strlen($basePath));
-        }
-
-        $index = basename($scriptName);
+        $index = basename($script);
         if (str_starts_with($uri, '/' . $index)) {
             $uri = substr($uri, strlen('/' . $index));
         }
 
-        //////// FIM DO TRATAMENTO ////////
-
-        // Limpa barras extras no início/fim
         $route = trim($uri, '/');
 
-        if ($route === '') {
-            $route = '';
-        }
+        // ======================
+        // INPUT
+        // ======================
+        $input = json_decode(file_get_contents('php://input'), true) ?? [];
 
-        // Prepara os parâmetros iniciais (GET e QueryString manual)
-        $params = $_GET;
-        $queryString = $_SERVER['QUERY_STRING'] ?? '';
+        // ======================
+        // REQUEST / RESPONSE
+        // ======================
+        $request = new Request(
+            $method,
+            $uri,
+            $_GET,
+            $_POST,
+            self::getRequestHeaders(),
+            $_FILES,
+            $_SERVER,
+            $input
+        );
 
-        if (str_contains($queryString, ':')) {
-            [, $query] = explode(':', $queryString);
-            parse_str($query, $customParams);
-            $params = array_merge($params, $customParams);
-        }
+        $response = new Response();
 
-        $routeConfig = null;
-        $routeParams = []; // Para armazenar IDs capturados (ex: id=10)
+        // ======================
+        // MATCH DE ROTAS
+        // ======================
+        $routeConfig = self::$routes[$method][$route] ?? null;
+        $routeParams = [];
 
-        // 1. Tenta encontrar uma Rota Estática (Exata) - É mais rápido
-        if (isset(self::$routes[$requestMethod][$route])) {
-            $routeConfig = self::$routes[$requestMethod][$route];
-        }
-        // 2. Se não achou, tenta encontrar uma Rota Dinâmica (Regex)
-        else {
-            if (isset(self::$dynamicRoutes[$requestMethod])) {
-                foreach (self::$dynamicRoutes[$requestMethod] as $regex => $config) {
-                    if (preg_match($regex, $route, $matches)) {
-                        $routeConfig = $config;
-
-                        // Extrai apenas as chaves de texto (os nomes dos parâmetros)
-                        foreach ($matches as $key => $value) {
-                            if (is_string($key)) {
-                                $routeParams[$key] = $value;
-                            }
+        if (!$routeConfig && isset(self::$dynamicRoutes[$method])) {
+            foreach (self::$dynamicRoutes[$method] as $regex => $config) {
+                if (preg_match($regex, $route, $matches)) {
+                    foreach ($matches as $key => $value) {
+                        if (is_string($key)) {
+                            $routeParams[$key] = $value;
                         }
-                        break; // Parar o loop assim que encontrar
                     }
+                    $routeConfig = $config;
+                    break;
                 }
             }
         }
 
-        // 3. Se não encontrou em nenhum lugar, lança 404
         if (!$routeConfig) {
             self::throwError('Route not found', 404, 'html');
             return;
         }
 
-        // 4. MERGE FINAL: Junta os parâmetros da URL ({id}) com os do GET
-        // Os parâmetros da rota têm prioridade ou complementam o GET
-        $params = array_merge($params, $routeParams);
+        // ======================
+        // PARAMS
+        // ======================
+        $params = array_merge($_GET, $routeParams);
 
-        // Validação de Tipos (Agora usa o array configurado no parse)
-        $validation = self::validateParams($params, $routeConfig['fieldsPermitted']);
-
-        if (!$validation['valid']) {
-            Logs::register("Validation Params", [
-                'Message' => 'Invalid fields sent. Some parameters are not allowed or type mismatch.',
-                'params'  => $params,
-                'fieldsPermitted' => $routeConfig['fieldsPermitted']
+        if (!self::validateParams($params, $routeConfig['fieldsPermitted'])['valid']) {
+            Logs::register('Validation Params', [
+                'params' => $params,
+                'allowed' => $routeConfig['fieldsPermitted']
             ]);
             self::throwError('Forbidden', 403, 'html');
             return;
         }
 
-        // VERIFICA SE O TOKEN CSRF FOI ENVIADO E É VÁLIDO (apenas para rotas Web)
-        $isApi = $routeConfig['api'] ?? false;
-        $input = json_decode(file_get_contents('php://input'), true);
-
+        // ======================
+        // CSRF
+        // ======================
         if (
-            !$isApi &&
-            Config::getAplicationConfig()['security']['csrf']['enabled'] === true
-            && in_array($requestMethod, ['POST', 'PUT', 'PATCH', 'DELETE'])
+            !($routeConfig['api'] ?? false) &&
+            Config::getAplicationConfig()['security']['csrf']['enabled'] &&
+            in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)
         ) {
             $tokenName = Config::getAplicationConfig()['security']['csrf']['nameToken'];
-            $token = null;
+            $token =
+                $input[$tokenName]
+                ?? $_POST[$tokenName]
+                ?? $_SERVER['HTTP_X_CSRF_TOKEN']
+                ?? null;
 
-            if (!empty($input[$tokenName])) {
-                $token = $input[$tokenName];
-            }
-            // 2. Fallback para header HTTP
-            elseif (!empty($_SERVER['X_CSRF_TOKEN'])) {
-                $token = $_SERVER['X_CSRF_TOKEN'];
-            }
-            // 3. Fallback para POST tradicional
-            elseif (!empty($_POST[$tokenName])) {
-                $token = $_POST[$tokenName];
-            }
-            // 4. Fallback para header HTTP alternativo
-            elseif (!empty($_SERVER['HTTP_X_CSRF_TOKEN'])) {
-                $token = $_SERVER['HTTP_X_CSRF_TOKEN'];
-            }
-
-            if (!$token || CSRF::isValidToken($token) === false) {
-                Logs::register("CSRF Token Mismatch Error", [
-                    'Sent Token'    => $token,
-                    'Session Token' => CSRF::getToken(),
-                    'Message'       => 'The token sent does not match the session token. Possible CSRF attack or session expired.'
-                ]);
+            if (!$token || !CSRF::isValidToken($token)) {
+                Logs::register('CSRF Token Mismatch', ['token' => $token]);
                 self::throwError('Page Expired', 419, 'html');
                 return;
             }
         }
+
+        // ======================
+        // MIDDLEWARES
+        // ======================
+        $middlewareData = [];
+
+        foreach ($routeConfig['middlewares'] ?? [] as $midd) {
+            $instance = new $midd['midd']();
+
+            $result = $instance->{$midd['action']}(
+                $request,
+                $response,
+                $params
+            );
+
+            if ($result === false) {
+                self::throwError('Forbidden', 403, 'html');
+                return;
+            }
+
+            if (is_array($result)) {
+                $middlewareData = array_merge($middlewareData, $result);
+            }
+        }
+
+        // ======================
+        // CONTROLLER
+        // ======================
+        $controller = new $routeConfig['controller']();
+        $methodName = $routeConfig['action'];
 
         $customizeParamsPosts = array_merge(
             ['GET' => $params ?? []],
@@ -638,103 +649,36 @@ final class Route extends LumaClasses
             ['HEADER' => self::getRequestHeaders() ?? []]
         );
 
-        // ======================
-        // MIDDLEWARES
-        // ======================
+        try {
+            $reflection = new \ReflectionMethod($controller, $methodName);
+            $args = [];
 
-        $middlewareData = [];
+            foreach ($reflection->getParameters() as $param) {
+                $type = $param->getType()?->getName();
 
-        if (!empty($routeConfig['middlewares'])) {
+                match ($type) {
+                    Request::class,
+                    ContractsRequest::class => $args[] = $request,
 
-            foreach ($routeConfig['middlewares'] as $midd) {
-                $middlewareClass = $midd['midd'];
-                $methodAction = $midd['action'];
+                    Response::class,
+                    ContractsResponse::class => $args[] = $response,
 
-                // Validação de Classe/Método
-                if (!class_exists($middlewareClass) || !method_exists($middlewareClass, $methodAction)) {
-                    Logs::register("Middleware Config Error", [
-                        'Message' => "Class '$middlewareClass' or method '$methodAction' not found."
-                    ]);
-                    self::throwError('Internal server error', 500, 'html');
-                    return;
-                }
+                    'array' => $args[] = $middlewareData,
 
-                try {
-                    $middlewareInstance = new $middlewareClass();
-
-                    // Chamada direta ao invés de call_user_func_array
-                    $result = $middlewareInstance->{$methodAction}($customizeParamsPosts);
-
-                    // Bloqueio: Se retornar FALSE, interrompe tudo
-                    if ($result === false) {
-                        Logs::register("System Interrupted", [
-                            'Code'    => 403,
-                            'Message' => 'Request blocked by middleware.'
-                        ]);
-                        self::throwError('Forbidden', 403, 'html');
-                        return;
-                    }
-
-                    // Acúmulo de dados: Se retornar algo útil, guarda
-                    if ($result !== null && $result !== true) {
-                        if (is_array($result)) {
-                            $middlewareData = array_merge($middlewareData, $result);
-                        } else {
-                            // Se for objeto/string, salva em uma chave genérica
-                            $middlewareData['data'] = $result;
-                        }
-                    }
-                } catch (\Throwable $e) {
-                    Logs::register("Middleware Exception", [
-                        'Message' => $e->getMessage(),
-                        'Trace'   => $e->getTraceAsString()
-                    ]);
-                    self::throwError('Internal server error', 500, 'html');
-                    return;
-                }
-            }
-        }
-
-        // ============
-        // CONTROLLER
-        // ============
-
-        $controller = $routeConfig['controller'];
-        $action = $routeConfig['action'];
-
-        if (class_exists($controller) && method_exists($controller, $action)) {
-
-            $instance = new $controller();
-
-            if (!is_callable([$instance, $action])) {
-                Logs::register("System Interrupted", ['Code' => 500, 'Message' => "Action {$action} not callable"]);
-                self::throwError('Internal server error', 500, 'html');
-                return;
+                    default => $args[] = $customizeParamsPosts
+                };
             }
 
-            // Define os parâmetros na ordem fixa:
-            // 1. Dados da Requisição (GET, POST, etc)
-            // 2. Dados do Middleware (Array ou NULL)
-            $params = [
-                $customizeParamsPosts,
-                !empty($middlewareData) ? $middlewareData : null
-            ];
-
-            try {
-                // Executa a ação
-                $instance->{$action}(...$params);
-            } catch (\Throwable $e) {
-                Logs::register("Controller Error", ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
-                self::throwError('Internal server error', 500, 'html');
-            }
-        } else {
-            Logs::register("System Interrupted", [
-                'Code'    => 500,
-                'Message' => 'The system encountered an error and cannot process the request.'
+            $controller->{$methodName}(...$args);
+        } catch (\Throwable $e) {
+            Logs::register('Controller Error', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString()
             ]);
             self::throwError('Internal server error', 500, 'html');
         }
     }
+
 
     /**
      * Retorna uma instância de ErrorTemplate.

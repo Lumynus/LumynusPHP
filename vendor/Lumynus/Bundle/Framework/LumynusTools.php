@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\Sessions;
-use Lumynus\Bundle\Framework\Response;
+use Lumynus\Http\Response;
 use Lumynus\Bundle\Framework\Sanitizer;
 use Lumynus\Bundle\Framework\Converts;
 use Lumynus\Bundle\Framework\LumaHTTP;
