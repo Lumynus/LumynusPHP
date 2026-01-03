@@ -571,9 +571,9 @@ use Lumynus\Bundle\Framework\LumynusController;
 use Lumynus\Http\Contracts\Request;
 use Lumynus\Http\Contracts\Response;
 
-class ControllerExample extends LumynusController
+class {{NAME}} extends LumynusController
 {
-    public function index(Response $res, Request $req, array $dataMiddlewares)
+    public function index(Request $req, Response $res)
     {
 
         /**
@@ -586,6 +586,18 @@ class ControllerExample extends LumynusController
         $req->getQueryParams();
         $req->getUri();
 
+        /**
+         * Request - Obter dados passados pelo Middleware
+         */
+        $req->getAttribute('chave');
+        $req->getAttributes();
+        $req->unsetAttribute('chave');
+
+        /**
+         * Fluxos
+         */
+        $this->next('proximaFuncao'); // Continua o fluxo daqui, mas em outro método
+        $this->nextTo(\stdClass::class,'handle'); // Transfere o controle para outro objeto, outro contexto.
 
         /**
          * Response - Métodos disponíveis
@@ -593,26 +605,25 @@ class ControllerExample extends LumynusController
 
         //json
         $res->status(200)
-        ->json(['Sucesso' => true]);
+            ->json(['Sucesso' => true]);
 
         //html
         $res->status(200)
-        ->html('<p>Sucesso: true</p>');
+            ->html('<p>Sucesso: true</p>');
 
         //text
         $res->status(200)
-        ->text('Sucesso: true');
+            ->text('Sucesso: true');
 
         //Redirecionamento
-         $res
-        ->redirect('https://site.com');
+        $res
+            ->redirect('https://site.com');
 
         // Arquivos
         $res
-        ->file('arquivo.pdf',download:true); // forçar o download do arquivo
+            ->file('arquivo.pdf', download: true); // forçar o download do arquivo
     }
 }
-
 EOL;
 
         // Substitui {{NAME}} pelo nome real do controller
@@ -657,17 +668,17 @@ use Lumynus\Bundle\Framework\LumynusMiddleware;
 use Lumynus\Http\Contracts\Request;
 use Lumynus\Http\Contracts\Response;
 
-class Teste extends LumynusMiddleware
+class {{NAME}} extends LumynusMiddleware
 {
 
     public function handle(Request $req, Response $res)
     {
 
-        //Caso queira interromper, um fluxo use Respose ou return false para o framework utilizar métodos próprios de bloqueio
-
-        if (!$req->get('slug', null)) {
-            $res->json(["Error"]);
+        if (!$req->getHeaders()['token']) {
+            return false; // Interrompre o fluxo; Controller não é utilizado
         }
+
+        $req->setAttribute('testado', 'ok'); // Cria um atributo que pode ser recuperado pelo Controller
     }
 }
 
@@ -711,17 +722,36 @@ EOL;
 declare(strict_types=1);
 
 namespace App\Commands;
+
+use Lumynus\Console\Contracts\Terminal;
+use Lumynus\Console\Contracts\Responder;
 use Lumynus\Bundle\Framework\LumynusCommands;
 
 class {{NAME}} extends LumynusCommands
 {
-    public function handle($commands)
+
+    //1 - Forma de usar com contratos
+    public function handle(Terminal $terminal, Responder $res)
     {
-        // $this->respond()->success('Command executado com sucesso.');
-        // $this->respond()->error(
-        //     'Nenhum argumento informado.',
-        //     'Command executado sem argumentos'
-        // );
+
+        // Métodos para obter dados digitados
+
+        // $terminal->method();
+        // $terminal->command();
+        $dados = $terminal->getAll();
+
+        // Métodos para responder
+
+        // $res->info('Colorido azul automaticamente', 'passra cor em formato ANSI');
+        $res->success('Sucesso para: ' . $dados[0]);
+        // $res->error('Colorido vermelho automaticamente');
+
+    }
+
+    //2 - Forma simples
+    public function handle2($dados)
+    {
+        $this->respond()->success('Sucesso para: ' . $dados[0]);
     }
 }
 EOL;

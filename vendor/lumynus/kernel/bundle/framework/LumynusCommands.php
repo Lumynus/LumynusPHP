@@ -3,8 +3,9 @@
 declare(strict_types=1);
 
 namespace Lumynus\Bundle\Framework;
+use Lumynus\Console\Contracts\Responder;
 
-abstract class LumynusCommands extends LumaClasses
+abstract class LumynusCommands extends LumaClasses implements Responder
 {
     use \Lumynus\Bundle\Framework\LumynusTools;
 
@@ -45,7 +46,7 @@ abstract class LumynusCommands extends LumaClasses
      * @param string $message
      * @return self
      */
-    protected function success(string $message): self
+    public function success(string $message): self
     {
         if ($this->responded) {
             return $this;
@@ -63,7 +64,7 @@ abstract class LumynusCommands extends LumaClasses
      * @param string $message
      * @return self
      */
-    protected function info(string $message, string $colorANSI = "\033[94m"): self
+    public function info(string $message, string $colorANSI = "\033[94m"): self
     {
         if ($this->responded) {
             return $this;
@@ -82,7 +83,7 @@ abstract class LumynusCommands extends LumaClasses
      * @param string|null $logMessage
      * @return self
      */
-    protected function error(string $message, ?string $logMessage = null): self
+    public function error(string $message, ?string $logMessage = null): self
     {
         if ($this->responded) {
             return $this;

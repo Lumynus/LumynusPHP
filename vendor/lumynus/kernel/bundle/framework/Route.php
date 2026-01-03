@@ -614,7 +614,6 @@ final class Route extends LumaClasses
         // ======================
         // MIDDLEWARES
         // ======================
-        $middlewareData = [];
 
         foreach ($routeConfig['middlewares'] ?? [] as $midd) {
             $instance = new $midd['midd']();
@@ -628,10 +627,6 @@ final class Route extends LumaClasses
             if ($result === false) {
                 self::throwError('Forbidden', 403, 'html');
                 return;
-            }
-
-            if (is_array($result)) {
-                $middlewareData = array_merge($middlewareData, $result);
             }
         }
 
@@ -662,8 +657,6 @@ final class Route extends LumaClasses
 
                     Response::class,
                     ContractsResponse::class => $args[] = $response,
-
-                    'array' => $args[] = $middlewareData,
 
                     default => $args[] = $customizeParamsPosts
                 };

@@ -29,6 +29,7 @@ abstract class LumynusController extends LumaClasses
 {
 
     use Requirements;
+    use ControllerPipeline;
 
     /**
      * Método para renderizar uma view com dados.
@@ -193,7 +194,8 @@ abstract class LumynusController extends LumaClasses
      * Método para obter a instância da classe Resolver
      * @return Resolver Retorna uma nova instância da classe Resolver
      */
-    protected function resolver() : Resolver {
+    protected function resolver(): Resolver
+    {
         return new Resolver;
     }
 
@@ -215,5 +217,44 @@ abstract class LumynusController extends LumaClasses
         return [
             'Lumynus' => "Framework PHP"
         ];
+    }
+}
+
+trait ControllerPipeline
+{
+    /**
+     * Chama o próximo método dentro do próprio controller.
+     */
+    protected function next(string $method, mixed ...$args): mixed
+    {
+        if (!method_exists($this, $method)) {
+            throw new \RuntimeException(
+                "Método {$method} não existe em " . static::class
+            );
+        }
+
+        return $this->{$method}(...$args);
+    }
+
+    /**
+     * Chama um método de outro controller.
+     */
+    protected function nextTo(string $class, string $method, mixed ...$args): mixed
+    {
+        if (!class_exists($class)) {
+            throw new \RuntimeException(
+                "Classe {$class} não existe."
+            );
+        }
+
+        $instance = new $class();
+
+        if (!method_exists($instance, $method)) {
+            throw new \RuntimeException(
+                "Método {$method} não existe em {$class}."
+            );
+        }
+
+        return $instance->{$method}(...$args);
     }
 }

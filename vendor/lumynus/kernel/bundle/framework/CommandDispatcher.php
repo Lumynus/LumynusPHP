@@ -5,25 +5,28 @@ declare(strict_types=1);
 namespace Lumynus\Bundle\Framework;
 
 use ReflectionClass;
+use ReflectionMethod;
 use RuntimeException;
 use Lumynus\Bundle\Framework\LumynusCommands;
+use Lumynus\Console\ArgvTerminal;
+use Lumynus\Console\Contracts\Terminal;
+use Lumynus\Console\Contracts\Responder;
 
 final class CommandDispatcher
 {
-
     private const INTERNAL_TOKEN = '__LUMYNUS_KERNEL__byWelenySantos';
 
     private function __construct(string $token)
     {
         if ($token !== self::INTERNAL_TOKEN) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 'CommandDispatcher can only be instantiated by the framework.'
             );
         }
     }
 
     /**
-     * Inicia o dispatcher e executa o comando informado.
+     * Inicializa o dispatcher.
      *
      * @param array<int, string> $argv
      */
@@ -36,22 +39,24 @@ final class CommandDispatcher
     /**
      * @param array<int, string> $argv
      */
-    public function dispatch(array $argv): void
+    private function dispatch(array $argv): void
     {
         $argv = array_values($argv);
+        $terminal = new ArgvTerminal($argv);
 
-        $classInput = $argv[0] ?? null;
+        $classInput = $terminal->command();
 
         if (!$classInput) {
             throw new RuntimeException('No command class informed.');
         }
 
-        $methodInput = $argv[1] ?? null;
-        if($methodInput !== null && str_starts_with($methodInput, '--')) {
-            $methodInput = str_replace('--', '', $methodInput);
+        $methodInput = $terminal->method();
+
+        if ($methodInput !== null && str_starts_with($methodInput, '--')) {
+            $methodInput = substr($methodInput, 2);
         }
 
-        $params = array_slice($argv, 2);
+        $params = $terminal->params();
 
         $class = $this->resolveCommandClass($classInput);
 
@@ -67,19 +72,22 @@ final class CommandDispatcher
 
         $instance = $ref->newInstance();
 
-        // Se método NÃO foi informado → chama handle()
+        // Se nenhum método foi informado, chama handle()
         if ($methodInput === null) {
             if (!$ref->hasMethod('handle')) {
-                throw new RuntimeException(
-                    "{$class} must implement handle()."
-                );
+                throw new RuntimeException("{$class} must implement handle().");
             }
 
-            $ref->getMethod('handle')->invoke($instance, $params);
+            $this->invokeMethod(
+                $instance,
+                $ref->getMethod('handle'),
+                $terminal,
+                $params
+            );
+
             return;
         }
 
-        // Método informado
         if (!$ref->hasMethod($methodInput)) {
             throw new RuntimeException(
                 "Method {$methodInput} not found in {$class}."
@@ -94,12 +102,49 @@ final class CommandDispatcher
             );
         }
 
-        $method->invoke($instance, $params);
+        $this->invokeMethod(
+            $instance,
+            $method,
+            $terminal,
+            $params
+        );
+    }
+
+    /**
+     * Resolve argumentos automaticamente com base na assinatura do método.
+     */
+    private function invokeMethod(
+        object $instance,
+        ReflectionMethod $method,
+        Terminal $terminal,
+        array $params
+    ): void {
+        $args = [];
+
+        foreach ($method->getParameters() as $parameter) {
+            $type = $parameter->getType()?->getName();
+
+            if ($type === Terminal::class) {
+                $args[] = $terminal;
+                continue;
+            }
+
+            if ($type === Responder::class) {
+                // o próprio Command é o responder
+                $args[] = $instance;
+                continue;
+            }
+
+            // fallback clássico
+            $args[] = $params;
+        }
+
+        $method->invokeArgs($instance, $args);
     }
 
 
     /**
-     * Resolve o nome da classe do comando a partir do input.
+     * Resolve o nome da classe do comando a partir do input do terminal.
      */
     private function resolveCommandClass(string $input): string
     {
@@ -111,13 +156,9 @@ final class CommandDispatcher
          *  UsuarioCommand     → UsuarioCommand
          */
 
-        // Normaliza separadores
         $normalized = str_replace([':', '-', '_'], ' ', $input);
-
-        // Converte para StudlyCase
         $class = str_replace(' ', '', ucwords($normalized));
 
-        // Adiciona sufixo apenas se não existir
         if (!str_ends_with($class, 'Command')) {
             $class .= 'Command';
         }

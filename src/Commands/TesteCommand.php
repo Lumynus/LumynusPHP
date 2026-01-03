@@ -3,12 +3,35 @@
 declare(strict_types=1);
 
 namespace App\Commands;
+
+use Lumynus\Console\Contracts\Terminal;
+use Lumynus\Console\Contracts\Responder;
 use Lumynus\Bundle\Framework\LumynusCommands;
 
 class TesteCommand extends LumynusCommands
 {
-    public function handle($commands)
+
+    //1 - Forma de usar com contratos
+    public function handle(Terminal $terminal, Responder $res)
     {
-        $this->respond()->info("Oi! Comandos recebidos: " . implode(", ", $commands));
+
+        // Métodos para obter dados digitados
+
+        // $terminal->method();
+        // $terminal->command();
+        $dados = $terminal->getAll();
+
+        // Métodos para responder
+
+        // $res->info('Colorido azul automaticamente', 'passra cor em formato ANSI');
+        $res->success('Sucesso para: ' . $dados[0]);
+        // $res->error('Colorido vermelho automaticamente');
+
+    }
+
+    //2 - Forma simples
+    public function handle2($dados)
+    {
+        $this->respond()->success('Sucesso para: ' . $dados[0]);
     }
 }

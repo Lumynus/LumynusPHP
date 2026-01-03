@@ -10,7 +10,7 @@ use Lumynus\Http\Contracts\Response;
 
 class ControllerExample extends LumynusController
 {
-    public function index(Response $res, Request $req, array $dataMiddlewares)
+    public function index(Response $res, Request $req)
     {
 
         /**
@@ -23,6 +23,18 @@ class ControllerExample extends LumynusController
         $req->getQueryParams();
         $req->getUri();
 
+        /**
+         * Request - Obter dados passados pelo Middleware
+         */
+        $req->getAttribute('chave');
+        $req->getAttributes();
+        $req->unsetAttribute('chave');
+
+        /**
+         * Fluxos
+         */
+        $this->next('proximaFuncao'); // Continua o fluxo daqui, mas em outro método
+        $this->nextTo(\stdClass::class, 'handle'); // Transfere o controle para outro objeto, outro contexto.
 
         /**
          * Response - Métodos disponíveis
@@ -30,22 +42,22 @@ class ControllerExample extends LumynusController
 
         //json
         $res->status(200)
-        ->json(['Sucesso' => true]);
+            ->json(['Sucesso' => true]);
 
         //html
         $res->status(200)
-        ->html('<p>Sucesso: true</p>');
+            ->html('<p>Sucesso: true</p>');
 
         //text
         $res->status(200)
-        ->text('Sucesso: true');
+            ->text('Sucesso: true');
 
         //Redirecionamento
-         $res
-        ->redirect('https://site.com');
+        $res
+            ->redirect('https://site.com');
 
         // Arquivos
         $res
-        ->file('arquivo.pdf',download:true); // forçar o download do arquivo
+            ->file('arquivo.pdf', download: true); // forçar o download do arquivo
     }
 }
