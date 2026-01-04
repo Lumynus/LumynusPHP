@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 namespace Lumynus\Bundle\Framework;
-use Lumynus\Console\Contracts\Responder;
+use Lumynus\Console\Contracts\Output;
 
-abstract class LumynusCommands extends LumaClasses implements Responder
+abstract class LumynusCommands extends LumaClasses implements Output
 {
     use \Lumynus\Bundle\Framework\LumynusTools;
 
@@ -35,7 +35,7 @@ abstract class LumynusCommands extends LumaClasses implements Responder
      *
      * @return self
      */
-    protected function respond(): self
+    protected function output(): self
     {
         return $this;
     }

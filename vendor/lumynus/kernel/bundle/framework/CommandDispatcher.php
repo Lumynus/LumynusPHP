@@ -10,7 +10,7 @@ use RuntimeException;
 use Lumynus\Bundle\Framework\LumynusCommands;
 use Lumynus\Console\ArgvTerminal;
 use Lumynus\Console\Contracts\Terminal;
-use Lumynus\Console\Contracts\Responder;
+use Lumynus\Console\Contracts\Output;
 
 final class CommandDispatcher
 {
@@ -129,8 +129,8 @@ final class CommandDispatcher
                 continue;
             }
 
-            if ($type === Responder::class) {
-                // o próprio Command é o responder
+            if ($type === Output::class) {
+                // o próprio Command é o Output
                 $args[] = $instance;
                 continue;
             }

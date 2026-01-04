@@ -724,14 +724,14 @@ declare(strict_types=1);
 namespace App\Commands;
 
 use Lumynus\Console\Contracts\Terminal;
-use Lumynus\Console\Contracts\Responder;
+use Lumynus\Console\Contracts\Output;
 use Lumynus\Bundle\Framework\LumynusCommands;
 
 class {{NAME}} extends LumynusCommands
 {
 
     //1 - Forma de usar com contratos
-    public function handle(Terminal $terminal, Responder $res)
+    public function handle(Terminal $terminal, Output $output)
     {
 
         // Métodos para obter dados digitados
@@ -742,16 +742,16 @@ class {{NAME}} extends LumynusCommands
 
         // Métodos para responder
 
-        // $res->info('Colorido azul automaticamente', 'passra cor em formato ANSI');
-        $res->success('Sucesso para: ' . $dados[0]);
-        // $res->error('Colorido vermelho automaticamente');
+        // $output->info('Colorido azul automaticamente', 'passra cor em formato ANSI');
+        $output->success('Sucesso para: ' . $dados[0]);
+        // $output->error('Colorido vermelho automaticamente');
 
     }
 
     //2 - Forma simples
     public function handle2($dados)
     {
-        $this->respond()->success('Sucesso para: ' . $dados[0]);
+        $this->output()->success('Sucesso para: ' . $dados[0]);
     }
 }
 EOL;
