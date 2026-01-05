@@ -24,4 +24,10 @@ register_shutdown_function(function() {
 });
 
 LumaConsole::run($argv);
-register_shutdown_function([\Lumynus\Bundle\Framework\DataBase::class, 'closeAll']);
+register_shutdown_function(function () {
+    try {
+        \Lumynus\Bundle\Framework\DataBase::closeAll();
+    } catch (\Throwable $th) {
+    }
+});
+

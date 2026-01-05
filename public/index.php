@@ -12,5 +12,9 @@ if (php_sapi_name() === 'cli-server') {
 
 require_once __DIR__ . '/../bootstrap/useRoutes.php';
 
-register_shutdown_function([\Lumynus\Bundle\Framework\DataBase::class, 'closeAll']);
-
+register_shutdown_function(function () {
+    try {
+        \Lumynus\Bundle\Framework\DataBase::closeAll();
+    } catch (\Throwable $th) {
+    }
+});
