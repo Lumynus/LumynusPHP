@@ -95,7 +95,9 @@ class Banco extends DataBase
         ?int $limit = null,
         int $offset = 0
     ) {
-        $sql = "SELECT {$columns} FROM {$this->table} {$this->alias}";
+        $table = $this->sanitizer($this->table);
+        $alias = $this->sanitizer($this->alias);
+        $sql = "SELECT {$columns} FROM {$table} {$alias}";
         $params = [];
 
         // Adiciona JOINs

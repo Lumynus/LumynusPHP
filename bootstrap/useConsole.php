@@ -11,12 +11,12 @@ require_once __DIR__ . '/../vendor/autoload.php';
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 
-set_error_handler(function($errno, $errstr, $errfile, $errline) {
+set_error_handler(function ($errno, $errstr, $errfile, $errline) {
     Logs::register($errstr, $errfile . ' ' . $errline);
     return true;
 });
 
-register_shutdown_function(function() {
+register_shutdown_function(function () {
     $erro = error_get_last();
     if ($erro) {
         Logs::register($erro['message'], $erro['file'] . ' ' . $erro['line']);
@@ -24,3 +24,4 @@ register_shutdown_function(function() {
 });
 
 LumaConsole::run($argv);
+register_shutdown_function([\Lumynus\Bundle\Framework\DataBase::class, 'closeAll']);
