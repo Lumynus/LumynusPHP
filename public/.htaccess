@@ -1,0 +1,17 @@
+<IfModule mod_rewrite.c>
+    Options -Indexes
+
+    RewriteEngine On
+    #RewriteBase /Lumynus/
+
+    # Fix para Authorization
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Ignora arquivos/diretórios existentes
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Redireciona tudo para index.php
+    RewriteRule ^ index.php [L]
+</IfModule>

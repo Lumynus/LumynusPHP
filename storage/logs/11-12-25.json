@@ -1,0 +1,62 @@
+[
+    {
+        "who": "Error",
+        "timestamp": "2025-12-11T17:16:07-03:00",
+        "error": "Slow template render: index.html took 283ms"
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-11T17:22:37-03:00",
+        "error": "Slow template render: index.html took 162ms"
+    },
+    {
+        "who": "Controller Error",
+        "timestamp": "2025-12-11T17:26:56-03:00",
+        "error": {
+            "message": "Too few arguments to function App\\Controllers\\ControllerExample::index(), 1 passed in C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\Route.php on line 674 and exactly 2 expected",
+            "trace": "#0 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\Route.php(674): App\\Controllers\\ControllerExample->index(Array)\n#1 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\bootstrap\\useRoutes.php(13): Lumynus\\Bundle\\Framework\\Route::start()\n#2 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\public\\index.php(13): require_once('C:\\\\Users\\\\welen\\\\...')\n#3 {main}"
+        }
+    },
+    {
+        "who": "Validation Params",
+        "timestamp": "2025-12-11T17:42:01-03:00",
+        "error": {
+            "Message": "Invalid fields sent. Some parameters are not allowed or type mismatch.",
+            "params": {
+                "a": "50"
+            },
+            "fieldsPermitted": []
+        }
+    },
+    {
+        "who": "System Interrupted",
+        "timestamp": "2025-12-11T17:46:05-03:00",
+        "error": {
+            "Code": 403,
+            "Message": "Request blocked by middleware."
+        }
+    },
+    {
+        "who": "System Interrupted",
+        "timestamp": "2025-12-11T17:48:18-03:00",
+        "error": {
+            "Code": 403,
+            "Message": "Request blocked by middleware."
+        }
+    },
+    {
+        "who": "Error",
+        "timestamp": "2025-12-11T17:53:04-03:00",
+        "error": "Slow template render: index.html took 133ms"
+    },
+    {
+        "who": "Undefined variable $data",
+        "timestamp": "2025-12-11T19:12:09-03:00",
+        "error": "C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\LumaConsole.php 483"
+    },
+    {
+        "who": "Uncaught TypeError: count(): Argument #1 ($value) must be of type Countable|array, null given in C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\LumaConsole.php:483\nStack trace:\n#0 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\LumaConsole.php(483): count(NULL)\n#1 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\LumaConsole.php(65): Lumynus\\Bundle\\Framework\\LumaConsole::server(Array)\n#2 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\bootstrap\\useConsole.php(26): Lumynus\\Bundle\\Framework\\LumaConsole::run(Array)\n#3 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\luma(8): require_once('C:\\\\Users\\\\welen\\\\...')\n#4 {main}\n  thrown",
+        "timestamp": "2025-12-11T19:12:09-03:00",
+        "error": "C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\LumaConsole.php 483"
+    }
+]

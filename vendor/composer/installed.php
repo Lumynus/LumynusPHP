@@ -1,0 +1,32 @@
+<?php return array(
+    'root' => array(
+        'name' => 'lumynus/lumynus',
+        'pretty_version' => 'v1.1.4',
+        'version' => '1.1.4.0',
+        'reference' => null,
+        'type' => 'project',
+        'install_path' => __DIR__ . '/../../',
+        'aliases' => array(),
+        'dev' => true,
+    ),
+    'versions' => array(
+        'lumynus/kernel' => array(
+            'pretty_version' => 'v1.0.0',
+            'version' => '1.0.0.0',
+            'reference' => '5c7e92b84cf56d1598891012d8ce1d435c4b9f11',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../lumynus/kernel',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'lumynus/lumynus' => array(
+            'pretty_version' => 'v1.1.4',
+            'version' => '1.1.4.0',
+            'reference' => null,
+            'type' => 'project',
+            'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+    ),
+);

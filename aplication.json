@@ -1,0 +1,38 @@
+[
+    {
+        "App": {
+            "nameApplication": "Lumynus",
+            "version": "1.1.6",
+            "description": "A simple PHP framework for building web applications.",
+            "author": "Weleny Santos",
+            "email": "",
+            "host": ""
+        },
+        "path": {
+            "public": "/public/",
+            "js": "/resources/js/",
+            "css": "/resources/css/",
+            "views": "/src/views/",
+            "routers": "/src/routers/",
+            "cache": "/storage/cache/"
+        },
+        "security": {
+            "csrf": {
+                "enabled": true,
+                "nameToken": "luma_csrf"
+            },
+            "integrityAssets": {
+                "enabled": false
+            },
+            "session": {
+                "secret": "lum_txt444@session"
+            },
+            "cookie": {
+                "secret": "lum_txt444@cookie5"
+            }
+        },
+        "frontend": {
+            "versionAssets": true
+        }
+    }
+]

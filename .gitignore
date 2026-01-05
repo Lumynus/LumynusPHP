@@ -1,0 +1,36 @@
+#Deabilitando caches
+caches/*
+
+# Normalizar apenas arquivos de texto comuns
+* text=auto eol=lf
+
+# Arquivos que NÃO podem ter line endings alterados (tratados como binários)
+*.pem   binary
+*.luma  binary
+#*.ini   binary
+
+# Arquivos binários em geral
+*.jpg   binary
+*.jpeg  binary
+*.png   binary
+*.gif   binary
+*.pdf   binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+
+# Linguist (estatísticas GitHub)
+#vendor/* linguist-vendored
+*.min.js linguist-vendored
+*.min.css linguist-vendored
+#*.php linguist-language=PHP
+
+
+# Melhor merge de lockfile
+composer.lock merge=union
+
+# Melhor diff para alguns formatos de texto
+*.md   diff=markdown
+*.json diff=json
+*.xml  diff=xml

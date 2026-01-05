@@ -1,0 +1,84 @@
+[
+    {
+        "who": "Controller Error",
+        "timestamp": "2025-12-25T14:59:42-03:00",
+        "error": {
+            "message": "Magic method __call is not allowed: inspectClasses()",
+            "trace": "#0 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\src\\Controllers\\Inspector.php(14): Lumynus\\Bundle\\Framework\\LumaClasses->__call('inspectClasses', Array)\n#1 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\Route.php(725): App\\Controllers\\Inspector->index(Array, NULL)\n#2 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\bootstrap\\useRoutes.php(13): Lumynus\\Bundle\\Framework\\Route::start()\n#3 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\public\\index.php(13): require_once('C:\\\\Users\\\\welen\\\\...')\n#4 {main}"
+        }
+    },
+    {
+        "who": "System Interrupted",
+        "timestamp": "2025-12-25T15:00:19-03:00",
+        "error": {
+            "Code": 500,
+            "Message": "The system encountered an error and cannot process the request."
+        }
+    },
+    {
+        "who": "System Interrupted",
+        "timestamp": "2025-12-25T15:00:41-03:00",
+        "error": {
+            "Code": 500,
+            "Message": "The system encountered an error and cannot process the request."
+        }
+    },
+    {
+        "who": "Controller Error",
+        "timestamp": "2025-12-25T17:43:23-03:00",
+        "error": {
+            "message": "[] operator not supported for strings",
+            "trace": "#0 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\Inspector.php(40): Lumynus\\Bundle\\Framework\\Inspector->analyzeMethodsMagics('App\\\\Models\\\\Banc...', Array)\n#1 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\src\\Controllers\\TT.php(15): Lumynus\\Bundle\\Framework\\Inspector->inspectClasses()\n#2 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\Route.php(725): App\\Controllers\\TT->index(Array, NULL)\n#3 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\bootstrap\\useRoutes.php(13): Lumynus\\Bundle\\Framework\\Route::start()\n#4 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\public\\index.php(13): require_once('C:\\\\Users\\\\welen\\\\...')\n#5 {main}"
+        }
+    },
+    {
+        "who": "Controller Error",
+        "timestamp": "2025-12-25T17:43:58-03:00",
+        "error": {
+            "message": "[] operator not supported for strings",
+            "trace": "#0 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\Inspector.php(40): Lumynus\\Bundle\\Framework\\Inspector->analyzeMethodsMagics('App\\\\Models\\\\Banc...', Array)\n#1 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\src\\Controllers\\TT.php(15): Lumynus\\Bundle\\Framework\\Inspector->inspectClasses()\n#2 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\Route.php(725): App\\Controllers\\TT->index(Array, NULL)\n#3 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\bootstrap\\useRoutes.php(13): Lumynus\\Bundle\\Framework\\Route::start()\n#4 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\public\\index.php(13): require_once('C:\\\\Users\\\\welen\\\\...')\n#5 {main}"
+        }
+    },
+    {
+        "who": "Controller Error",
+        "timestamp": "2025-12-25T17:44:00-03:00",
+        "error": {
+            "message": "[] operator not supported for strings",
+            "trace": "#0 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\Inspector.php(40): Lumynus\\Bundle\\Framework\\Inspector->analyzeMethodsMagics('App\\\\Models\\\\Banc...', Array)\n#1 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\src\\Controllers\\TT.php(15): Lumynus\\Bundle\\Framework\\Inspector->inspectClasses()\n#2 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\Route.php(725): App\\Controllers\\TT->index(Array, NULL)\n#3 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\bootstrap\\useRoutes.php(13): Lumynus\\Bundle\\Framework\\Route::start()\n#4 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\public\\index.php(13): require_once('C:\\\\Users\\\\welen\\\\...')\n#5 {main}"
+        }
+    },
+    {
+        "who": "Controller Error",
+        "timestamp": "2025-12-25T17:44:01-03:00",
+        "error": {
+            "message": "[] operator not supported for strings",
+            "trace": "#0 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\Inspector.php(40): Lumynus\\Bundle\\Framework\\Inspector->analyzeMethodsMagics('App\\\\Models\\\\Banc...', Array)\n#1 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\src\\Controllers\\TT.php(15): Lumynus\\Bundle\\Framework\\Inspector->inspectClasses()\n#2 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\Route.php(725): App\\Controllers\\TT->index(Array, NULL)\n#3 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\bootstrap\\useRoutes.php(13): Lumynus\\Bundle\\Framework\\Route::start()\n#4 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\public\\index.php(13): require_once('C:\\\\Users\\\\welen\\\\...')\n#5 {main}"
+        }
+    },
+    {
+        "who": "Controller Error",
+        "timestamp": "2025-12-25T17:44:03-03:00",
+        "error": {
+            "message": "[] operator not supported for strings",
+            "trace": "#0 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\Inspector.php(40): Lumynus\\Bundle\\Framework\\Inspector->analyzeMethodsMagics('App\\\\Models\\\\Banc...', Array)\n#1 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\src\\Controllers\\TT.php(15): Lumynus\\Bundle\\Framework\\Inspector->inspectClasses()\n#2 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\Route.php(725): App\\Controllers\\TT->index(Array, NULL)\n#3 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\bootstrap\\useRoutes.php(13): Lumynus\\Bundle\\Framework\\Route::start()\n#4 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\public\\index.php(13): require_once('C:\\\\Users\\\\welen\\\\...')\n#5 {main}"
+        }
+    },
+    {
+        "who": "Controller Error",
+        "timestamp": "2025-12-25T17:47:12-03:00",
+        "error": {
+            "message": "Call to undefined method Lumynus\\Bundle\\Framework\\Inspector::inspectClasses()",
+            "trace": "#0 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\Route.php(725): App\\Controllers\\TT->index(Array, NULL)\n#1 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\bootstrap\\useRoutes.php(13): Lumynus\\Bundle\\Framework\\Route::start()\n#2 C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\public\\index.php(13): require_once('C:\\\\Users\\\\welen\\\\...')\n#3 {main}"
+        }
+    },
+    {
+        "who": "Undefined array key \"bootstrap\"",
+        "timestamp": "2025-12-25T19:12:04-03:00",
+        "error": "C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\LumaConsole.php 553"
+    },
+    {
+        "who": "Undefined array key \"bootstrap\"",
+        "timestamp": "2025-12-25T19:12:42-03:00",
+        "error": "C:\\Users\\welen\\Desktop\\Projetos\\Lumynus\\vendor\\Lumynus\\Bundle\\Framework\\LumaConsole.php 553"
+    }
+]

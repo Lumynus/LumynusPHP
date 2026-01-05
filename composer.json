@@ -1,0 +1,33 @@
+{
+    "name": "lumynus/lumynus",
+    "description": "A lightweight PHP framework designed for developers who value simplicity, clarity, and performance.",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Weleny Santos",
+            "email": "welenysantos@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=8.2",
+        "lumynus/kernel": "v1.1.6"
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "keywords": [
+        "framework",
+        "php",
+        "lumynus",
+        "lightweight",
+        "microframework"
+    ]
+}
