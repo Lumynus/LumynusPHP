@@ -34,14 +34,14 @@ final class Request implements RequestInterface
     public static function fromGlobals(): self
     {
         return new self(
-            $_SERVER['REQUEST_METHOD'] ?? 'GET',
+            strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET'),
             $_SERVER['REQUEST_URI'] ?? '/',
             $_GET,
             $_POST,
             self::headersFromGlobals(),
             $_FILES,
             $_SERVER,
-            json_decode(file_get_contents('php://input'), true)
+            null
         );
     }
 
@@ -56,13 +56,73 @@ final class Request implements RequestInterface
         $headers = [];
 
         foreach ($_SERVER as $key => $value) {
-            if (str_starts_with($key, 'HTTP_')) {
-                $name = str_replace('_', '-', substr($key, 5));
+            if (
+                str_starts_with($key, 'HTTP_') ||
+                in_array($key, ['CONTENT_TYPE', 'CONTENT_LENGTH'], true)
+            ) {
+                $name = strtolower(
+                    str_replace('_', '-', str_replace('HTTP_', '', $key))
+                );
+
                 $headers[$name] = $value;
             }
         }
 
         return $headers;
+    }
+
+    /**
+     * Analisando Body
+     */
+    private function parseBody(): void
+    {
+        if ($this->body !== null) {
+            return;
+        }
+
+        $contentType = $this->headers['content-type'] ?? '';
+
+        $method = $this->method;
+
+        if ($method === 'GET') {
+            $this->body = null;
+            return;
+        }
+
+        if (
+            $method === 'POST' &&
+            !empty($_POST) &&
+            str_contains($contentType, 'application/x-www-form-urlencoded')
+        ) {
+            $this->body = $this->post ?: null;
+            return;
+        }
+
+        $raw = file_get_contents('php://input');
+
+        if ($raw === '' || $raw === false) {
+            $this->body = null;
+            return;
+        }
+
+        if (str_contains($contentType, 'application/json')) {
+            $decoded = json_decode($raw, true);
+            $this->body = is_array($decoded) ? $decoded : null;
+            return;
+        }
+
+        if (str_contains($contentType, 'application/x-www-form-urlencoded')) {
+            parse_str($raw, $parsed);
+            $this->body = $parsed ?: null;
+            return;
+        }
+
+        if (str_contains($contentType, 'multipart/form-data')) {
+            $this->body = $this->post ?: null;
+            return;
+        }
+
+        $this->body = null;
     }
 
     /**
@@ -103,8 +163,32 @@ final class Request implements RequestInterface
      */
     public function getParsedBody(): array|null
     {
+        $this->parseBody();
         return $this->body;
     }
+
+    /**
+     * Retorna dados do corpo da requisição HTTP.
+     *
+     * Suporta JSON, x-www-form-urlencoded e multipart/form-data,
+     * independentemente do método HTTP (POST, PUT, PATCH).
+     *
+     * @param string|null $key     Chave a ser recuperada ou null para todos os dados.
+     * @param mixed       $default Valor padrão caso a chave não exista.
+     *
+     * @return mixed Array com todos os dados, valor específico ou null.
+     */
+    public function body(string|null $key = null, mixed $default = null): mixed
+    {
+        $data = $this->getParsedBody();
+
+        if ($key === null) {
+            return $data;
+        }
+
+        return $data[$key] ?? $default;
+    }
+
 
     /**
      * getHeaders
@@ -128,17 +212,6 @@ final class Request implements RequestInterface
     }
 
     /**
-     * post
-     *
-     * Obtém um valor específico dos dados enviados via POST,
-     * retornando um valor padrão caso a chave não exista.
-     */
-    public function post(string $key, mixed $default = null): mixed
-    {
-        return $this->post[$key] ?? $default;
-    }
-
-    /**
      * file
      *
      * Retorna um arquivo específico enviado na requisição HTTP,
@@ -156,7 +229,7 @@ final class Request implements RequestInterface
      * Retorna todos os arquivos enviados na requisição HTTP,
      * normalmente provenientes da variável global $_FILES.
      */
-    public function files(): mixed
+    public function files(): array
     {
         return $this->files ?? [];
     }

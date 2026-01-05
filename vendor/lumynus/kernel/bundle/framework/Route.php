@@ -602,6 +602,9 @@ final class Route extends LumaClasses
                 $input[$tokenName]
                 ?? $_POST[$tokenName]
                 ?? $_SERVER['HTTP_X_CSRF_TOKEN']
+                ?? $_SERVER[$tokenName]
+                ?? $_SERVER['X_CSRF_TOKEN']
+                ?? $_SERVER['CSRF_TOKEN']
                 ?? null;
 
             if (!$token || !CSRF::isValidToken($token)) {
