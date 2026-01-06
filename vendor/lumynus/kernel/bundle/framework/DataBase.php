@@ -152,6 +152,10 @@ class Mysql
     {
         return $this->mysql->insert_id;
     }
+    public function getAffectedRows(): int
+    {
+        return $this->mysql->affected_rows;
+    }
 
     public function __destruct()
     {
@@ -164,7 +168,8 @@ class Mysql
  */
 class PdoDriver
 {
-    private $pdo;
+    private \PDO $pdo;
+    private ?\PDOStatement $stmt = null;
 
     public function __construct($type, $h, $u, $p, $db)
     {
@@ -173,38 +178,57 @@ class PdoDriver
             'postgresql' => "pgsql:host=$h;dbname=$db",
             'sqlserver' => "sqlsrv:Server=$h;Database=$db",
         };
-        $this->pdo = new \PDO($dsn, $u, $p, [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]);
+
+        $this->pdo = new \PDO(
+            $dsn,
+            $u,
+            $p,
+            [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC,
+            ]
+        );
     }
 
-    public function query(string $query, array $params = []): array|bool
+    /** SELECT */
+    public function fetchAll(string $sql, array $params = []): array
     {
-        $stmt = $this->pdo->prepare($query);
-        $stmt->execute($params);
-        return $stmt->columnCount() > 0 ? $stmt->fetchAll(\PDO::FETCH_ASSOC) : true;
+        $this->stmt = $this->pdo->prepare($sql);
+        $this->stmt->execute($params);
+
+        return $this->stmt->fetchAll();
     }
 
-    public function beginTransaction()
+    /** INSERT | UPDATE | DELETE */
+    public function execute(string $sql, array $params = []): int
+    {
+        $this->stmt = $this->pdo->prepare($sql);
+        $this->stmt->execute($params);
+
+        return $this->stmt->rowCount();
+    }
+
+    public function lastInsertId(): int
+    {
+        return (int) $this->pdo->lastInsertId();
+    }
+
+    public function begin(): void
     {
         $this->pdo->beginTransaction();
     }
-    public function commit()
+
+    public function commit(): void
     {
         $this->pdo->commit();
     }
-    public function rollBack()
+
+    public function rollBack(): void
     {
         $this->pdo->rollBack();
     }
-    public function getInsertId(): int
-    {
-        return (int)$this->pdo->lastInsertId();
-    }
-
-    public function __destruct()
-    {
-        $this->pdo = null;
-    }
 }
+
 
 /**
  * Driver Ibase
@@ -248,6 +272,10 @@ class Ibase
     public function getInsertId()
     { /* lógica do generator */
         return 0;
+    }
+    public function getAffectedRows()
+    {
+        return \ibase_affected_rows($this->conn);
     }
 
     public function __destruct()

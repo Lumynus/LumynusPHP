@@ -10,6 +10,7 @@ final class Request implements RequestInterface
 {
 
     private array $attributes = [];
+    private bool $bodyParsed = false;
 
     /**
      * Contructor
@@ -23,7 +24,9 @@ final class Request implements RequestInterface
         private array $files,
         private array $server,
         private mixed $body
-    ) {}
+    ) {
+        $this->headers = $this->normalizeHeaders($headers);
+    }
 
     /**
      * fromGlobals
@@ -72,16 +75,35 @@ final class Request implements RequestInterface
     }
 
     /**
+     * normalizeHeaders
+     *
+     * Normaliza os nomes dos cabeçalhos HTTP para minúsculas e com hífens.
+     */
+    private function normalizeHeaders(array $headers): array
+    {
+        $normalized = [];
+
+        foreach ($headers as $name => $value) {
+            $key = strtolower(str_replace('_', '-', $name));
+            $normalized[$key] = $value;
+        }
+
+        return $normalized;
+    }
+
+
+    /**
      * Analisando Body
      */
     private function parseBody(): void
     {
-        if ($this->body !== null) {
+        if ($this->bodyParsed) {
             return;
         }
 
-        $contentType = $this->headers['content-type'] ?? '';
+        $this->bodyParsed = true;
 
+        $contentType = $this->headers['content-type'] ?? '';
         $method = $this->method;
 
         if ($method === 'GET') {
@@ -90,11 +112,10 @@ final class Request implements RequestInterface
         }
 
         if (
-            $method === 'POST' &&
-            !empty($_POST) &&
+            !empty($this->post) &&
             str_contains($contentType, 'application/x-www-form-urlencoded')
         ) {
-            $this->body = $this->post ?: null;
+            $this->body = $this->post;
             return;
         }
 
@@ -124,6 +145,7 @@ final class Request implements RequestInterface
 
         $this->body = null;
     }
+
 
     /**
      * getMethod

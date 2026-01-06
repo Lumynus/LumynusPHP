@@ -27,37 +27,32 @@ interface Response
     /**
      * Envia uma resposta JSON.
      */
-    public function json(mixed $data = null): void;
+    public function json(mixed $data = null): self;
 
     /**
      * Envia uma resposta HTML.
      */
-    public function html(?string $html = null): void;
+    public function html(?string $html = null): self;
 
     /**
      * Envia uma resposta em texto puro.
      */
-    public function text(?string $text = null): void;
+    public function text(?string $text = null): self;
 
     /**
      * Envia um arquivo ao cliente.
      *
      * @param bool $download Força download se true.
      */
-    public function file(string $filePath, bool $download = false): void;
+    public function file(string $filePath, bool $download = false): self;
 
     /**
      * Envia um redirecionamento HTTP.
      */
-    public function redirect(string $url): void;
-
-    /**
-     * Define o conteúdo da resposta sem enviar imediatamente.
-     */
-    public function return(string $content = ''): void;
+    public function redirect(string $url): self;
 
     /**
      * Envia a resposta ao cliente.
      */
-    public function send(string $content = ''): void;
+    public function send(string $content = ''): self;
 }
