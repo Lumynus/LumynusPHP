@@ -5,106 +5,123 @@ declare(strict_types=1);
 namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\LumaClasses;
-
+use Lumynus\Bundle\Framework\Logs;
 
 final class Regex extends LumaClasses
 {
     /**
      * Testa se um valor corresponde a uma expressão regular.
      *
-     * @param string $regex A expressão regular a ser testada.
-     * @param string $value O valor a ser testado.
-     * @return bool Retorna true se houver correspondência, false caso contrário.
+     * @param string $regex A expressão regular (ex: Requirements::EMAIL).
+     * @param mixed $value O valor a ser testado.
+     * @return bool
      */
-    public static function tester(string $regex, string $value = ""): bool
+    public static function test(string $regex, mixed $value = ""): bool
     {
-        return @preg_match($regex, $value) === 1;
+        if (!is_string($value) && !is_numeric($value)) {
+            return false;
+        }
+
+        try {
+            return preg_match($regex, (string) $value) === 1;
+        } catch (\Throwable $e) {
+            Logs::register(
+                'Invalid regex pattern',
+                sprintf(
+                    'Pattern: %s | Value: %s | Error: %s',
+                    $regex,
+                    is_scalar($value) ? (string) $value : gettype($value),
+                    $e->getMessage()
+                )
+            );
+
+            return false;
+        }
     }
 
     /**
-     * Refina uma string removendo tudo que não corresponde ao padrão especificado.
-     * Ou seja, remove caracteres que não são permitidos segundo a regex de validação.
+     * Refina uma string mantendo APENAS os caracteres permitidos na Regex.
+     * * ATENÇÃO: Este método só funciona corretamente para Regex baseadas em 
+     * listas de caracteres (ex: [A-Za-z], \d, \s). 
+     * NÃO USE para refinar E-mails, URLs ou Datas.
      *
-     * @param string $regex A expressão regular de validação (por exemplo, "/^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$/").
-     * @param string $value A string a ser refinada.
-     * @return string A string filtrada, contendo apenas os caracteres permitidos.
+     * @param string $regex A regex que define o que é PERMITIDO (ex: Requirements::TEXT_ONLY).
+     * @param string $value O valor a ser limpo.
+     * @return string
      */
     public static function refine(string $regex, string $value = ""): string
     {
-        // Converte a regex de validação para uma regex de limpeza que remova caracteres não permitidos.
-        $pattern = self::invertRegex($regex);
-        return preg_replace($pattern, "", $value) ?? "";
+        if ($value === "") {
+            return "";
+        }
+
+        try {
+            $allowedChars = self::extractCharacterClass($regex);
+
+            if ($allowedChars === null) {
+                return $value;
+            }
+            $cleaningRegex = '/[^' . $allowedChars . ']+/u';
+
+            return preg_replace($cleaningRegex, '', $value) ?? "";
+        } catch (\Throwable $e) {
+            Logs::register(
+                'Invalid regex',
+                'Error: ' . $e->getMessage()
+            );
+
+            return $value;
+        }
     }
 
-
     /**
-     * Inverte uma expressão regular de validação para gerar uma expressão que capture
-     * os caracteres NÃO permitidos.
-     *
-     * Para regex simples no formato ancorado (ex: "/^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$/"),
-     * extrai o conjunto de caracteres permitido e retorna uma regex que remove os demais.
-     *
-     * Se não encontrar um conjunto explícito (com colchetes), tenta detectar tokens comuns como \d.
-     *
-     * @param string $regex A expressão regular de validação.
-     * @return string A expressão regular invertida para remover caracteres não permitidos.
+     * Tenta extrair a lista de caracteres permitidos de uma Regex.
+     * * @param string $regex
+     * @return string|null
      */
-    private static function invertRegex(string $regex): string
+    private static function extractCharacterClass(string $regex): ?string
     {
-        // Assume que o delimitador é o primeiro caractere (geralmente "/")
-        $delimiter = $regex[0];
-        $lastDelimiterPos = strrpos($regex, $delimiter);
-        if ($lastDelimiterPos === false) {
-            return $regex;
-        }
-        // Separa o corpo da regex (entre os delimitadores) e os modificadores
-        $patternBody = substr($regex, 1, $lastDelimiterPos - 1);
-        $modifiers = substr($regex, $lastDelimiterPos + 1);
+        // Remove delimitadores comuns (#, /, ~) e modificadores do final
+        $pattern = preg_replace('/^([\/#~])|([\/#~][a-z]*)$/i', '', $regex);
 
-        // Remove âncoras de início (^) e fim ($), se existirem
-        if (strpos($patternBody, '^') === 0) {
-            $patternBody = substr($patternBody, 1);
-        }
-        if (substr($patternBody, -1) === '$') {
-            $patternBody = substr($patternBody, 0, -1);
-        }
-        // Remover quantificadores finais como +, *, ? (não afeta a extração do conjunto)
-        $patternBody = rtrim($patternBody, '+*?');
+        // Remove âncoras de início/fim se existirem (^, $)
+        $pattern = trim($pattern, '^$');
 
-        // Procura o primeiro grupo de colchetes
-        $start = strpos($patternBody, '[');
-        $end = strpos($patternBody, ']', empty($start) ? 0 : $start);
-        if ($start !== false && $end !== false) {
-            $allowed = substr($patternBody, $start + 1, $end - $start - 1);
-        } else {
-            // Se não encontrou colchetes, tenta detectar tokens comuns
-            $allowed = "";
-            // Se encontrar \d, considera dígitos de 0 a 9
-            if (preg_match('/\\\\d/', $patternBody)) {
-                $allowed .= "0-9";
-            }
-            // Se encontrar \w, permite letras, dígitos e underline
-            if (preg_match('/\\\\w/', $patternBody)) {
-                $allowed .= "A-Za-z0-9_";
-            }
-            // Se encontrar \s, permite espaços (note que \s já é representado na classe de caracteres)
-            if (preg_match('/\\\\s/', $patternBody)) {
-                $allowed .= "\s";
-            }
-            // Se o padrão começar com "-?" significa que o hífen é permitido (opcionalmente no início)
-            if (strpos($patternBody, '-?') === 0 || strpos($patternBody, '^-?') === 0) {
-                $allowed = "-" . $allowed;
-            }
+        // Remove quantificadores (+, *, ?, {n,m})
+        $pattern = preg_replace('/[\+\*\?]+$/', '', $pattern);
+        $pattern = preg_replace('/\{\d+(,\d*)?\}$/', '', $pattern);
+
+        // Caso 1: A regex é explicitamente uma classe, ex: [A-Z0-9]
+        // Pegamos o conteúdo de dentro do primeiro par de colchetes
+        if (preg_match('/^\[(.*)\]$/', $pattern, $matches)) {
+            return $matches[1];
         }
 
-        // Se nada foi detectado, cria um padrão que não remove nada
-        if ($allowed === "") {
-            // Padrão que nunca casa (removeria nada)
-            return $delimiter . "a^" . $delimiter . $modifiers;
+        // Caso 2: A regex usa atalhos sem colchetes, ex: \d+
+        // Tentamos mapear atalhos comuns para seus equivalentes em regex
+        $allowed = "";
+        $found = false;
+
+        if (str_contains($pattern, '\d')) {
+            $allowed .= '0-9';
+            $found = true;
+        }
+        if (str_contains($pattern, '\w')) {
+            $allowed .= 'A-Za-z0-9_';
+            $found = true;
+        }
+        if (str_contains($pattern, '\s')) {
+            $allowed .= '\s';
+            $found = true;
         }
 
-        // Retorna a regex para remover tudo que NÃO esteja no conjunto permitido.
-        // Forçamos o modificador 'u' para Unicode.
-        return $delimiter . "[^" . $allowed . "]" . $delimiter . "u";
+        // Se achou algum atalho, retorna a composição
+        if ($found) {
+            return $allowed;
+        }
+
+        // Se a regex for complexa (grupos, pipes, lookaheads), aborta.
+        // Ex: (abc|def) ou (?=.*)
+        return null;
     }
 }

@@ -80,13 +80,13 @@ final class Converts extends LumaClasses
      *
      * @param string $json A string JSON a ser convertida.
      * @return array O array resultante.
-     * @throws \InvalidArgumentException Se o JSON for inválido.
+     * @throws \InvalidArgumentException Se o JSON for invalid.
      */
     public static function jsonToArray(string $json): array
     {
         $data = json_decode($json, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \InvalidArgumentException('JSON invalid: ' . json_last_error_msg());
+            throw new \InvalidArgumentException('Invalid JSON: ' . json_last_error_msg());
         }
         return $data;
     }
@@ -96,13 +96,13 @@ final class Converts extends LumaClasses
      *
      * @param string $json A string JSON a ser convertida.
      * @return object O objeto resultante.
-     * @throws \InvalidArgumentException Se o JSON for inválido.
+     * @throws \InvalidArgumentException Se o JSON for invalid.
      */
     public static function jsonToObject(string $json): object
     {
         $data = json_decode($json);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            throw new \InvalidArgumentException('JSON invalid: ' . json_last_error_msg());
+            throw new \InvalidArgumentException('Invalid JSON: ' . json_last_error_msg());
         }
         return $data;
     }
@@ -117,7 +117,7 @@ final class Converts extends LumaClasses
     {
         $dateTime = new \DateTime($dateTimeString);
         if (!$dateTime) {
-            throw new \InvalidArgumentException("Data inválida: {$dateTimeString}");
+            throw new \InvalidArgumentException("Invalid data: {$dateTimeString}");
         }
         return $dateTime->format('Y-m-d');
     }
@@ -132,7 +132,7 @@ final class Converts extends LumaClasses
     {
         $dateTime = new \DateTime($dateString);
         if (!$dateTime) {
-            throw new \InvalidArgumentException("Data inválida: {$dateString}");
+            throw new \InvalidArgumentException("Invalid data: {$dateString}");
         }
         return $dateTime->getTimestamp();
     }
@@ -147,16 +147,26 @@ final class Converts extends LumaClasses
     public static function secondsToDate(int $seconds, string $format = 'Y-m-d H:i:s'): string
     {
         if ($seconds < 0) {
-            throw new \InvalidArgumentException("Segundos inválidos: {$seconds}");
+            throw new \InvalidArgumentException("Invalid seconds: {$seconds}");
         }
         return date($format, $seconds);
     }
 
+    /**
+     * Normaliza uma string de data para o formato padrão ISO (Y-m-d).
+     * * Este método é útil para converter datas recebidas de formulários ou inputs
+     * (ex: 12/31/2024) para o formato padrão de armazenamento em banco de dados.
+     *
+     * @param string $dateString A string de data a ser convertida.
+     * @param string $format O formato esperado da string de entrada (padrão: 'm/d/Y').
+     * @return string A data formatada como 'Y-m-d'.
+     * @throws \InvalidArgumentException Se a data fornecida não corresponder ao formato especificado.
+     */
     public static function normalizeDate(string $dateString, string $format = "m/d/Y")
     {
         $date = \DateTime::createFromFormat($format, $dateString);
         if ($date === false) {
-            throw new \InvalidArgumentException("Data inválida: {$dateString}");
+            throw new \InvalidArgumentException("Invalid data: {$dateString}");
         }
         return $date->format('Y-m-d');
     }
@@ -205,6 +215,101 @@ final class Converts extends LumaClasses
         return mb_substr($text, 0, $length) . $abbreviator;
     }
 
+    /**
+     * Converte uma string para CamelCase (ex: "user_id" -> "userId").
+     */
+    public static function toCamelCase(string $string): string
+    {
+        return lcfirst(str_replace(' ', '', ucwords(str_replace(['_', '-'], ' ', $string))));
+    }
+
+    /**
+     * Converte uma string para PascalCase (ex: "user_id" -> "UserId").
+     * Útil para nomes de Classes.
+     */
+    public static function toPascalCase(string $string): string
+    {
+        return str_replace(' ', '', ucwords(str_replace(['_', '-'], ' ', $string)));
+    }
+
+    /**
+     * Converte uma string para SnakeCase (ex: "userId" -> "user_id").
+     * Útil para nomes de colunas no banco.
+     */
+    public static function toSnakeCase(string $string): string
+    {
+        return strtolower(preg_replace('/(?<!^)[A-Z]/', '_$0', $string));
+    }
+
+    /**
+     * Cria um Slug (URL amigável).
+     * Ex: "Olá Mundo!" -> "ola-mundo"
+     */
+    public static function toSlug(string $string, string $separator = '-'): string
+    {
+        // Remove acentos
+        $string = iconv('UTF-8', 'ASCII//TRANSLIT', $string);
+        // Remove caracteres especiais e converte para minúsculo
+        $string = preg_replace('/[^a-zA-Z0-9\s]/', '', strtolower($string));
+        // Substitui espaços pelo separador
+        return preg_replace('/\s+/', $separator, trim($string));
+    }
+
+    /**
+     * Converte bytes para tamanho legível (KB, MB, GB).
+     * Ex: 1024 -> "1 KB"
+     */
+    public static function bytesToHuman(int $bytes, int $precision = 2): string
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        $bytes /= (1 << (10 * $pow));
+
+        return round($bytes, $precision) . ' ' . $units[$pow];
+    }
+
+    /**
+     * Remove tudo que não for número.
+     * Útil para limpar máscaras de CPF, CNPJ, Telefone antes de salvar no banco.
+     * Ex: "(11) 9999-8888" -> "1199998888"
+     */
+    public static function toNumbersOnly(string $input): string
+    {
+        return preg_replace('/\D/', '', $input) ?? '';
+    }
+
+    /**
+     * Converte XML string para Array.
+     */
+    public static function xmlToArray(string $xmlString): array
+    {
+        $xml = simplexml_load_string($xmlString, "SimpleXMLElement", LIBXML_NOCDATA);
+        if ($xml === false) {
+            throw new \InvalidArgumentException("XML invalid.");
+        }
+        return json_decode(json_encode($xml), true);
+    }
+
+    /**
+     * Converte Hexadecimal para RGB.
+     * Ex: "#FFFFFF" -> [255, 255, 255]
+     */
+    public static function hexToRgb(string $hex): array
+    {
+        $hex = ltrim($hex, '#');
+
+        if (strlen($hex) === 3) {
+            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+        }
+
+        $r = hexdec(substr($hex, 0, 2));
+        $g = hexdec(substr($hex, 2, 2));
+        $b = hexdec(substr($hex, 4, 2));
+
+        return ['r' => $r, 'g' => $g, 'b' => $b];
+    }
 
     /**
      * Método para obter a instância da classe Luma.

@@ -107,7 +107,7 @@ final class Sanitizer extends LumaClasses
                 case 'bool':
                     return self::boolean($value);
                 default:
-                    throw new \InvalidArgumentException("Tipo de sanitização inválido: {$type}");
+                    throw new \InvalidArgumentException("Invalid sanitization type: {$type}");
             }
         }, $input);
     }
