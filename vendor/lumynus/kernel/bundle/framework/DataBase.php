@@ -117,6 +117,7 @@ abstract class DataBase extends LumaClasses
 class Mysql
 {
     private $mysql;
+    private $stmt;
 
     public function __construct($host, $user, $pass, $db)
     {
@@ -125,14 +126,14 @@ class Mysql
 
     public function query(string $query, array $params = [], $types = ""): array|bool
     {
-        $stmt = $this->mysql->prepare($query);
-        if (!$stmt) throw new \RuntimeException($this->mysql->error);
+        $this->stmt = $this->mysql->prepare($query);
+        if (!$this->stmt) throw new \RuntimeException($this->mysql->error);
         if (!empty($params)) {
             $t = is_array($types) ? implode('', $types) : $types;
-            $stmt->bind_param($t ?: str_repeat('s', count($params)), ...$params);
+            $this->stmt->bind_param($t ?: str_repeat('s', count($params)), ...$params);
         }
-        $stmt->execute();
-        $res = $stmt->get_result();
+        $this->stmt->execute();
+        $res = $this->stmt->get_result();
         return $res ? $res->fetch_all(MYSQLI_ASSOC) : true;
     }
 
@@ -154,7 +155,7 @@ class Mysql
     }
     public function getAffectedRows(): int
     {
-        return $this->mysql->affected_rows;
+        return $this->stmt->affected_rows;
     }
 
     public function __destruct()

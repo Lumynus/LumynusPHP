@@ -532,23 +532,7 @@ final class Route extends LumaClasses
         // ======================
         // INPUT
         // ======================
-        $input = json_decode(file_get_contents('php://input'), true) ?? [];
 
-        // ======================
-        // REQUEST / RESPONSE
-        // ======================
-        $request = new Request(
-            $method,
-            $uri,
-            $_GET,
-            $_POST,
-            self::getRequestHeaders(),
-            $_FILES,
-            $_SERVER,
-            $input
-        );
-
-        $response = new Response();
 
         // ======================
         // MATCH DE ROTAS
@@ -570,15 +554,36 @@ final class Route extends LumaClasses
             }
         }
 
+        // ======================
+        // PARAMS
+        // ======================
+        $params = array_merge($_GET, $routeParams);
+
+
+        // ======================
+        // REQUEST / RESPONSE
+        // ======================
+        $request = new Request(
+            $method,
+            $uri,
+            $params,
+            $_POST,
+            self::getRequestHeaders(),
+            $_FILES,
+            $_SERVER,
+            null
+        );
+
+        $response = new Response();
+
+        $input = $request->getParsedBody() ?? [];
+
+
         if (!$routeConfig) {
             self::throwError('Route not found', 404, 'html');
             return;
         }
 
-        // ======================
-        // PARAMS
-        // ======================
-        $params = array_merge($_GET, $routeParams);
 
         if (!self::validateParams($params, $routeConfig['fieldsPermitted'])['valid']) {
             Logs::register('Validation Params', [
@@ -599,8 +604,8 @@ final class Route extends LumaClasses
         ) {
             $tokenName = Config::getAplicationConfig()['security']['csrf']['nameToken'];
             $token =
-                $input[$tokenName]
-                ?? $_POST[$tokenName]
+                $_POST[$tokenName]
+                ?? $input[$tokenName]
                 ?? $_SERVER['HTTP_X_CSRF_TOKEN']
                 ?? $_SERVER[$tokenName]
                 ?? $_SERVER['X_CSRF_TOKEN']

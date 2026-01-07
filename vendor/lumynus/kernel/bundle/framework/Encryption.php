@@ -12,7 +12,7 @@ final class Encryption extends LumaClasses
     /**
      * Criptografa um conteúdo com AES-256-CBC
      */
-    public static function encrypt($data, ?string $keyName = null): string
+    public static function encrypt(string $data, ?string $keyName = null): string
     {
         self::verificaExtensaoOpenSSL();
         $chave = self::obterChave($keyName);

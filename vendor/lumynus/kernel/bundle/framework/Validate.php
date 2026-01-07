@@ -26,31 +26,28 @@ final class Validate extends LumaClasses
             $valueExists = array_key_exists($field, $data);
             $value = $valueExists ? $data[$field] : null;
 
-            // Required field not provided
             if ($rule['required'] && !$valueExists) {
                 $missing[] = $field;
                 $errors[$field][] = 'This field is required.';
                 continue;
             }
 
-            // Optional field not provided - okay
             if (!$valueExists) {
                 continue;
             }
 
-            // Value is null but field does not allow null
-            if (is_null($value) && !$rule['nullable']) {
-                $errors[$field][] = 'This field cannot be null.';
+            if (is_null($value)) {
+                if (!$rule['nullable']) {
+                    $errors[$field][] = 'This field cannot be null.';
+                }
                 continue;
             }
 
-            // Type validation
             if (isset($rule['type']) && !$this->isTypeValid($value, $rule['type'])) {
-                $errors[$field][] = "The type must be {$rule['type']}.";
+                $errors[$field][] = "The value is not a valid {$rule['type']}.";
                 continue;
             }
 
-            // Minimum validation
             if (isset($rule['min'])) {
                 if (is_string($value) && mb_strlen($value) < $rule['min']) {
                     $errors[$field][] = "Minimum length is {$rule['min']} characters.";
@@ -59,7 +56,6 @@ final class Validate extends LumaClasses
                 }
             }
 
-            // Maximum validation
             if (isset($rule['max'])) {
                 if ($rule['type'] === 'string') {
                     $stringValue = (string) $value;
@@ -71,12 +67,11 @@ final class Validate extends LumaClasses
                 }
             }
 
-            // Regex validation
             if (isset($rule['regex']) && !preg_match('/' . $rule['regex'] . '/', (string) $value)) {
                 $errors[$field][] = "The value format is invalid.";
             }
 
-            if ($rule['type'] === 'array' && isset($rule['subtype'])) {
+            if ($rule['type'] === 'array' && isset($rule['subtype']) && is_array($value)) {
                 foreach ($value as $i => $item) {
                     if (!$this->isTypeValid($item, $rule['subtype'])) {
                         $errors[$field][] = "Item $i must be of type {$rule['subtype']}.";
@@ -99,14 +94,38 @@ final class Validate extends LumaClasses
     }
 
     /**
-     * Analisa as regras de validação fornecidas e as converte em um formato estruturado.
+     * Verifica se os campos existem e seguem as regras definidas.
      *
-     * @param array $rawRules Regras no formato 'campo: regra1, regra2'
-     * @return array Retorna um array estruturado com as regras de validação
+     * @param array $keys Regras de validação no formato 'campo: regra1, regra2'
+     * @param array $data Dados a serem validados
+     * @return bool Retorna true se todos os campos forem válidos, false caso contrário
+     */
+    public function verify(array $keys, array $data): bool
+    {
+        $result = $this->exists($keys, $data);
+        return $result['success'];
+    }
+
+    /**
+     * Analisa as regras de validação.
      */
     private function parseRules(array $rawRules): array
     {
         $parsed = [];
+
+        $validTypes = [
+            'string',
+            'int',
+            'bool',
+            'array',
+            'object',
+            'float',
+            'date',
+            'datetime',
+            'json',
+            'xml',
+            'ini'
+        ];
 
         foreach ($rawRules as $ruleString) {
             [$field, $ruleDefs] = explode(':', $ruleString, 2);
@@ -129,13 +148,15 @@ final class Validate extends LumaClasses
                     $parsed[$field]['nullable'] = true;
                 } elseif (in_array($rule, ['not null', 'required'])) {
                     $parsed[$field]['required'] = true;
-                } elseif (in_array($rule, ['string', 'int', 'bool', 'array', 'date', 'datetime', 'float'])) {
+                } elseif (in_array($rule, $validTypes)) {
                     $parsed[$field]['type'] = $rule;
                 }
+
                 if (str_starts_with($rule, 'regex(') && str_ends_with($rule, ')')) {
-                    $pattern = substr($rule, 6, -1); // remove "regex(" do início e ")" do fim
+                    $pattern = substr($rule, 6, -1);
                     $parsed[$field]['regex'] = $pattern;
                 }
+
                 if (str_starts_with($rule, 'array<') && str_ends_with($rule, '>')) {
                     $subtype = substr($rule, 6, -1);
                     $parsed[$field]['type'] = 'array';
@@ -149,35 +170,74 @@ final class Validate extends LumaClasses
 
     /**
      * Verifica se o valor é do tipo esperado.
-     *
-     * @param mixed $value Valor a ser verificado
-     * @param string $type Tipo esperado ('string', 'int', 'bool', 'array', 'date', 'datetime')
-     * @return bool Retorna true se o tipo for válido, false caso contrário
      */
-    private function isTypeValid($value, string $type): bool
+    private function isTypeValid(mixed $value, string $type): bool
     {
         return match ($type) {
             'string'   => is_string($value),
             'int'      => is_int($value),
+            'float'    => is_float($value) || is_int($value),
             'bool'     => is_bool($value),
             'array'    => is_array($value),
+            'object'   => is_object($value),
             'date'     => $this->isValidDate($value, 'Y-m-d'),
             'datetime' => $this->isValidDate($value, 'Y-m-d H:i:s'),
-            'float' => is_float($value),
+            'json'     => $this->isValidJson($value),
+            'xml'      => $this->isValidXml($value),
+            'ini'      => $this->isValidIni($value),
             default    => false,
         };
     }
 
     /**
-     * Verifica se uma string é uma data válida no formato especificado.
-     *
-     * @param string $value String a ser verificada
-     * @param string $format Formato da data (ex: 'Y-m-d' ou 'Y-m-d H:i:s')
-     * @return bool Retorna true se a string for uma data válida, false caso contrário
+     * Helper para Data
      */
-    private function isValidDate($value, string $format): bool
+    private function isValidDate(mixed $value, string $format): bool
     {
+        if (!is_string($value)) return false;
         $dt = \DateTime::createFromFormat($format, $value);
         return $dt && $dt->format($format) === $value;
+    }
+
+    /**
+     * Helper para JSON
+     */
+    private function isValidJson(mixed $value): bool
+    {
+        if (!is_string($value)) return false;
+
+        if (function_exists('json_validate')) {
+            return json_validate($value);
+        }
+
+        json_decode($value);
+        return json_last_error() === JSON_ERROR_NONE;
+    }
+
+    /**
+     * Helper para XML
+     */
+    private function isValidXml(mixed $value): bool
+    {
+        if (!is_string($value)) return false;
+
+        $previousState = libxml_use_internal_errors(true);
+
+        $xml = simplexml_load_string($value);
+        $errors = libxml_get_errors();
+
+        libxml_clear_errors();
+        libxml_use_internal_errors($previousState);
+
+        return $xml !== false && empty($errors);
+    }
+
+    /**
+     * Helper para INI
+     */
+    private function isValidIni(mixed $value): bool
+    {
+        if (!is_string($value)) return false;
+        return @parse_ini_string($value) !== false;
     }
 }
