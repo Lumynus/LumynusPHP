@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\Sessions;
-use Lumynus\Http\Response;
+use Lumynus\Http\HttpResponse;
 use Lumynus\Bundle\Framework\Sanitizer;
 use Lumynus\Bundle\Framework\Converts;
 use Lumynus\Bundle\Framework\LumaHTTP;
@@ -52,9 +52,9 @@ trait LumynusTools
         return new Logs;
     }
 
-    protected function response(): Response
+    protected function response(): HttpResponse
     {
-        return new Response();
+        return new HttpResponse();
     }
 
     protected function sanitizer(): Sanitizer

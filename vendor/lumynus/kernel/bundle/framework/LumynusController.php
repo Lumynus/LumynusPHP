@@ -6,7 +6,7 @@ namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\Luma;
 use Lumynus\Bundle\Framework\Sessions;
-use Lumynus\Http\Response;
+use Lumynus\Http\HttpResponse;
 use Lumynus\Bundle\Framework\Sanitizer;
 use Lumynus\Bundle\Framework\Converts;
 use Lumynus\Bundle\Framework\LumaClasses;
@@ -86,9 +86,9 @@ abstract class LumynusController extends LumaClasses
      * Método para obter a instância da classe Response.
      * @return Response Retorna uma nova instância da classe Response.
      */
-    protected function response(): Response
+    protected function response(): HttpResponse
     {
-        return new Response();
+        return new HttpResponse();
     }
 
     /**

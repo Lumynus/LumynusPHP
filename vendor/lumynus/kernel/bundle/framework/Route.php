@@ -9,8 +9,8 @@ use Lumynus\Bundle\Framework\Config;
 use Lumynus\Bundle\Framework\LumaClasses;
 use Lumynus\Templates\Errors;
 use Lumynus\Bundle\Framework\Logs;
-use Lumynus\Http\Request;
-use Lumynus\Http\Response;
+use Lumynus\Http\HttpRequest;
+use Lumynus\Http\HttpResponse;
 use Lumynus\Http\Contracts\Request as ContractsRequest;
 use Lumynus\Http\Contracts\Response as ContractsResponse;
 
@@ -563,7 +563,7 @@ final class Route extends LumaClasses
         // ======================
         // REQUEST / RESPONSE
         // ======================
-        $request = new Request(
+        $request = new HttpRequest(
             $method,
             $uri,
             $params,
@@ -574,7 +574,7 @@ final class Route extends LumaClasses
             null
         );
 
-        $response = new Response();
+        $response = new HttpResponse();
 
         $input = $request->getParsedBody() ?? [];
 
@@ -660,10 +660,10 @@ final class Route extends LumaClasses
                 $type = $param->getType()?->getName();
 
                 match ($type) {
-                    Request::class,
+                    HttpRequest::class,
                     ContractsRequest::class => $args[] = $request,
 
-                    Response::class,
+                    HttpResponse::class,
                     ContractsResponse::class => $args[] = $response,
 
                     default => $args[] = $customizeParamsPosts
