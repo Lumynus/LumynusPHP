@@ -87,16 +87,33 @@ final class Brasil extends LumaClasses
     public static function validarCNPJ(string $cnpj): bool
     {
         $cnpj = preg_replace('/\D/', '', $cnpj);
-        if (strlen($cnpj) != 14) return false;
 
-        $peso = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-        for ($t = 12; $t < 14; $t++) {
-            for ($d = 0, $c = 0; $c < $t; $c++) {
-                $d += $cnpj[$c] * $peso[$c + 1 - ($t == 13 ? 0 : 1)];
-            }
-            $d = ((10 * $d) % 11) % 10;
-            if ($cnpj[$c] != $d) return false;
+        if (strlen($cnpj) !== 14) {
+            return false;
         }
+        if (preg_match('/^(\d)\1{13}$/', $cnpj)) {
+            return false;
+        }
+
+        for ($t = 12; $t < 14; $t++) {
+            $soma = 0;
+            $peso = $t - 7;
+
+            for ($i = 0; $i < $t; $i++) {
+                $soma += $cnpj[$i] * $peso--;
+                if ($peso < 2) {
+                    $peso = 9;
+                }
+            }
+
+            $digito = $soma % 11;
+            $digito = ($digito < 2) ? 0 : 11 - $digito;
+
+            if ((int)$cnpj[$t] !== $digito) {
+                return false;
+            }
+        }
+
         return true;
     }
 

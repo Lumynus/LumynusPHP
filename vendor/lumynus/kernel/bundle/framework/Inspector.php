@@ -4,6 +4,9 @@ namespace Lumynus\Bundle\Framework;
 
 use Lumynus\Bundle\Framework\Config;
 use ReflectionClass;
+use ReflectionMethod;
+use ReflectionNamedType;
+use ReflectionUnionType;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;
@@ -18,9 +21,10 @@ final class Inspector
     private array $classesWithProblems = [];
     private array $architectureMap = [
         'namespaces' => [],
-        'couplings'  => [], // Stores class-to-class dependencies
+        'couplings'  => [],
         'scores'     => [],
         'metrics'    => [],
+        'methods'    => [],
     ];
 
     public function __construct()
@@ -28,32 +32,28 @@ final class Inspector
         $this->scanSrc();
     }
 
-    /**
-     * Executes the full audit suite
-     */
     public function inspect(): void
     {
         foreach ($this->classesInitiated as $class) {
             $ref = new ReflectionClass($class);
             $className = $ref->getName();
 
-            // 1. Dependency & Coupling Analysis (The Core)
             $this->analyzeDependencies($className);
-
-            // 2. Standards & PSR compliance
             $this->analyzeNamespace($className, $ref->getNamespaceName());
             $this->analyzeNamingConventions($className, $ref->getMethods());
 
-            // 3. Logic & Risk Metrics
             $this->analyzeComplexityAndSize($className, $ref);
             $this->analyzeLogicRisks($className);
+
+            $this->analyzeMethods($className, $ref);
         }
 
         $this->calculateScores();
     }
 
     /**
-     * Robust recursive scanner for the src directory
+     * Scanner recursivo
+     * Filtra classes para analisar apenas 'App\' e ignora 'Lumynus\'
      */
     private function scanSrc(): void
     {
@@ -68,19 +68,99 @@ final class Inspector
             require_once $file[0];
         }
 
-        foreach (get_declared_classes() as $class) {
-            if (str_starts_with($class, 'App\\')) {
-                $this->classesInitiated[] = $class;
+        $allDefinitions = array_merge(
+            get_declared_classes(),
+            get_declared_traits(),
+            get_declared_interfaces()
+        );
+
+        $allDefinitions = array_unique($allDefinitions);
+
+        foreach ($allDefinitions as $def) {
+            if (str_starts_with($def, 'Lumynus\\')) {
+                continue;
+            }
+
+            if (str_starts_with($def, 'App\\')) {
+                $this->classesInitiated[] = $def;
             }
         }
     }
 
     /**
-     * Deep Token Analysis to map real dependencies
+     * Analisa métodos, removendo herdados do Framework
      */
+    private function analyzeMethods(string $className, ReflectionClass $ref): void
+    {
+        $methodsData = [];
+
+        foreach ($ref->getMethods() as $method) {
+
+            $declaringClass = $method->getDeclaringClass()->getName();
+
+            if (str_starts_with($declaringClass, 'Lumynus\\')) {
+                continue;
+            }
+
+            $visibility = 'public';
+            if ($method->isPrivate()) $visibility = 'private';
+            elseif ($method->isProtected()) $visibility = 'protected';
+
+            $params = [];
+            foreach ($method->getParameters() as $param) {
+                $type = $param->getType();
+                $typeName = 'mixed';
+
+                if ($type instanceof ReflectionNamedType) {
+                    $typeName = $type->getName();
+                    if ($type->allowsNull()) $typeName = '?' . $typeName;
+                } elseif ($type instanceof ReflectionUnionType) {
+                    $typeName = implode('|', array_map(fn($t) => $t->getName(), $type->getTypes()));
+                }
+
+                $typeName = str_replace('Lumynus\\', '', $typeName);
+
+                $params[] = [
+                    'name' => '$' . $param->getName(),
+                    'type' => $typeName,
+                    'optional' => $param->isOptional()
+                ];
+            }
+
+            $returnType = $method->getReturnType();
+            $returnName = 'void';
+
+            if ($method->getName() === '__construct' && !$returnType) {
+                $returnName = '';
+            } elseif ($returnType) {
+                if ($returnType instanceof ReflectionNamedType) {
+                    $returnName = $returnType->getName();
+                    if ($returnType->allowsNull()) $returnName = '?' . $returnName;
+                } elseif ($returnType instanceof ReflectionUnionType) {
+                    $returnName = implode('|', array_map(fn($t) => $t->getName(), $returnType->getTypes()));
+                }
+            } elseif (!$returnType) {
+                $returnName = 'mixed';
+            }
+
+            $returnName = str_replace('Lumynus\\Bundle\\Framework\\', '', $returnName);
+
+            $methodsData[] = [
+                'name' => $method->getName(),
+                'visibility' => $visibility,
+                'static' => $method->isStatic(),
+                'abstract' => $method->isAbstract(),
+                'params' => $params,
+                'return' => $returnName,
+            ];
+        }
+
+        $this->architectureMap['methods'][$className] = $methodsData;
+    }
+
     private function analyzeDependencies(string $className): void
     {
-        if (!class_exists($className)) return;
+        if (!class_exists($className) && !trait_exists($className) && !interface_exists($className)) return;
 
         $ref = new ReflectionClass($className);
         $file = $ref->getFileName();
@@ -98,62 +178,40 @@ final class Inspector
 
             if (in_array($id, [T_STRING, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED], true)) {
                 $k = $i + 1;
-
                 while (isset($tokens[$k]) && is_array($tokens[$k]) && $tokens[$k][0] === T_WHITESPACE) {
                     $k++;
                 }
-
                 if (($tokens[$k][0] ?? null) === T_VARIABLE) {
                     $dependencies[] = ltrim($text, '\\');
                     continue;
                 }
             }
 
-
             if ($id === T_USE) {
                 $current = '';
                 for ($j = $i + 1; $j < $count && $tokens[$j] !== ';'; $j++) {
                     if (is_array($tokens[$j])) $current .= $tokens[$j][1];
                 }
-
                 foreach (preg_split('/[\s,]+/', trim($current)) as $use) {
-                    if ($use !== '') {
-                        $dependencies[] = ltrim($use, '\\');
-                    }
+                    if ($use !== '') $dependencies[] = ltrim($use, '\\');
                 }
             }
 
             if ($id === T_NEW) {
                 for ($j = $i + 1; $j < $count; $j++) {
                     if (!is_array($tokens[$j])) continue;
-
-                    if (in_array($tokens[$j][0], [
-                        T_STRING,
-                        T_NAME_QUALIFIED,
-                        T_NAME_FULLY_QUALIFIED
-                    ])) {
+                    if (in_array($tokens[$j][0], [T_STRING, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED])) {
                         $dependencies[] = ltrim($tokens[$j][1], '\\');
                         break;
                     }
-
-
                     if ($tokens[$j][0] === T_VARIABLE) break;
                 }
             }
 
-
             if ($id === T_DOUBLE_COLON) {
                 $prev = $tokens[$i - 1] ?? null;
-
-                if (
-                    is_array($prev)
-                    && in_array($prev[0], [
-                        T_STRING,
-                        T_NAME_QUALIFIED,
-                        T_NAME_FULLY_QUALIFIED
-                    ])
-                    && !in_array(strtolower($prev[1]), ['self', 'static', 'parent'])
-                ) {
+                if (is_array($prev) && in_array($prev[0], [T_STRING, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED])
+                    && !in_array(strtolower($prev[1]), ['self', 'static', 'parent'])) {
                     $dependencies[] = ltrim($prev[1], '\\');
                 }
             }
@@ -167,43 +225,32 @@ final class Inspector
         }
 
         $cleanDeps = [];
-    $seen = [];
+        $seen = [];
+        $scalars = ['string', 'int', 'float', 'bool', 'array', 'object', 'callable', 'iterable', 'mixed', 'void', 'never', 'null'];
 
-    $scalars = [
-        'string', 'int', 'float', 'bool', 'array', 'object',
-        'callable', 'iterable', 'mixed', 'void', 'never', 'null'
-    ];
-
-    foreach ($dependencies as $dep) {
-        $depLower = strtolower($dep);
-
-        if (!is_string($dep) ||
-            stripos($dep, 'Lumynus') !== false ||
-            in_array($depLower, $scalars)) {
-            continue;
+        foreach ($dependencies as $dep) {
+            $depLower = strtolower($dep);
+            if (!is_string($dep) || stripos($dep, 'Lumynus') !== false || in_array($depLower, $scalars)) {
+                continue;
+            }
+            $parts = explode('\\', $dep);
+            $name = end($parts);
+            $aliasKey = $name;
+            if (stripos($name, ' as ') !== false) {
+                [$namePart, $aliasPart] = array_map('trim', explode(' as ', $name));
+                $aliasKey = $aliasPart ?: $namePart;
+            }
+            if (!isset($seen[$aliasKey])) {
+                $cleanDeps[] = $dep;
+                $seen[$aliasKey] = true;
+            }
         }
 
-        $parts = explode('\\', $dep);
-        $name = end($parts);
-
-        $aliasKey = $name;
-        if (stripos($name, ' as ') !== false) {
-            [$namePart, $aliasPart] = array_map('trim', explode(' as ', $name));
-            $aliasKey = $aliasPart ?: $namePart;
-        }
-
-        if (!isset($seen[$aliasKey])) {
-            $cleanDeps[] = $dep;
-            $seen[$aliasKey] = true;
-        }
+        $shortName = $ref->getShortName();
+        $this->architectureMap['couplings'][$className] = array_values(
+            array_filter($cleanDeps, fn($d) => $d !== $shortName && $d !== $className)
+        );
     }
-
-    $shortName = $ref->getShortName();
-    $this->architectureMap['couplings'][$className] = array_values(
-        array_filter($cleanDeps, fn($d) => $d !== $shortName && $d !== $className)
-    );
-    }
-
 
     private function analyzeComplexityAndSize(string $className, ReflectionClass $ref): void
     {
@@ -213,7 +260,6 @@ final class Inspector
 
         $this->architectureMap['metrics'][$className]['loc'] = count($lines);
 
-        // Cyclomatic Complexity Approximation
         $complexity = 1;
         $tokens = token_get_all($content);
         foreach ($tokens as $t) {
@@ -265,8 +311,6 @@ final class Inspector
         }
     }
 
-    /* --- RENDERING --- */
-
     public function renderInspectorHtml(): void
     {
         $grouped = [];
@@ -278,12 +322,19 @@ final class Inspector
             $probs = $this->classesWithProblems[$class] ?? [];
             $totalIssues += count($probs);
 
+            $ref = new ReflectionClass($class);
+            $typeLabel = 'Class';
+            if ($ref->isTrait()) $typeLabel = 'Trait';
+            if ($ref->isInterface()) $typeLabel = 'Interface';
+
             $grouped[$ns][$class] = [
                 'name' => $name,
+                'type' => $typeLabel,
                 'score' => $this->architectureMap['scores'][$class],
                 'problems' => $probs,
                 'couplings' => $this->architectureMap['couplings'][$class] ?? [],
-                'metrics' => $this->architectureMap['metrics'][$class]
+                'metrics' => $this->architectureMap['metrics'][$class],
+                'methods' => $this->architectureMap['methods'][$class] ?? []
             ];
         }
         ksort($grouped);
@@ -314,7 +365,7 @@ final class Inspector
         </header>
 
         <div class="error-cards">
-            <div class="card"><div class="card-header">Total Classes</div><div class="stat-val">' . $totalClasses . '</div></div>
+            <div class="card"><div class="card-header">Total Files</div><div class="stat-val">' . $totalClasses . '</div></div>
             <div class="card"><div class="card-header">Global Health</div><div class="stat-val">' . $avgScore . '%</div></div>
             <div class="card"><div class="card-header">Open Issues</div><div class="stat-val ' . ($totalIssues > 0 ? 'text-error' : '') . '">' . $totalIssues . '</div></div>
         </div>
@@ -334,7 +385,7 @@ final class Inspector
                 <div id="welcome-screen" class="card empty-msg">
                     <div style="font-size: 3rem; margin-bottom: 1rem;">🔎</div>
                     <h3>Static Analysis Ready</h3>
-                    <p>Select a class from the tree to audit dependencies and logic.</p>
+                    <p>Select a file from the tree to audit.</p>
                 </div>
                 ' . $this->renderDetails($grouped) . '
             </main>
@@ -359,8 +410,14 @@ final class Inspector
                 <div id="' . $id . '" class="ns-content" style="display:none;">';
             foreach ($classes as $full => $data) {
                 $status = empty($data['problems']) ? 'dot-success' : 'dot-error';
+                $icon = match($data['type']) {
+                    'Trait' => 'T',
+                    'Interface' => 'I',
+                    default => 'C'
+                };
+                $badgeType = '<span class="type-badge type-'.$data['type'].'">'.$icon.'</span>';
                 $html .= '<div class="class-node" onclick="showDetail(\'' . md5($full) . '\', this)" data-search="' . strtolower($data['name']) . '">
-                    <span class="status-dot ' . $status . '"></span> ' . $data['name'] . '
+                    ' . $badgeType . ' ' . $data['name'] . ' <span class="status-dot ' . $status . '" style="margin-left:auto"></span>
                 </div>';
             }
             $html .= '</div></div>';
@@ -378,7 +435,7 @@ final class Inspector
                     <div class="card detail-header">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <div>
-                                <div class="framework-name">' . $ns . '</div>
+                                <div class="framework-name">' . $data['type'] . ' in ' . $ns . '</div>
                                 <h2 style="font-size: 2rem; margin:0; color:var(--accent-color);">' . $data['name'] . '</h2>
                             </div>
                             <div class="score-circle">' . $data['score'] . '%</div>
@@ -404,20 +461,59 @@ final class Inspector
                     }
                 }
                 $html .= '</div></div>
-            </div>
+                    </div>
 
-            <div class="card" style="margin-top:1.5rem;">
-                <div class="card-header">Dependency Map (Couplings)</div>
-                <div class="coupling-tags" style="display:flex; flex-direction:column; justify-content:space-between; min-height:100px;">';
+                    <div class="card" style="margin-top:1.5rem;">
+                        <div class="card-header">Methods & Signatures (' . count($data['methods']) . ')</div>
+                        <div style="overflow-x:auto;">
+                            <table class="methods-table">
+                                <thead>
+                                    <tr>
+                                        <th width="100">Vis.</th>
+                                        <th>Signature</th>
+                                        <th>Return</th>
+                                    </tr>
+                                </thead>
+                                <tbody>';
+
+                if (empty($data['methods'])) {
+                     $html .= '<tr><td colspan="3" style="text-align:center; padding:1rem; color:var(--text-muted)">No unique methods found (inherited from framework).</td></tr>';
+                } else {
+                    foreach ($data['methods'] as $m) {
+                        $visibilityBadge = '<span class="badge-vis ' . $m['visibility'] . '">' . $m['visibility'] . '</span>';
+                        if ($m['static']) $visibilityBadge .= ' <span class="badge-static">static</span>';
+                        if ($m['abstract']) $visibilityBadge .= ' <span class="badge-static">abs</span>';
+
+                        $paramsHtml = [];
+                        foreach ($m['params'] as $p) {
+                            $pStr = '<span class="type-hint">' . $p['type'] . '</span> ' . $p['name'];
+                            if ($p['optional']) $pStr .= ' <span class="opt">?</span>';
+                            $paramsHtml[] = $pStr;
+                        }
+
+                        $html .= '<tr>
+                            <td>' . $visibilityBadge . '</td>
+                            <td><span class="method-name">' . $m['name'] . '</span>( ' . implode(', ', $paramsHtml) . ' )</td>
+                            <td><span class="type-hint">' . $m['return'] . '</span></td>
+                        </tr>';
+                    }
+                }
+
+                $html .= '      </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card" style="margin-top:1.5rem;">
+                        <div class="card-header">Dependency Map (Couplings)</div>
+                        <div class="coupling-tags">';
 
                 if (empty($data['couplings'])) {
-                    $html .= '<em style="color:var(--text-muted); font-size: 0.8rem;">No external or internal couplings detected.</em>';
-                    $html .= '<em style="color:var(--text-muted); font-size: 0.6rem;">Lumynus components are not part of the metrics.</em>';
+                    $html .= '<em style="color:var(--text-muted); font-size: 0.8rem; padding: 1rem; display:block;">No external couplings detected.</em>';
                 } else {
                     foreach ($data['couplings'] as $c) {
                         $html .= '<span class="tag">' . $c . '</span>';
                     }
-                    $html .= '<em style="color:var(--text-muted); font-size: 0.6rem;">Lumynus components are not part of the metrics.</em>';
                 }
 
                 $html .= '</div></div>
@@ -474,6 +570,11 @@ final class Inspector
             .dot-success { background: var(--success-color); }
             .dot-error { background: var(--error-color); }
 
+            .type-badge { font-size: 0.6rem; font-weight: bold; padding: 2px 5px; border-radius: 4px; color: #fff; width: 20px; text-align: center; }
+            .type-Trait { background: #8b5cf6; }
+            .type-Interface { background: #f59e0b; }
+            .type-Class { background: #3b82f6; }
+
             .inspector-content { overflow-y: auto; }
             .empty-msg { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--text-muted); }
             .detail-header { padding: 2rem; margin-bottom: 1.5rem; }
@@ -486,6 +587,20 @@ final class Inspector
             .alert-success { background: rgba(16, 185, 129, 0.1); color: var(--success-color); border-color: var(--success-color); }
             .coupling-tags { padding: 1.5rem; display: flex; flex-wrap: wrap; gap: 0.6rem; }
             .tag { background: var(--bg-tertiary); padding: 0.4rem 0.8rem; border-radius: 0.5rem; font-size: 0.8rem; border: 1px solid var(--border-color); }
+
+            .methods-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+            .methods-table th { text-align: left; padding: 0.8rem 1rem; border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 0.75rem; text-transform: uppercase; }
+            .methods-table td { padding: 0.8rem 1rem; border-bottom: 1px solid var(--border-color); }
+            .methods-table tr:last-child td { border-bottom: none; }
+            .method-name { font-family: monospace; font-weight: 700; color: var(--accent-color); }
+            .type-hint { color: var(--text-muted); font-family: monospace; font-size: 0.85rem; }
+            .opt { color: var(--error-color); font-weight: bold; cursor: help; }
+
+            .badge-vis { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-weight: 700; }
+            .public { background: rgba(16, 185, 129, 0.2); color: var(--success-color); }
+            .protected { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+            .private { background: rgba(239, 68, 68, 0.2); color: var(--error-color); }
+            .badge-static { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; background: var(--bg-tertiary); color: var(--text-muted); margin-left: 4px; }
         ';
     }
 

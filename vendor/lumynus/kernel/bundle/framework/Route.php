@@ -378,6 +378,8 @@ final class Route extends LumaClasses
      */
     public static function midd(array|string $middlewares, array|string $actions, callable $callback): void
     {
+        $previousStack = self::$middlewareStack;
+
         $map = [];
 
         if (is_string($middlewares) && is_string($actions)) {
@@ -395,7 +397,9 @@ final class Route extends LumaClasses
                 }
             } elseif (is_array($actions)) {
                 if (count($middlewares) !== count($actions)) {
-                    throw new \InvalidArgumentException("If 'middlewares' and 'actions' are arrays, they must have the same number of elements.");
+                    throw new \InvalidArgumentException(
+                        "If 'middlewares' and 'actions' are arrays, they must have the same number of elements."
+                    );
                 }
 
                 foreach ($middlewares as $i => $midd) {
@@ -409,12 +413,13 @@ final class Route extends LumaClasses
             throw new \InvalidArgumentException("Middlewares and actions must be strings or arrays.");
         }
 
-        self::$middlewareStack = $map;
+        self::$middlewareStack = array_merge(self::$middlewareStack, $map);
 
         $callback();
 
-        array_pop(self::$middlewareStack);
+        self::$middlewareStack = $previousStack;
     }
+
 
     /**
      * Carrega as rotas do cache, se existir e estiver atualizado.
