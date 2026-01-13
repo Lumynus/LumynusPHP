@@ -94,9 +94,23 @@ final class Inspector
     {
         $methodsData = [];
 
+        $frameworkTraits = [];
+
+        foreach ($ref->getTraits() as $trait) {
+            if (str_starts_with($trait->getName(), 'Lumynus\\')) {
+                foreach ($trait->getMethods() as $tm) {
+                    $frameworkTraits[$tm->getName()] = true;
+                }
+            }
+        }
+
         foreach ($ref->getMethods() as $method) {
 
             $declaringClass = $method->getDeclaringClass()->getName();
+
+            if (isset($frameworkTraits[$method->getName()])) {
+                continue;
+            }
 
             if (str_starts_with($declaringClass, 'Lumynus\\')) {
                 continue;
@@ -210,8 +224,10 @@ final class Inspector
 
             if ($id === T_DOUBLE_COLON) {
                 $prev = $tokens[$i - 1] ?? null;
-                if (is_array($prev) && in_array($prev[0], [T_STRING, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED])
-                    && !in_array(strtolower($prev[1]), ['self', 'static', 'parent'])) {
+                if (
+                    is_array($prev) && in_array($prev[0], [T_STRING, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED])
+                    && !in_array(strtolower($prev[1]), ['self', 'static', 'parent'])
+                ) {
                     $dependencies[] = ltrim($prev[1], '\\');
                 }
             }
@@ -410,12 +426,12 @@ final class Inspector
                 <div id="' . $id . '" class="ns-content" style="display:none;">';
             foreach ($classes as $full => $data) {
                 $status = empty($data['problems']) ? 'dot-success' : 'dot-error';
-                $icon = match($data['type']) {
+                $icon = match ($data['type']) {
                     'Trait' => 'T',
                     'Interface' => 'I',
                     default => 'C'
                 };
-                $badgeType = '<span class="type-badge type-'.$data['type'].'">'.$icon.'</span>';
+                $badgeType = '<span class="type-badge type-' . $data['type'] . '">' . $icon . '</span>';
                 $html .= '<div class="class-node" onclick="showDetail(\'' . md5($full) . '\', this)" data-search="' . strtolower($data['name']) . '">
                     ' . $badgeType . ' ' . $data['name'] . ' <span class="status-dot ' . $status . '" style="margin-left:auto"></span>
                 </div>';
@@ -477,7 +493,7 @@ final class Inspector
                                 <tbody>';
 
                 if (empty($data['methods'])) {
-                     $html .= '<tr><td colspan="3" style="text-align:center; padding:1rem; color:var(--text-muted)">No unique methods found (inherited from framework).</td></tr>';
+                    $html .= '<tr><td colspan="3" style="text-align:center; padding:1rem; color:var(--text-muted)">No unique methods found (inherited from framework).</td></tr>';
                 } else {
                     foreach ($data['methods'] as $m) {
                         $visibilityBadge = '<span class="badge-vis ' . $m['visibility'] . '">' . $m['visibility'] . '</span>';

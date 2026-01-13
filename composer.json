@@ -18,7 +18,7 @@
     "prefer-stable": true,
     "require": {
         "php": ">=8.2",
-        "lumynus/kernel": "v1.2.3"
+        "lumynus/kernel": "v1.2.4"
     },
     "scripts": {
         "test": "phpunit"
