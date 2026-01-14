@@ -149,7 +149,7 @@ abstract class LumynusController extends LumaClasses
      * Método para obter a instância da classe Encryption
      * @return Encryption Retorna uma nova instância da classe Encryption
      */
-    protected function encrypt(): Encryption
+    protected function encryption(): Encryption
     {
         return new Encryption();
     }

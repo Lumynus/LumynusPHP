@@ -12,7 +12,7 @@ class Banco extends DataBase
 
     protected function __construct()
     {
-        $dados = $this->encrypt()->readFiles(
+        $dados = $this->encryption()->readFiles(
             [
                 'bd_banco',
                 'bd_host',

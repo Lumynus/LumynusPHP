@@ -71,7 +71,7 @@ final class Validate extends LumaClasses
                 $errors[$field][] = "The value format is invalid.";
             }
 
-            if ($rule['type'] === 'array' && isset($rule['subtype']) && is_array($value)) {
+            if (isset($rule['type']) && $rule['type'] === 'array' && isset($rule['subtype']) && is_array($value)) {
                 foreach ($value as $i => $item) {
                     if (!$this->isTypeValid($item, $rule['subtype'])) {
                         $errors[$field][] = "Item $i must be of type {$rule['subtype']}.";

@@ -87,7 +87,7 @@ trait LumynusTools
         return new Regex();
     }
 
-    protected function encrypt(): Encryption
+    protected function encryption(): Encryption
     {
         return new Encryption();
     }
