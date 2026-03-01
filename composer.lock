@@ -1,0 +1,61 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "28ca9b7f56e0ff348cc33da3c44ace43",
+    "packages": [
+        {
+            "name": "lumynus/kernel",
+            "version": "v1.6.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Lumynus/LumynusFramework.git",
+                "reference": "362a9d0bfbb7be4bf94f3364c4c4619bd86af6a2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Lumynus/LumynusFramework/zipball/362a9d0bfbb7be4bf94f3364c4c4619bd86af6a2",
+                "reference": "362a9d0bfbb7be4bf94f3364c4c4619bd86af6a2",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.2"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Lumynus\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Weleny Santos",
+                    "email": "welenysantos@gmail.com"
+                }
+            ],
+            "description": "A lightweight PHP framework designed for developers who value simplicity, clarity, and performance.",
+            "support": {
+                "issues": "https://github.com/Lumynus/LumynusFramework/issues",
+                "source": "https://github.com/Lumynus/LumynusFramework/tree/v1.6.3"
+            },
+            "time": "2026-02-24T23:41:42+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {},
+    "prefer-stable": true,
+    "prefer-lowest": false,
+    "platform": {
+        "php": ">=8.2"
+    },
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
+}

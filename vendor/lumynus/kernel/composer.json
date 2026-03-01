@@ -1,0 +1,21 @@
+{
+  "name": "lumynus/kernel",
+  "description": "A lightweight PHP framework designed for developers who value simplicity, clarity, and performance.",
+  "type": "library",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Lumynus\\": ""
+    }
+  },
+  "require": {
+    "php": ">=8.2"
+  },
+  "authors": [
+    {
+      "name": "Weleny Santos",
+      "email": "welenysantos@gmail.com"
+    }
+  ],
+  "minimum-stability": "stable"
+}

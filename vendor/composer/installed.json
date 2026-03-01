@@ -1,0 +1,49 @@
+{
+    "packages": [
+        {
+            "name": "lumynus/kernel",
+            "version": "v1.6.3",
+            "version_normalized": "1.6.3.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Lumynus/LumynusFramework.git",
+                "reference": "362a9d0bfbb7be4bf94f3364c4c4619bd86af6a2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Lumynus/LumynusFramework/zipball/362a9d0bfbb7be4bf94f3364c4c4619bd86af6a2",
+                "reference": "362a9d0bfbb7be4bf94f3364c4c4619bd86af6a2",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.2"
+            },
+            "time": "2026-02-24T23:41:42+00:00",
+            "type": "library",
+            "installation-source": "source",
+            "autoload": {
+                "psr-4": {
+                    "Lumynus\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Weleny Santos",
+                    "email": "welenysantos@gmail.com"
+                }
+            ],
+            "description": "A lightweight PHP framework designed for developers who value simplicity, clarity, and performance.",
+            "support": {
+                "issues": "https://github.com/Lumynus/LumynusFramework/issues",
+                "source": "https://github.com/Lumynus/LumynusFramework/tree/v1.6.3"
+            },
+            "install-path": "../lumynus/kernel"
+        }
+    ],
+    "dev": true,
+    "dev-package-names": []
+}
