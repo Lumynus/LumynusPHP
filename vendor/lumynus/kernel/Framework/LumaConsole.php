@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+/**
+ * @author WelenySantos de Oliveira <welenysantos@gmail.com>
+ * @package Lumynus\Framework
+ */
+
 namespace Lumynus\Framework;
 
 use Lumynus\Framework\LumaClasses;
@@ -867,8 +872,10 @@ PHP;
             CommandDispatcher::boot($dados);
         } catch (\Throwable $th) {
 
+            Logs::register('Terminal error', $th);
+
             echo "\nAn error occurred while trying to execute; please verify that the data entered matches a command.\n";
-            echo "(Ocorreu um erro ao tentar executar, verifique os dados digitasos correspondem a um comando.)\n\n";
+            echo "(Ocorreu um erro ao tentar executar, verifique os dados digitados correspondem a um comando.)\n\n";
             return;
         }
     }

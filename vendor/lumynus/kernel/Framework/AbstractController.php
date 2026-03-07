@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+/**
+ * @author WelenySantos de Oliveira <welenysantos@gmail.com>
+ * @package Lumynus\Framework
+ */
+
 namespace Lumynus\Framework;
 
 use Lumynus\Framework\Luma;
@@ -25,12 +30,14 @@ use Lumynus\Framework\Memory;
 use Lumynus\Framework\CORS;
 use Lumynus\Framework\Resolver;
 use Lumynus\Framework\LumynusContainer;
+use Lumynus\Framework\Helpers;
 
 abstract class AbstractController extends LumaClasses
 {
 
     use Requirements;
     use ControllerPipeline;
+    use Helpers;
 
     /**
      * Método para renderizar uma view com dados.
@@ -208,7 +215,7 @@ abstract class AbstractController extends LumaClasses
      * @param string|null $key Chave opcional para armazenar a instância.
      * @return object Retorna uma nova instância da classe especificada.
      */
-     private function makeInstance(string $class, array $options = [], ?string $key = null)
+    private function makeInstance(string $class, array $options = [], ?string $key = null)
     {
         return LumynusContainer::resolve($class, $options, $key);
     }

@@ -2,12 +2,19 @@
 
 declare(strict_types=1);
 
+/**
+ * @author WelenySantos de Oliveira <welenysantos@gmail.com>
+ * @package Lumynus\Framework
+ */
+
 namespace Lumynus\Framework;
+
 use Lumynus\Console\Contracts\Output;
 
 abstract class AbstractCommand extends LumaClasses implements Output
 {
     use \Lumynus\Framework\LumynusUtilities;
+    use \Lumynus\Framework\Helpers;
 
     public function __construct()
     {

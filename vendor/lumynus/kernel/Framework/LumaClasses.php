@@ -4,12 +4,19 @@ declare(strict_types=1);
 
 namespace Lumynus\Framework;
 
+/**
+ * @author WelenySantos de Oliveira <welenysantos@gmail.com>
+ * @package Lumynus\Framework
+ */
+
 use Lumynus\Contracts\LumaStrictContract;
 
 abstract class LumaClasses implements LumaStrictContract
 {
 
-    public const VERSION = '1.6.3';
+    public const VERSION = '1.6.5';
+
+    public const AUTHOR = 'WelenySantos <welenysantos@gmail.com>';
 
     public float $LUMA_START = 0.0;
 

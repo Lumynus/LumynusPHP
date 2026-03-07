@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+/**
+ * @author WelenySantos de Oliveira <welenysantos@gmail.com>
+ * @package Lumynus\Framework
+ */
+
 namespace Lumynus\Framework;
 
 /**
@@ -128,12 +133,12 @@ trait Requirements
     public const CPF = "/^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/";
     public const CNPJ = "/^\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}$/";
     public const CEP = "/^\d{5}-?\d{3}$/";
-    
+
     /**
      * Telefone BR (Celular 9 dígitos ou Fixo). Ex: (11) 91234-5678.
      */
     public const PHONE = "/^\(?\d{2}\)?\s?(?:9\d{4}|\d{4})-?\d{4}$/";
-    
+
     /**
      * Placa Veículo (Mercosul e Antiga).
      */
@@ -225,7 +230,7 @@ trait Requirements
 
     public const BARCODE = "/^\d{8,14}$/";          // EAN-8, EAN-13, EAN-14
     public const SKU = "/^[A-Za-z0-9\-_]{3,20}$/";  // SKU Produto
-    
+
     /**
      * Username Social (X/Twitter, Insta). Começa com @ opcional.
      */

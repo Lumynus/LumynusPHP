@@ -10,6 +10,6 @@ class TesteCommand extends AbstractCommand
 {
     public function handle($commands)
     {
-        $this->respond()->info("Oi! Comandos recebidos: " . implode(", ", $commands));
+        $this->output()->info("Oi! Comandos recebidos: " . implode(", ", $commands));
     }
 }

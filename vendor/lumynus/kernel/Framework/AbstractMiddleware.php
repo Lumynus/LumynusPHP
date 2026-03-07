@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+/**
+ * @author WelenySantos de Oliveira <welenysantos@gmail.com>
+ * @package Lumynus\Framework
+ */
+
 namespace Lumynus\Framework;
 
 use Lumynus\Framework\Luma;
@@ -26,11 +31,13 @@ use Lumynus\Framework\Resolver;
 use Lumynus\Http\Contracts\Request;
 use Lumynus\Http\Contracts\Response;
 use Lumynus\Framework\LumynusContainer;
+use Lumynus\Framework\Helpers;
 
 abstract class AbstractMiddleware extends LumaClasses
 {
 
     use Requirements;
+    use Helpers;
 
     /**
      * Método para renderizar uma view com dados.

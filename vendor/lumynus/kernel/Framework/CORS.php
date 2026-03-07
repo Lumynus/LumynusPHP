@@ -1,7 +1,14 @@
 <?php
 
 declare(strict_types=1);
+
+/**
+ * @author WelenySantos de Oliveira <welenysantos@gmail.com>
+ * @package Lumynus\Framework
+ */
+
 namespace Lumynus\Framework;
+
 use Lumynus\Framework\LumaClasses;
 use Lumynus\Templates\Errors;
 
@@ -124,6 +131,5 @@ final class CORS extends LumaClasses
         if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
             exit(0);
         }
-
     }
 }

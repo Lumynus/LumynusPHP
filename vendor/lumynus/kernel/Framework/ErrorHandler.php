@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+/**
+ * @author WelenySantos de Oliveira <welenysantos@gmail.com>
+ * @package Lumynus\Framework
+ */
+
 namespace Lumynus\Framework;
 
 use Lumynus\Framework\ErrorTemplate;
@@ -34,9 +39,9 @@ class ErrorHandler extends LumaClasses
          * Função auxiliar para decidir o formato de resposta
          */
         $renderError = function (array $data, bool $debug, int $statusCode = 500) {
-            
+
             if (ob_get_level() > 0) {
-                ob_clean(); 
+                ob_clean();
             }
 
             $accept = $_SERVER['HTTP_ACCEPT'] ?? '';
@@ -48,7 +53,7 @@ class ErrorHandler extends LumaClasses
 
             if (!headers_sent($filename, $linenum)) {
                 http_response_code($statusCode);
-                
+
                 if ($wantsJson) {
                     header('Content-Type: application/json; charset=utf-8');
                 }

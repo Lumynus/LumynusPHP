@@ -22,7 +22,7 @@
     "prefer-stable": true,
     "require": {
         "php": ">=8.2",
-        "lumynus/kernel": "^1.6.3"
+        "lumynus/kernel": "^1.6.5"
     },
     "scripts": {
         "test": "phpunit"

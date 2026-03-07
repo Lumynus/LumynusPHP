@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+/**
+ * @author WelenySantos de Oliveira <welenysantos@gmail.com>
+ * @package Lumynus\Framework
+ */
+
 namespace Lumynus\Framework;
 
 use Lumynus\Framework\Config;
@@ -45,7 +50,7 @@ final class LumynusContainer
     public static function clear(): void
     {
         $isPersistent = Config::getApplicationConfig()['persistentRuntime']['is'] ?? false;
-        if(!$isPersistent) {
+        if (!$isPersistent) {
             return;
         }
         self::$instances = [];

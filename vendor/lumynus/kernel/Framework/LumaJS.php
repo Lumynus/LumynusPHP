@@ -2,6 +2,11 @@
 
 namespace Lumynus\Framework;
 
+/**
+ * @author WelenySantos de Oliveira <welenysantos@gmail.com>
+ * @package Lumynus\Framework
+ */
+
 class LumaJS
 {
 
