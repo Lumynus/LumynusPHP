@@ -131,15 +131,20 @@ final class LumynusContainer
      */
     private static function color(string $text, string $color): string
     {
-        $colors = [
-            'green' => "\033[32m",
-            'yellow' => "\033[33m",
-            'red' => "\033[31m",
-            'cyan' => "\033[36m",
-            'reset' => "\033[0m"
-        ];
+        if (php_sapi_name() === 'cli') {
 
-        return $colors[$color] . $text . $colors['reset'];
+            $colors = [
+                'green' => "\033[32m",
+                'yellow' => "\033[33m",
+                'red' => "\033[31m",
+                'cyan' => "\033[36m",
+                'reset' => "\033[0m"
+            ];
+
+            return $colors[$color] . $text . $colors['reset'];
+        }
+
+        return "<span style='color:{$color}'>{$text}</span>";
     }
 
     private function __construct() {}

@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "lumynus/kernel",
-            "version": "v1.6.6",
+            "version": "v1.6.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Lumynus/LumynusFramework.git",
-                "reference": "5a07035c17d1250b057a09113d2b93beeda92820"
+                "reference": "e6f86b063ae22dae97c4715455bb0bb7b62a6cc4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Lumynus/LumynusFramework/zipball/5a07035c17d1250b057a09113d2b93beeda92820",
-                "reference": "5a07035c17d1250b057a09113d2b93beeda92820",
+                "url": "https://api.github.com/repos/Lumynus/LumynusFramework/zipball/e6f86b063ae22dae97c4715455bb0bb7b62a6cc4",
+                "reference": "e6f86b063ae22dae97c4715455bb0bb7b62a6cc4",
                 "shasum": ""
             },
             "require": {
@@ -42,9 +42,9 @@
             "description": "A lightweight PHP framework designed for developers who value simplicity, clarity, and performance.",
             "support": {
                 "issues": "https://github.com/Lumynus/LumynusFramework/issues",
-                "source": "https://github.com/Lumynus/LumynusFramework/tree/v1.6.6"
+                "source": "https://github.com/Lumynus/LumynusFramework/tree/v1.6.7"
             },
-            "time": "2026-03-15T15:51:34+00:00"
+            "time": "2026-03-15T16:03:06+00:00"
         }
     ],
     "packages-dev": [],
