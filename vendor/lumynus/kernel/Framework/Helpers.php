@@ -3,9 +3,12 @@
 namespace Lumynus\Framework;
 
 use Lumynus\Http\Contracts\Response;
+use Lumynus\Framework\LumynusContainer;
 
 trait Helpers
 {
+
+    private ?ContainerProxy $container = null;
 
     /**
      * Método para debugar dados.
@@ -31,5 +34,15 @@ trait Helpers
         echo "</pre>";
 
         exit;
+    }
+
+    /**
+     * Método para obter a instância da classe ContainerProxy
+     * @return ContainerProxy Retorna uma nova instância da classe ContainerProxy
+     */
+    public function container(): ContainerProxy
+    {
+        // O proxy também fica sob controle do container
+        return LumynusContainer::resolve(ContainerProxy::class);
     }
 }

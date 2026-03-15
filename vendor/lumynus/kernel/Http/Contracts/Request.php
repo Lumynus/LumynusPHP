@@ -46,6 +46,14 @@ interface Request
     public function getHeaders(): array;
 
     /**
+     * Retorna um header específico da requisição.
+     *
+     * @param string $key
+     * @param mixed  $default
+     */
+    public function getHeader(string $key, mixed $default = null): mixed;
+
+    /**
      * Retorna um valor da query string.
      *
      * @param string $key

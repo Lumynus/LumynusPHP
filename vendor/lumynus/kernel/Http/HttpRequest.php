@@ -251,6 +251,17 @@ final class HttpRequest implements RequestInterface
     }
 
     /**
+     * getHeader
+     *
+     * Retorna um cabeçalho específico da requisição HTTP.
+     */
+    public function getHeader(string $key, mixed $default = null): mixed
+    {
+        $key = strtolower($key);
+        return $this->headers[$key] ?? $default;
+    }
+
+    /**
      * get
      *
      * Obtém um valor específico da query string (GET),

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Lumynus\Framework;
 
 /**
- * @author WelenySantos de Oliveira <welenysantos@gmail.com>
+ * @author Weleny Santos <welenysantos@gmail.com>
  * @package Lumynus\Framework
  */
 

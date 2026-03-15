@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * @author WelenySantos de Oliveira <welenysantos@gmail.com>
+ * @author Weleny Santos <welenysantos@gmail.com>
  * @package Lumynus\Framework
  */
 
