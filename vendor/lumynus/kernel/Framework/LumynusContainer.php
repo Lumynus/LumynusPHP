@@ -67,12 +67,15 @@ final class LumynusContainer
 
         array_pop(self::$stack);
 
-        self::$traceTree[] = [
-            'class' => $class,
-            'depth' => $depth,
-            'time' => ($endTime - $startTime) * 1000,
-            'memory' => $endMemory - $startMemory
-        ];
+        if ($class !== ContainerProxy::class) {
+
+            self::$traceTree[] = [
+                'class' => $class,
+                'depth' => $depth,
+                'time' => ($endTime - $startTime) * 1000,
+                'memory' => $endMemory - $startMemory
+            ];
+        }
 
         return $instance;
     }
@@ -97,12 +100,27 @@ final class LumynusContainer
      */
     public static function getTrace(): string
     {
-        $output = "\n" . self::color("Container Trace\n\n", "cyan");
+        $output = "Lumynus Container Trace\n\n";
+
+        $totalTime = 0;
+        $totalMemory = 0;
+        $totalClasses = count(self::$traceTree);
+
+        foreach (self::$traceTree as $node) {
+            $totalTime += $node['time'];
+            $totalMemory += $node['memory'];
+        }
+
+        $output .= "Classes resolved: {$totalClasses}\n";
+        $output .= "Total time: " . number_format($totalTime, 2) . " ms\n";
+        $output .= "Total memory: " . number_format($totalMemory / 1024, 2) . " KB\n\n";
 
         foreach (self::$traceTree as $node) {
 
-            $indent = str_repeat(" │  ", $node['depth']);
-            $branch = $node['depth'] === 0 ? "" : " └─ ";
+            $depth = $node['depth'];
+
+            $indent = str_repeat("│   ", $depth);
+            $branch = $depth === 0 ? "" : "├── ";
 
             $time = number_format($node['time'], 2);
             $memory = number_format($node['memory'] / 1024, 2);
@@ -115,9 +133,15 @@ final class LumynusContainer
                 $color = 'yellow';
             }
 
+            $warning = $node['time'] > 10 ? " ⚠ Class too heavy" : "";
+
             $class = self::color($node['class'], $color);
 
-            $output .= "{$indent}{$branch}{$class} ({$time} ms | {$memory} KB)\n";
+            $output .= "{$indent}{$branch}{$class} ({$time} ms | {$memory} KB){$warning}\n";
+        }
+
+        if (php_sapi_name() !== 'cli') {
+            return "<pre>{$output}</pre>";
         }
 
         return $output;
