@@ -63,7 +63,8 @@ final class Config extends LumaClasses
                 "css" => "/resources/css/",
                 "views" => "/src/views/",
                 "routers" => "/src/routers/",
-                "cache" => "/storage/cache/"
+                "cache" => "/storage/cache/",
+                "files" => "/storage/files/"
             ],
             "security" => [
                 "csrf" => [

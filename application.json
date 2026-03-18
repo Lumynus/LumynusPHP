@@ -2,7 +2,7 @@
     {
         "App": {
             "nameApplication": "Lumynus",
-            "version": "1.0.4",
+            "version": "1.0.5",
             "description": "A simple PHP framework for building web applications.",
             "author": "Weleny Santos",
             "email": "",
@@ -14,7 +14,8 @@
             "css": "/resources/css/",
             "views": "/src/views/",
             "routers": "/src/routers/",
-            "cache": "/storage/cache/"
+            "cache": "/storage/cache/",
+            "files": "/storage/files/"
         },
         "security": {
             "csrf": {

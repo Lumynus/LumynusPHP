@@ -6,6 +6,8 @@ namespace Lumynus\Http;
 
 use Lumynus\Framework\LumaClasses;
 use Lumynus\Http\Contracts\Response as ResponseInterface;
+use Lumynus\Framework\Config;
+use Lumynus\Framework\Logs;
 
 /**
  * Gerencia a resposta HTTP enviada ao cliente.
@@ -21,14 +23,22 @@ final class HttpResponse extends LumaClasses implements ResponseInterface
 
     /**
      * Lista de cabeçalhos HTTP.
-     * @var array<string,string>
+     * @var array<string, array{value: string, replace: bool}>
      */
-    private array $headers = [];
+    private array $headers = [
+        // 'Content-Type' => ['value' => '...', 'replace' => true]
+    ];
 
     /**
      * Conteúdo do corpo da resposta (String ou NULL).
      */
     private ?string $body = null;
+
+    /**
+     * Caminho do arquivo para streaming (download/file).
+     * @var string|null
+     */
+    private ?string $filePath = null;
 
     /**
      * Recurso de arquivo para streaming (download/file).
@@ -142,21 +152,97 @@ final class HttpResponse extends LumaClasses implements ResponseInterface
      * @param string $value Valor do cabeçalho.
      * @return self
      */
-    public function header(string $name, string $value): self
+    public function header(string $name, string $value, bool $replace = true): self
     {
+        $name = trim($name);
+
+        if ($name === '' || preg_match('/[^A-Za-z0-9\-]/', $name)) {
+            throw new \InvalidArgumentException('Invalid header name');
+        }
+
         $cleanValue = str_replace(["\r", "\n"], '', $value);
-        $this->headers[$name] = $cleanValue;
+
+        if (!$replace && isset($this->headers[$name])) {
+            $this->headers[$name]['value'] .= ', ' . $cleanValue;
+            $this->headers[$name]['replace'] = false;
+        } else {
+            $this->headers[$name] = [
+                'value' => $cleanValue,
+                'replace' => $replace
+            ];
+        }
+
         return $this;
     }
 
     /**
      * Retorna todos os cabeçalhos definidos.
      *
-     * @return array<string,string>
+     * @return array<string,array{value:string,replace:bool}>
      */
     public function getHeaders(): array
     {
         return $this->headers;
+    }
+
+    /**
+     * Retorna o corpo da resposta.
+     *
+     * @return string|null
+     */
+    public function getBody(): ?string
+    {
+        return $this->body;
+    }
+
+    /**
+     * Retorna o stream do arquivo.
+     *
+     * @return mixed
+     */
+    public function getFileStream(): mixed
+    {
+        return $this->fileStream;
+    }
+
+    /**
+     * Retorna se a resposta já foi enviada.
+     *
+     * @return bool
+     */
+    public function isSent(): bool
+    {
+        return $this->sent;
+    }
+
+    /**
+     * Retorna o tamanho do corpo da resposta.
+     *
+     * @return int
+     */
+    public function getBodyLength(): int
+    {
+        return $this->body !== null ? strlen($this->body) : 0;
+    }
+
+    /**
+     * Retorna o tamanho do stream do arquivo.
+     *
+     * @return int
+     */
+    public function getFileLength(): int
+    {
+        if (is_resource($this->fileStream)) {
+            $stats = fstat($this->fileStream);
+            return (int) ($stats['size'] ?? 0);
+        }
+
+        if ($this->filePath !== null && is_file($this->filePath)) {
+            $size = filesize($this->filePath);
+            return $size !== false ? $size : 0;
+        }
+
+        return 0;
     }
 
     /**
@@ -167,22 +253,20 @@ final class HttpResponse extends LumaClasses implements ResponseInterface
      */
     public function json(mixed $data = null): self
     {
-        $this->header('Content-Type', 'application/json');
+        $this->resetStream();
+        $this->header('Content-Type', 'application/json; charset=UTF-8');
 
-        if ($this->statusCode !== 200 && empty($data)) {
+        if ($this->statusCode !== 200 && $data === null) {
             $data = ['message' => $this->responses[$this->statusCode] ?? 'Unknown Status'];
         }
 
-        $json = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
-
-        if (json_last_error() !== JSON_ERROR_NONE) {
+        try {
+            $this->body = json_encode($data, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+        } catch (\JsonException $e) {
             $this->status(500);
-            $this->body = json_encode(['error' => 'JSON Encode Error: ' . json_last_error_msg()]);
-        } else {
-            $this->body = $json;
+            $this->body = '{"error":"Failed to encode JSON response."}';
         }
 
-        $this->resetStream();
         return $this;
     }
 
@@ -194,11 +278,11 @@ final class HttpResponse extends LumaClasses implements ResponseInterface
      */
     public function html(?string $html = null): self
     {
+        $this->resetStream();
         $this->header('Content-Type', 'text/html; charset=UTF-8');
 
         $this->body = $html ?? ($this->statusCode !== 200 ? ($this->responses[$this->statusCode] ?? '') : '');
 
-        $this->resetStream();
         return $this;
     }
 
@@ -210,11 +294,11 @@ final class HttpResponse extends LumaClasses implements ResponseInterface
      */
     public function text(?string $text = null): self
     {
+        $this->resetStream();
         $this->header('Content-Type', 'text/plain; charset=UTF-8');
 
         $this->body = $text ?? ($this->statusCode !== 200 ? ($this->responses[$this->statusCode] ?? '') : '');
 
-        $this->resetStream();
         return $this;
     }
 
@@ -229,23 +313,66 @@ final class HttpResponse extends LumaClasses implements ResponseInterface
      */
     public function file(string $filePath, bool $download = false): self
     {
-        if (!file_exists($filePath) || !is_readable($filePath)) {
-            return $this->status(404)->text('File not found or not readable.');
+        $realPath = realpath($filePath);
+
+        if ($realPath === false) {
+            return $this->status(404)->text('File not found.');
+        }
+
+        $base = realpath(Config::getApplicationConfig()['path']['files']);
+
+        if ($base === false) {
+            return $this->status(500)->text('Invalid files base path.');
+        }
+
+        $base = rtrim($base, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+
+        if (!str_starts_with($realPath, $base)) {
+            return $this->status(403)->text('Access denied.');
+        }
+
+        if (!is_file($realPath) || !is_readable($realPath)) {
+            return $this->status(404)->text('File not readable.');
+        }
+
+        if (str_starts_with(basename($realPath), '.')) {
+            return $this->status(403)->text('Access denied.');
         }
 
         $this->resetStream();
         $this->body = null;
 
-        $mime = mime_content_type($filePath) ?: 'application/octet-stream';
+        try {
+            $finfo = new \finfo(FILEINFO_MIME_TYPE);
+            $mime = $finfo->file($realPath) ?: null;
+        } catch (\Throwable) {
+            $mime = null;
+        }
+
+        $mime = $mime ?: 'application/octet-stream';
         $this->header('Content-Type', $mime);
 
         $disposition = $download ? 'attachment' : 'inline';
-        $filename = basename($filePath);
-        $this->header('Content-Disposition', "$disposition; filename=\"$filename\"");
-        $this->header('Content-Length', (string) filesize($filePath));
+        $filename = str_replace('"', '', basename($realPath) ?: 'file');
+        $this->header('Content-Disposition', sprintf('%s; filename="%s"', $disposition, $filename));
 
+        $this->header('Cache-Control', 'no-cache, no-store, must-revalidate');
+        $this->header('Pragma', 'no-cache');
+        $this->header('Expires', '0');
 
-        $this->fileStream = fopen($filePath, 'rb');
+        $stream = fopen($realPath, 'rb');
+
+        if ($stream === false) {
+            return $this->status(500)->text('Failed to open file stream.');
+        }
+
+        $stats = fstat($stream);
+        if ($stats !== false && isset($stats['size'])) {
+            $this->header('Content-Length', (string) $stats['size']);
+        }
+
+        $this->fileStream = $stream;
+        $this->filePath = $realPath;
 
         return $this;
     }
@@ -259,10 +386,11 @@ final class HttpResponse extends LumaClasses implements ResponseInterface
      */
     public function redirect(string $url, int $code = 302): self
     {
-        $this->status($code);
-        $this->header('Location', $url);
-        $this->body = null;
         $this->resetStream();
+        $this->status($code);
+        $this->header('Location', str_replace(["\r", "\n"], '', $url));
+        $this->body = null;
+
         return $this;
     }
 
@@ -274,9 +402,12 @@ final class HttpResponse extends LumaClasses implements ResponseInterface
      */
     public function send(string $text = ''): self
     {
-        $content = !empty($text) ? $text : ($this->responses[$this->statusCode] ?? '');
-        $this->body = $content;
         $this->resetStream();
+        if (!isset($this->headers['Content-Type'])) {
+            $this->header('Content-Type', 'text/plain; charset=UTF-8');
+        }
+        $this->body = $text !== '' ? $text : ($this->responses[$this->statusCode] ?? '');
+
         return $this;
     }
 
@@ -289,27 +420,95 @@ final class HttpResponse extends LumaClasses implements ResponseInterface
      */
     public function dispatch(): void
     {
-        if ($this->sent || headers_sent()) {
+        if ($this->sent === true) {
             return;
         }
 
         $this->sent = true;
 
-        http_response_code($this->statusCode);
+        $canSendHeaders = !headers_sent();
 
-        foreach ($this->headers as $key => $value) {
-            header("$key: $value");
+        if (!$canSendHeaders && $this->fileStream !== null) {
+            throw new \RuntimeException('Cannot stream file, headers already sent.');
         }
 
+        if ($canSendHeaders) {
+            $protocol = $_SERVER['SERVER_PROTOCOL'] ?? 'HTTP/1.1';
+            if (!str_starts_with($protocol, 'HTTP/')) {
+                $protocol = 'HTTP/1.1';
+            }
+
+            header(sprintf(
+                '%s %d %s',
+                $protocol,
+                $this->statusCode,
+                $this->responses[$this->statusCode] ?? ''
+            ));
+
+            if (
+                $this->body !== null &&
+                $this->fileStream === null &&
+                !isset($this->headers['Content-Length'])
+            ) {
+                $this->headers['Content-Length'] = [
+                    'value' => (string) strlen($this->body),
+                    'replace' => true
+                ];
+            }
+
+            foreach ($this->headers as $key => $data) {
+                if (!isset($data['value'], $data['replace'])) {
+                    continue;
+                }
+
+                header("$key: {$data['value']}", (bool) $data['replace']);
+            }
+        }
+
+        $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+        if ($method === 'HEAD') {
+            if (is_resource($this->fileStream)) {
+                fclose($this->fileStream);
+                $this->fileStream = null;
+            }
+            return;
+        }
+
+
         if (is_resource($this->fileStream)) {
-            if (ob_get_level()) ob_end_clean();
+            while (ob_get_level() > 0) {
+                ob_end_clean();
+            }
 
             while (!feof($this->fileStream)) {
-                echo fread($this->fileStream, 8192);
+                $chunk = fread($this->fileStream, 8192);
+
+                if ($chunk === false) {
+                    Logs::register('Error', 'Failed to read file stream.');
+                    break;
+                }
+
+                if ($chunk === '') {
+                    continue;
+                }
+
+                echo $chunk;
+
+                if (ob_get_level() > 0) {
+                    ob_flush();
+                }
+
                 flush();
             }
+
             fclose($this->fileStream);
-        } elseif ($this->body !== null) {
+            $this->fileStream = null;
+
+            return;
+        }
+
+        if ($this->body !== null) {
             echo $this->body;
         }
     }
@@ -322,7 +521,13 @@ final class HttpResponse extends LumaClasses implements ResponseInterface
         if (is_resource($this->fileStream)) {
             fclose($this->fileStream);
         }
+
         $this->fileStream = null;
+        $this->filePath = null;
+
+        foreach (['Content-Disposition', 'Content-Length'] as $h) {
+            unset($this->headers[$h]);
+        }
     }
 
     /**
@@ -339,7 +544,9 @@ final class HttpResponse extends LumaClasses implements ResponseInterface
             'Lumynus' => "Framework PHP",
             'Status' => $this->statusCode,
             'Headers' => $this->headers,
-            'BodyLength' => $this->body ? strlen($this->body) : ($this->fileStream ? 'Stream Resource' : 0)
+            'BodyLength' => $this->body !== null
+                ? strlen($this->body)
+                : ($this->fileStream ? 'Stream Resource' : 0)
         ];
     }
 }
