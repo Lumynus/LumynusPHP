@@ -37,6 +37,41 @@ interface Response
     public function getHeaders(): array;
 
     /**
+     * Retorna o corpo da resposta.
+     *
+     * @return string|null
+     */
+    public function getBody(): ?string;
+
+    /**
+     * Retorna o stream do arquivo.
+     *
+     * @return mixed
+     */
+    public function getFileStream(): mixed;
+
+    /**
+     * Retorna se a resposta já foi enviada.
+     *
+     * @return bool
+     */
+    public function isSent(): bool;
+
+    /**
+     * Retorna o tamanho do corpo da resposta.
+     *
+     * @return int
+     */
+    public function getBodyLength(): int;
+
+    /**
+     * Retorna o tamanho do stream do arquivo.
+     *
+     * @return int
+     */
+    public function getFileLength(): int;
+
+    /**
      * Prepara uma resposta no formato JSON.
      *
      * @param mixed $data Dados a serem serializados.

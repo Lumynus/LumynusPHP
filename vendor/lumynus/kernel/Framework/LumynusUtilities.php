@@ -28,6 +28,7 @@ use Lumynus\Framework\Memory;
 use Lumynus\Framework\CORS;
 use Lumynus\Framework\Resolver;
 use Lumynus\Framework\LumynusContainer;
+use Lumynus\Framework\Helpers;
 
 /**
  * Trait com métodos utilitários comuns do framework Lumynus.
@@ -36,6 +37,7 @@ use Lumynus\Framework\LumynusContainer;
 trait LumynusUtilities
 {
     use Requirements;
+    use Helpers;
 
     /**
      * Método para obter a instância da classe Sessions.
