@@ -51,28 +51,27 @@ class ErrorHandler extends LumaClasses
                 stripos($contentType, 'application/json') !== false
             );
 
-            if (!headers_sent($filename, $linenum)) {
-                http_response_code($statusCode);
+            $response = new \Lumynus\Http\HttpResponse();
+            $response->status($statusCode);
 
-                if ($wantsJson) {
-                    header('Content-Type: application/json; charset=utf-8');
-                }
-            } else {
+            if (headers_sent($filename, $linenum)) {
                 Logs::register("Headers already sent in $filename on line $linenum. Cannot set HTTP status code or content type.", 'error');
             }
 
             if ($wantsJson) {
                 if ($debug) {
-                    echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                    // Let json() handle encoding if needed or use custom string
+                    $response->header('Content-Type', 'application/json; charset=utf-8');
+                    $response->send(json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE))->dispatch();
                 } else {
-                    echo json_encode([
+                    $response->json([
                         'error' => 'Internal Server Error',
                         'code'  => $statusCode
-                    ]);
+                    ])->dispatch();
                 }
             } else {
                 if ($debug) {
-                    echo self::error()->render($data);
+                    $response->html(self::error()->render($data))->dispatch();
                 } else {
                     self::throwError('Internal Server Error', $statusCode, 'html');
                 }

@@ -17,8 +17,6 @@ trait Errors
      */
     public static function throwError(string|array|null $message = null, int $code = 500, ?string $forceType = null): void
     {
-        http_response_code($code);
-
         $accept = $_SERVER['HTTP_ACCEPT'] ?? '*/*';
         $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
 
@@ -46,23 +44,26 @@ trait Errors
             }
         }
 
+        $response = new \Lumynus\Http\HttpResponse();
+        $response->status($code);
+
         // Chama a resposta certa
         switch ($type) {
             case 'json':
-                self::respondJson($message, $code);
+                self::respondJson($response, $message, $code);
                 break;
             case 'xml':
-                self::respondXml($message, $code);
+                self::respondXml($response, $message, $code);
                 break;
             case 'javascript':
-                self::respondJavaScript($message, $code);
+                self::respondJavaScript($response, $message, $code);
                 break;
             case 'plain':
-                self::respondPlain($message, $code);
+                self::respondPlain($response, $message, $code);
                 break;
             case 'html':
             default:
-                self::respondHtml($message, $code);
+                self::respondHtml($response, $message, $code);
                 break;
         }
 
@@ -71,48 +72,46 @@ trait Errors
 
 
     // ===== Métodos privados por tipo =====
-    private static function respondJson(string|array $message, int $code): void
+    private static function respondJson(\Lumynus\Http\HttpResponse $response, string|array $message, int $code): void
     {
-        header('Content-Type: application/json');
-        echo json_encode([
+        $response->json([
             'error' => $message,
             'code' => $code
-        ], JSON_PRETTY_PRINT);
+        ])->dispatch();
     }
 
-    private  static function respondXml(string|array $message, int $code): void
+    private static function respondXml(\Lumynus\Http\HttpResponse $response, string|array $message, int $code): void
     {
-        header('Content-Type: application/xml');
         $msg = is_array($message) ? implode('; ', $message) : $message;
-        echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-        echo "<error>\n";
-        echo "  <code>$code</code>\n";
-        echo "  <message>" . htmlspecialchars($msg) . "</message>\n";
-        echo "</error>";
+        $xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+        $xml .= "<error>\n";
+        $xml .= "  <code>$code</code>\n";
+        $xml .= "  <message>" . htmlspecialchars($msg) . "</message>\n";
+        $xml .= "</error>";
+        
+        $response->header('Content-Type', 'application/xml')->send($xml)->dispatch();
     }
 
-    private static function respondJavaScript(string|array $message, int $code): void
+    private static function respondJavaScript(\Lumynus\Http\HttpResponse $response, string|array $message, int $code): void
     {
-        header('Content-Type: application/javascript');
         $msg = json_encode(is_array($message) ? $message : ['error' => $message, 'code' => $code], JSON_PRETTY_PRINT);
-        echo "console.error(" . $msg . ");";
+        $response->header('Content-Type', 'application/javascript')->send("console.error(" . $msg . ");")->dispatch();
     }
 
-    private static function respondPlain(string|array $message, int $code): void
+    private static function respondPlain(\Lumynus\Http\HttpResponse $response, string|array $message, int $code): void
     {
-        header('Content-Type: text/plain');
-        echo "Erro $code: " . (is_array($message) ? print_r($message, true) : $message);
+        $msg = "Erro $code: " . (is_array($message) ? print_r($message, true) : $message);
+        $response->text($msg)->dispatch();
     }
 
-    private static function respondHtml(string|array $message, int $code): void
+    private static function respondHtml(\Lumynus\Http\HttpResponse $response, string|array $message, int $code): void
     {
-        header('Content-Type: text/html');
         $msg = htmlspecialchars(is_array($message) ? implode('<br>', $message) : $message);
         while (ob_get_level()) {
             ob_end_clean();
         }
 
-        echo "<!DOCTYPE html>
+        $html = "<!DOCTYPE html>
     <html lang=\"pt-BR\">
     <head>
         <meta charset=\"UTF-8\">
@@ -217,5 +216,7 @@ trait Errors
         </div>
     </body>
     </html>";
+
+        $response->html($html)->dispatch();
     }
 }

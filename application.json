@@ -2,7 +2,7 @@
     {
         "App": {
             "nameApplication": "Lumynus",
-            "version": "1.0.6",
+            "version": "1.0.7",
             "description": "A simple PHP framework for building web applications.",
             "author": "Weleny Santos",
             "email": "",
