@@ -55,12 +55,7 @@ abstract class AbstractCommand extends LumaClasses implements Output
      */
     public function success(string $message): self
     {
-        if ($this->responded) {
-            return $this;
-        }
-
         $this->responded = true;
-
         echo self::GREEN . $message . self::RESET . PHP_EOL;
         return $this;
     }
@@ -73,12 +68,7 @@ abstract class AbstractCommand extends LumaClasses implements Output
      */
     public function info(string $message, string $colorANSI = "\033[94m"): self
     {
-        if ($this->responded) {
-            return $this;
-        }
-
         $this->responded = true;
-
         echo $colorANSI . $message . self::RESET . PHP_EOL;
         return $this;
     }
@@ -92,10 +82,6 @@ abstract class AbstractCommand extends LumaClasses implements Output
      */
     public function error(string $message, ?string $logMessage = null): self
     {
-        if ($this->responded) {
-            return $this;
-        }
-
         $this->responded = true;
         $this->logs()->register('Error in command: ', ($logMessage ?? $message));
         echo self::RED . $message . self::RESET . PHP_EOL;

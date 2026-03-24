@@ -8,8 +8,6 @@ use Lumynus\Framework\LumynusContainer;
 trait Helpers
 {
 
-    private ?ContainerProxy $container = null;
-
     /**
      * Método para debugar dados.
      * 

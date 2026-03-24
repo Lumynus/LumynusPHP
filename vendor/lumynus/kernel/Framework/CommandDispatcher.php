@@ -150,7 +150,6 @@ final class CommandDispatcher
         $method->invokeArgs($instance, $args);
     }
 
-
     /**
      * Resolve o nome da classe do comando a partir do input do terminal.
      */
