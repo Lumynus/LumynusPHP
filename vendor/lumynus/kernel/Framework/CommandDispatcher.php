@@ -67,7 +67,13 @@ final class CommandDispatcher
         $class = $this->resolveCommandClass($classInput);
 
         if (!class_exists($class)) {
-            throw new RuntimeException("Command {$class} not found.");
+            $classWithSuffix = $class . 'Command';
+
+            if (!str_ends_with($class, 'Command') && class_exists($classWithSuffix)) {
+                $class = $classWithSuffix;
+            } else {
+                throw new RuntimeException("Command {$classInput} not found.");
+            }
         }
 
         $ref = new ReflectionClass($class);
@@ -165,10 +171,6 @@ final class CommandDispatcher
 
         $normalized = str_replace([':', '-', '_'], ' ', $input);
         $class = str_replace(' ', '', ucwords($normalized));
-
-        if (!str_ends_with($class, 'Command')) {
-            $class .= 'Command';
-        }
 
         return 'App\\Commands\\' . $class;
     }
