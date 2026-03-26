@@ -30,7 +30,7 @@ final class Memory extends LumaClasses
     }
 
     /**
-     * Lê um arquivo .luma e retorna o valor desserializado.
+     * Lê um arquivo de memoria e retorna o valor.
      *
      * @param string $filename Nome do arquivo (sem extensão ou com extensão)
      *
@@ -58,7 +58,7 @@ final class Memory extends LumaClasses
     }
 
     /**
-     * Serializa e salva um valor PHP em um arquivo .luma.
+     * Salva um valor PHP em um arquivo de memoria.
      *
      * @param string $filename Nome base do arquivo
      * @param mixed  $value Valor a ser serializado
@@ -90,7 +90,7 @@ final class Memory extends LumaClasses
     }
 
     /**
-     * Remove um arquivo .luma.
+     * Remove um arquivo de memoria.
      *
      * @param string $filename Nome do arquivo
      *
@@ -103,9 +103,104 @@ final class Memory extends LumaClasses
     }
 
     /**
-     * Lista todos os arquivos .luma presentes no diretório de armazenamento.
+     * Remove arquivos de memoria mais antigos que o timestamp informado.
      *
-     * @return string[] Lista de nomes de arquivos .luma
+     * @param int $timestamp Timestamp
+     *
+     * @return void
+     */
+    public function deleteOlderThan(int $timestamp): void
+    {
+        foreach ($this->list() as $file) {
+            $fileTimestamp = $this->getModified($file)['timestamp'];
+
+            if ($fileTimestamp < $timestamp) {
+                $this->delete($file);
+            }
+        }
+    }
+
+    /**
+     * Verifica se um arquivo de memoria existe.
+     *
+     * @param string $filename Nome do arquivo
+     *
+     * @return bool True se o arquivo existe, false caso contrário
+     */
+    public function has(string $filename): bool
+    {
+        return file_exists($this->getPath($filename));
+    }
+
+    /**
+     * Retorna a data de modificação do arquivo de memoria.
+     *
+     * @param string $filename Nome do arquivo
+     *
+     * @return array Data de modificação do arquivo
+     */
+    public function getModified(string $filename): array
+    {
+        $path = $this->getPath($filename);
+
+        if (!is_file($path)) {
+            throw new RuntimeException("File not found: {$filename}");
+        }
+
+        $timestamp = filemtime($path);
+
+        if ($timestamp === false) {
+            throw new RuntimeException("Could not get modification time for file: {$filename}");
+        }
+
+        return [
+            'date' => date('Y-m-d H:i:s', $timestamp),
+            'timestamp' => $timestamp,
+        ];
+    }
+
+    /**
+     * Retorna o tamanho do arquivo de memoria.
+     *
+     * @param string $filename Nome do arquivo
+     *
+     * @return int Tamanho do arquivo
+     */
+    public function getSize(string $filename): int
+    {
+        $path = $this->getPath($filename);
+
+        if (!is_file($path)) {
+            throw new RuntimeException("File not found: {$filename}");
+        }
+
+        $size = filesize($path);
+
+        if ($size === false) {
+            throw new RuntimeException("Could not get file size: {$filename}");
+        }
+
+        return $size;
+    }
+
+    /**
+     * Remove todos os arquivos de memoria presentes no diretório de armazenamento.
+     *
+     * @return bool True se todos os arquivos foram removidos, false se não existir ou falhar
+     */
+    public function clear(): bool
+    {
+        $files = $this->list();
+        foreach ($files as $file) {
+            $this->delete($file);
+        }
+        return true;
+    }
+
+    /**
+     * Lista todos os arquivos de memoria presentes no diretório de armazenamento.
+     *
+     * @return string[] Lista de nomes de arquivos de memoria
      */
     public function list(): array
     {
