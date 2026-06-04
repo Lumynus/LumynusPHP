@@ -75,7 +75,7 @@ class Luma extends LumaClasses
             'break'      => '/@break/',
 
             // Includes e variáveis
-            'include'    => '/@include\s*\(\s*([\'"])?([\$\w\/_\-\.]+)\1?\s*(?:,\s*(\w+))?\s*\)/',
+            'include'    => '/@include\s*\(\s*([\'"])?([\$\w\/_\-\.]+)\1?\s*(?:,\s*((?:\[[^\]]*\]|[^)])+))?\s*\)/',
             'raw_var'    => '/\{\{\s*raw\s+(\$[a-zA-Z_][a-zA-Z0-9_\[\]\'"]*)\s*\}\}/',
             'typed_var'  => '/\{\{\s*(int|float|string|bool)\s+(\$[a-zA-Z_][a-zA-Z0-9_\[\]\'"]*)\s*(raw)?\s*\}\}/',
             'simple_var' => '/\{\{\s*(\$[a-zA-Z_][a-zA-Z0-9_\[\]\'"]*)\s*\}\}/',
@@ -96,12 +96,28 @@ class Luma extends LumaClasses
     /**
      * Renderiza uma view com os dados fornecidos de forma segura.
      */
-    public static function render(string $view, array $data = [], bool $regenerateCSRF = true): string
+    public static function render(string $view, array $data = [], bool $regenerateCSRF = true, bool $isolate = false): string
     {
         $startTime = microtime(true);
 
+        $config = Config::getApplicationConfig();
+        $basePath = Config::pathProject();
+        $viewsPath = realpath($basePath . $config['path']['views']);
+
+        // Se o arquivo exato não existe e não termina com .luma, tenta com .luma se este existir
+        if ($viewsPath && !str_ends_with($view, '.luma')) {
+            $exactPath = realpath($viewsPath . DIRECTORY_SEPARATOR . $view);
+            if (!$exactPath || !is_file($exactPath)) {
+                $lumaPath = realpath($viewsPath . DIRECTORY_SEPARATOR . $view . '.luma');
+                if ($lumaPath && is_file($lumaPath) && str_starts_with($lumaPath, $viewsPath)) {
+                    $view .= '.luma';
+                }
+            }
+        }
+
         // Verifica se esta é a view principal (Raiz)
         $isRootView = empty(self::$viewStack);
+        $previousShareData = self::$shareData;
 
         try {
             if ($isRootView) {
@@ -121,7 +137,11 @@ class Luma extends LumaClasses
             }
 
             self::$viewStack[] = $view;
-            self::$shareData = array_merge(self::$shareData, $data);
+            if ($isolate) {
+                self::$shareData = $data;
+            } else {
+                self::$shareData = array_merge(self::$shareData, $data);
+            }
 
             $config = Config::getApplicationConfig();
             $basePath = Config::pathProject();
@@ -157,6 +177,8 @@ class Luma extends LumaClasses
             if (empty(self::$viewStack)) {
                 self::$shareData = [];
                 self::$queuedHeaderAssets = [];
+            } else {
+                self::$shareData = $previousShareData;
             }
         }
     }
@@ -335,18 +357,22 @@ class Luma extends LumaClasses
         // 1. Processa @include normal
         $template = preg_replace_callback(self::$patterns['include'], function ($matches) {
             $view = $matches[2];
-            $data = $matches[3] ?? '[]';
+            $dataAttr = isset($matches[3]) ? trim($matches[3]) : '';
+            $dataAttrClean = trim($dataAttr, "'\"");
 
-            if ($data === 'all') {
-                $pairs = array_map(fn($key) => "'$key' => \$$key", array_keys(self::$shareData));
-                $data = '[' . implode(', ', $pairs) . ']';
+            if (empty($dataAttr) || $dataAttrClean === 'all') {
+                $data = '[]';
+                $isolate = 'false';
+            } else {
+                $data = $dataAttr;
+                $isolate = 'true';
             }
 
             if (str_starts_with($view, '$')) {
-                return "<?php echo \Lumynus\\Framework\\Luma::render($view, {$data}, false); ?>";
+                return "<?php echo \Lumynus\\Framework\\Luma::render($view, {$data}, false, {$isolate}); ?>";
             }
 
-            return "<?php echo \Lumynus\\Framework\\Luma::render('{$view}', {$data}, false); ?>";
+            return "<?php echo \Lumynus\\Framework\\Luma::render('{$view}', {$data}, false, {$isolate}); ?>";
         }, $template);
 
 

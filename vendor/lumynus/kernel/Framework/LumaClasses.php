@@ -14,7 +14,7 @@ use Lumynus\Contracts\LumaStrictContract;
 abstract class LumaClasses implements LumaStrictContract
 {
 
-    public const VERSION = '1.7.5';
+    public const VERSION = '1.7.8';
 
     public const AUTHOR = 'WelenySantos <welenysantos@gmail.com>';
 
@@ -29,12 +29,12 @@ abstract class LumaClasses implements LumaStrictContract
             'xml',
             'mbstring',
             'zip',
-            'bcmath',
+            //'bcmath',
             'tokenizer',
             'session',
             'pcre',
             'reflection',
-            'phar',
+            // 'phar',
             'hash',
             'filter',
             'iconv'

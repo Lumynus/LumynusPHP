@@ -12,7 +12,7 @@ trait Helpers
      * Método para debugar dados.
      * 
      * @param mixed $data 
-     * @return Response 
+     * @return void 
      */
     public function dd(...$data): void
     {

@@ -13,7 +13,7 @@ use Lumynus\Framework\Luma;
 use Lumynus\Framework\Sessions;
 use Lumynus\Http\HttpResponse;
 use Lumynus\Framework\Sanitizer;
-use Lumynus\Framework\Converts;
+use Lumynus\Framework\Converter;
 use Lumynus\Framework\LumaClasses;
 use Lumynus\Framework\LumaHTTP;
 use Lumynus\Framework\HttpClient;
@@ -111,11 +111,11 @@ abstract class AbstractController extends LumaClasses
 
     /**
      * Método para obter a instância da classe Converts.
-     * @return Converts Retorna uma nova instância da classe Converts.
+     * @return Converter Retorna uma nova instância da classe Converts.
      */
-    public function converter(): Converts
+    public function converter(): Converter
     {
-        return $this->makeInstance(Converts::class);
+        return $this->makeInstance(Converter::class);
     }
 
     /**

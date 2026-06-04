@@ -38,6 +38,8 @@ final class Memory extends LumaClasses
      */
     public function read(string $filename): mixed
     {
+        $filename = str_ireplace('.luma', '', $filename);
+
         $path = $this->getPath($filename);
         if (!file_exists($path)) {
             return null;
@@ -204,8 +206,13 @@ final class Memory extends LumaClasses
      */
     public function list(): array
     {
-        $files = array_diff(scandir($this->memoryDir), ['.', '..']);
-        return array_filter($files, fn($f) => str_ends_with($f, '.luma'));
+        return array_values(array_map(
+            fn($f) => pathinfo($f, PATHINFO_FILENAME),
+            array_filter(
+                scandir($this->memoryDir),
+                fn($f) => preg_match('/\.luma$/i', $f)
+            )
+        ));
     }
 
     /**

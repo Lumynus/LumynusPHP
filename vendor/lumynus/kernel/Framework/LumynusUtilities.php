@@ -12,7 +12,7 @@ namespace Lumynus\Framework;
 use Lumynus\Framework\Sessions;
 use Lumynus\Http\HttpResponse;
 use Lumynus\Framework\Sanitizer;
-use Lumynus\Framework\Converts;
+use Lumynus\Framework\Converter;
 use Lumynus\Framework\LumaHTTP;
 use Lumynus\Framework\HttpClient;
 use Lumynus\Framework\Brasil;
@@ -97,12 +97,12 @@ trait LumynusUtilities
     }
 
     /**
-     * Método para obter a instância da classe Converts.
-     * @return Converts Retorna uma nova instância da classe Converts.
+     * Método para obter a instância da classe Converter.
+     * @return Converter Retorna uma nova instância da classe Converter.
      */
-    public function converter(): Converts
+    public function converter(): Converter
     {
-        return $this->makeInstance(Converts::class);
+        return $this->makeInstance(Converter::class);
     }
 
     /**

@@ -11,7 +11,7 @@ namespace Lumynus\Framework;
 
 use Lumynus\Framework\LumaClasses;
 
-final class Converts extends LumaClasses
+final class Converter extends LumaClasses
 {
 
     /**

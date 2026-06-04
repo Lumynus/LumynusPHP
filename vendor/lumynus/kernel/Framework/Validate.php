@@ -140,6 +140,10 @@ final class Validate extends LumaClasses
         ];
 
         foreach ($rawRules as $ruleString) {
+            if (!is_string($ruleString) || strpos($ruleString, ':') === false) {
+                continue;
+            }
+            
             [$field, $ruleDefs] = explode(':', $ruleString, 2);
             $field = trim($field);
 
