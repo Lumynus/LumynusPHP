@@ -55,7 +55,7 @@ final class Config extends LumaClasses
                 "author" => "Welen",
                 "email" => "",
                 "host" => "",
-                "domain" => "www.exemple.com"
+                "domain" => ""
             ],
             "path" => [
                 "public" => "/public/",
@@ -108,11 +108,9 @@ final class Config extends LumaClasses
     }
 
     /**
-     * Obtém o valor de uma configuração específica.
+     * Retorna o modo em que a Aplicação está configurada
      *
-     * @param string $key Chave da configuração.
-     * @param mixed $default Valor padrão a ser retornado se a chave não existir.
-     * @return mixed Retorna o valor da configuração ou o valor padrão.
+     * @return bool true -> Produção, false -> Desenvolvimento
      */
     public static function modeProduction(): bool
     {

@@ -62,10 +62,10 @@ class LumaConsole extends LumaClasses
 
             # Criptografia
             'key' => 'Gerar chave de criptografia',
-            'remove_key' => 'Remover chave de criptografia',
+            'removeKey' => 'Remover chave de criptografia',
             'encrypt' => 'Criptografar dados',
             'decrypt' => 'Descriptografar dados',
-            'encrypt_save' => 'Criptografar dados e salvar em arquivo',
+            'encryptSave' => 'Criptografar dados e salvar em arquivo',
 
             # Criações
             'controller' => 'Criar um novo controlador',
@@ -75,8 +75,8 @@ class LumaConsole extends LumaClasses
             'inspect' => 'Iniciar o inspector',
             'make' => 'Executar um comando',
             'middleware' => 'Criar um novo middleware',
-            'apache_htaccess' => 'Cria um arquivo .htaccess',
-            'nginx_conf' => 'Cria um arquivo conf de exemplo'
+            'htaccess' => 'Cria um arquivo .htaccess',
+            'nginxConf' => 'Cria um arquivo conf de exemplo'
         ];
 
         // Verifica se o comando existe
@@ -149,25 +149,25 @@ EOT
         echo PHP_EOL;
 
         echo "Available commands:\n\n";
-        echo "  {$CYAN}help{$RESET}               - Show this help menu | Mostrar opções do menu\n";
-        echo "  {$CYAN}version{$RESET}            - Show application version | Mostrar versão do aplicativo\n";
-        echo "  {$CYAN}status{$RESET}             - Display required system commands and environment status | Exibe o status do ambiente\n";
-        echo "  {$CYAN}info{$RESET}               - Show system information | Mostrar informações do sistema\n";
-        echo "  {$CYAN}server{$RESET}             - Start development server | Iniciar servidor de desenvolvimento\n";
-        echo "  {$CYAN}mode{$RESET}               - Show current application mode | Mostrar modo atual do aplicativo\n";
-        echo "  {$CYAN}inspect{$RESET}            - Start inspector | Iniciar o inspector\n";
-        echo "  {$CYAN}clear{$RESET}              - Clear temporary files and cache | Limpar arquivos temporários e cache\n";
-        echo "  {$CYAN}key{$RESET}                - Generate encryption key | Gerar chave de criptografia\n";
-        echo "  {$CYAN}remove_key{$RESET}         - Remove encryption key | Remover chave de criptografia\n";
-        echo "  {$CYAN}encrypt{$RESET}            - Encrypt data | Criptografar dados\n";
-        echo "  {$CYAN}encrypt_save{$RESET}       - Encrypt data and save | Criptografar dados e salvar\n";
-        echo "  {$CYAN}decrypt{$RESET}            - Decrypt data | Descriptografar dados\n";
-        echo "  {$CYAN}controller{$RESET}         - Create a new controller | Criar um novo controlador\n";
-        echo "  {$CYAN}command{$RESET}            - Create a new Command | Criar um novo comando\n";
-        echo "  {$CYAN}make{$RESET}               - Execute a command | Executar um comando\n";
-        echo "  {$CYAN}middleware{$RESET}         - Create a new middleware | Criar um novo middleware\n";
-        echo "  {$CYAN}apache_htaccess{$RESET}    - Create a .htaccess: /public | Cria .htaccess na /public\n";
-        echo "  {$CYAN}nginx_conf{$RESET}         - Creates a sample configuration | Cria um exemplo de configuração\n\n";
+        echo "  {$CYAN}help{$RESET}         - Show this help menu | Mostrar opções do menu\n";
+        echo "  {$CYAN}version{$RESET}      - Show application version | Mostrar versão do aplicativo\n";
+        echo "  {$CYAN}status{$RESET}       - Display required system commands and environment status | Exibe o status do ambiente\n";
+        echo "  {$CYAN}info{$RESET}         - Show system information | Mostrar informações do sistema\n";
+        echo "  {$CYAN}server{$RESET}       - Start development server | Iniciar servidor de desenvolvimento\n";
+        echo "  {$CYAN}mode{$RESET}         - Show current application mode | Mostrar modo atual do aplicativo\n";
+        echo "  {$CYAN}inspect{$RESET}      - Start inspector | Iniciar o inspector\n";
+        echo "  {$CYAN}clear{$RESET}        - Clear temporary files and cache | Limpar arquivos temporários e cache\n";
+        echo "  {$CYAN}key{$RESET}          - Generate encryption key | Gerar chave de criptografia\n";
+        echo "  {$CYAN}removeKey{$RESET}    - Remove encryption key | Remover chave de criptografia\n";
+        echo "  {$CYAN}encrypt{$RESET}      - Encrypt data | Criptografar dados\n";
+        echo "  {$CYAN}encryptSave{$RESET}  - Encrypt data and save | Criptografar dados e salvar\n";
+        echo "  {$CYAN}decrypt{$RESET}      - Decrypt data | Descriptografar dados\n";
+        echo "  {$CYAN}controller{$RESET}   - Create a new controller | Criar um novo controlador\n";
+        echo "  {$CYAN}command{$RESET}      - Create a new Command | Criar um novo comando\n";
+        echo "  {$CYAN}make{$RESET}         - Execute a command | Executar um comando\n";
+        echo "  {$CYAN}middleware{$RESET}   - Create a new middleware | Criar um novo middleware\n";
+        echo "  {$CYAN}htaccess{$RESET}     - Create a .htaccess: /public | Cria .htaccess na /public\n";
+        echo "  {$CYAN}nginxConf{$RESET}    - Creates a sample configuration | Cria um exemplo de configuração\n\n";
     }
 
     /**
@@ -443,7 +443,7 @@ EOT
         }
     }
 
-    private static function remove_key(array $data)
+    private static function removeKey(array $data)
     {
         $ciano = "\033[96m";
         $reset = "\033[0m";
@@ -529,7 +529,7 @@ EOT
         }
     }
 
-    private static function encrypt_save($data)
+    private static function encryptSave($data)
     {
         $ciano = "\033[96m";
         $reset = "\033[0m";
@@ -538,7 +538,7 @@ EOT
 
         if (empty($data) || self::l_countStatic($data) < 3) {
             echo "\n\nPlease provide a key name and data to encrypt and save\n";
-            echo "(Por favor, forneça um nome de chave e dados para criptografar e salvar)\nExample: php luma encrypt_save {$verde}key_name{$reset} '{$ciano}data{$reset}' {$roxo}nameFile{$reset}\n\n";
+            echo "(Por favor, forneça um nome de chave e dados para criptografar e salvar)\nExample: php luma encryptSave {$verde}key_name{$reset} {$ciano}data{$reset} {$roxo}nameFile{$reset}\n\n";
             return;
         }
 
@@ -574,8 +574,12 @@ EOT
         $reset = "\033[0m";
         $roxo = "\033[95m";
         $verde = "\033[92m";
+        $amarelo = "\033[93m";
 
-        if (Config::modeProduction()) {
+        $forcado = in_array('--force', $dados, true);
+        $dados = array_filter($dados, fn($v) => $v !== '--force');
+
+        if (Config::modeProduction() && $forcado === false) {
             echo "\n\nServer cannot be started in production mode. Switch to development mode to use this command.\n";
             echo "(O servidor não pode ser iniciado no modo de produção. Mude para o modo de desenvolvimento para usar este comando.)\n\n";
             return;
@@ -594,6 +598,11 @@ EOT
         $hostname = $index !== false ? gethostbyname(php_uname('n')) : 'localhost';
         $dadosLimpos = array_values(array_filter($dados, fn($v) => $v !== '--host'));
         $porta = $dadosLimpos[0] ?? '8000';
+
+        if ($forcado) {
+            echo "\n\n{$amarelo}Application is running in Production mode on a Development server (forced).{$reset}\n";
+            echo "(A aplicação está sendo executada em modo Produção em um servidor de Desenvolvimento - forçado.)\n\n";
+        }
 
         shell_exec('php -S ' . $hostname . ':' . $porta . ' -t ' . $caminho);
     }
@@ -880,7 +889,7 @@ PHP;
         }
     }
 
-    private static function apache_htaccess()
+    private static function htaccess()
     {
 
         $htaccess = <<<'EOL'
@@ -1084,7 +1093,7 @@ PHP;
     }
 
 
-    private static function nginx_conf()
+    private static function nginxConf()
     {
 
         $project_path = Config::pathProject();

@@ -76,7 +76,7 @@ final class Memory extends LumaClasses
             ? $this->getPath($filename)
             : $this->getUniquePath($filename);
 
-        $tmpPath = $finalPath . '.tmp';
+        $tmpPath = $finalPath . '.' . uniqid('', true) . '.tmp';
         $data = serialize($value);
 
         if (file_put_contents($tmpPath, $data, LOCK_EX) === false) {

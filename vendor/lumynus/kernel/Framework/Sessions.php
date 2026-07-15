@@ -57,7 +57,11 @@ final class Sessions extends LumaClasses implements \Lumynus\Contracts\SessionIn
 
         if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
 
-            session_name('LumynusSession_' . Config::getApplicationConfig()['App']['nameApplication']);
+            session_name(
+                trim(
+                    strtoupper(Config::getApplicationConfig()['App']['nameApplication'] ?? 'LUMYNUS') . '_SESSID'
+                )
+            );
             foreach ($this->options as $key => $value) {
                 ini_set("session.$key", (string) $value);
             }

@@ -497,7 +497,7 @@ class Luma extends LumaClasses
     private static function logPerformance(string $view, float $startTime): void
     {
         $duration = microtime(true) - $startTime;
-        if ($duration > 0.1) { // 100ms
+        if ($duration > 0.5) { // 500ms
             Logs::register("Error", "Slow template render: {$view} took " . round($duration * 1000) . "ms");
         }
     }
