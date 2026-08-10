@@ -1,5 +1,6 @@
 #Deabilitando caches
 caches/*
+vendor/*
 
 # Normalizar apenas arquivos de texto comuns
 * text=auto eol=lf
