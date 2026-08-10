@@ -29,6 +29,8 @@ use Lumynus\Framework\CORS;
 use Lumynus\Framework\Resolver;
 use Lumynus\Framework\LumynusContainer;
 use Lumynus\Framework\Helpers;
+use Lumynus\Framework\Collection;
+use Lumynus\Framework\File;
 
 /**
  * Trait com métodos utilitários comuns do framework Lumynus.
@@ -88,6 +90,16 @@ trait LumynusUtilities
     }
 
     /**
+     * Método para obter a instância da classe Collection.
+     * @param array $items Array de itens para a collection.
+     * @return Collection Retorna uma nova instância da classe Collection.
+     */
+    public function collection(array $items): Collection
+    {
+        return $this->makeInstance(Collection::class, [$items]);
+    }
+
+    /**
      * Método para obter a instância da classe Sanitizer.
      * @return Sanitizer Retorna uma nova instância da classe Sanitizer.
      */
@@ -120,7 +132,7 @@ trait LumynusUtilities
      */
     public function lumaHTTP(): LumaHTTP
     {
-        return $this->makeInstance(LumaHTTP::class);
+        return new LumaHTTP();
     }
 
     /**
@@ -129,7 +141,7 @@ trait LumynusUtilities
      */
     public function httpClient(): HttpClient
     {
-        return $this->makeInstance(HttpClient::class);
+        return new HttpClient();
     }
 
     /**
@@ -184,6 +196,15 @@ trait LumynusUtilities
     public function cors(): CORS
     {
         return $this->makeInstance(CORS::class);
+    }
+
+    /**
+     * Método para obter a instância da classe File
+     * @return File Retorna uma nova instância da classe File
+     */
+    public function file(): File
+    {
+        return $this->makeInstance(File::class);
     }
 
     /**

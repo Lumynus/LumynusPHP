@@ -32,6 +32,8 @@ use Lumynus\Http\Contracts\Request;
 use Lumynus\Http\Contracts\Response;
 use Lumynus\Framework\LumynusContainer;
 use Lumynus\Framework\Helpers;
+use Lumynus\Framework\Collection;
+use Lumynus\Framework\File;
 
 abstract class AbstractMiddleware extends LumaClasses
 {
@@ -89,7 +91,17 @@ abstract class AbstractMiddleware extends LumaClasses
      */
     public function response(): HttpResponse
     {
-        return new HttpResponse();
+        return $this->makeInstance(HttpResponse::class);
+    }
+
+    /**
+     * Método para obter a instância da classe Collection.
+     * @param array $items Array de itens para a collection.
+     * @return Collection Retorna uma nova instância da classe Collection.
+     */
+    public function collection(array $items): Collection
+    {
+        return $this->makeInstance(Collection::class, [$items]);
     }
 
     /**
@@ -125,7 +137,7 @@ abstract class AbstractMiddleware extends LumaClasses
      */
     public function lumaHTTP(): LumaHTTP
     {
-        return $this->makeInstance(LumaHTTP::class);
+        return new LumaHTTP();
     }
 
     /**
@@ -134,7 +146,7 @@ abstract class AbstractMiddleware extends LumaClasses
      */
     public function httpClient(): HttpClient
     {
-        return $this->makeInstance(HttpClient::class);
+        return new HttpClient();
     }
 
     /**
@@ -189,6 +201,15 @@ abstract class AbstractMiddleware extends LumaClasses
     public function memory(): Memory
     {
         return $this->makeInstance(Memory::class);
+    }
+
+    /**
+     * Método para obter a instância da classe File
+     * @return File Retorna uma nova instância da classe File
+     */
+    public function file(): File
+    {
+        return $this->makeInstance(File::class);
     }
 
     /**

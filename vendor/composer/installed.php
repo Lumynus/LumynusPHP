@@ -3,7 +3,7 @@
         'name' => 'lumynus/lumynus',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '065d933da326b2ec991367f6a297cf59b94f1e8b',
+        'reference' => '3069ebeb6e07f4e5c78b1aa9ad301d5a72bf75a4',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,9 +11,9 @@
     ),
     'versions' => array(
         'lumynus/kernel' => array(
-            'pretty_version' => 'v1.8.0',
-            'version' => '1.8.0.0',
-            'reference' => '7c6b6b75dfbf016fc42966823f6239a35b5e8469',
+            'pretty_version' => 'v1.8.2',
+            'version' => '1.8.2.0',
+            'reference' => 'ade6d1c3966b27ca596f29f857e96fca7760a41e',
             'type' => 'library',
             'install_path' => __DIR__ . '/../lumynus/kernel',
             'aliases' => array(),
@@ -22,7 +22,7 @@
         'lumynus/lumynus' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '065d933da326b2ec991367f6a297cf59b94f1e8b',
+            'reference' => '3069ebeb6e07f4e5c78b1aa9ad301d5a72bf75a4',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

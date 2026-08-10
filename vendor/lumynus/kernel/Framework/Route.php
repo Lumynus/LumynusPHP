@@ -774,7 +774,7 @@ final class Route extends LumaClasses
      * Inicia o roteamento da aplicação.
      * Lê a URI da requisição, busca rotas estáticas ou dinâmicas, valida e executa.
      *
-     * @return void
+     * @return ContractsResponse
      */
     public static function start(
         ?array $server = null,

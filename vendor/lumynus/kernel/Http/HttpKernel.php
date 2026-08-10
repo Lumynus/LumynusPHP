@@ -18,6 +18,17 @@ class HttpKernel
 
     use Errors;
 
+    /**
+     * Inicia o kernel HTTP
+     *
+     * @param array|null $server
+     * @param array|null $get
+     * @param array|null $post
+     * @param array|null $files
+     * @param array|null $headers
+     * @param string|null $rawContent
+     * @return void
+     */
     public function handle(
         ?array $server = null,
         ?array $get = null,
@@ -27,6 +38,9 @@ class HttpKernel
         ?string $rawContent = null
     ): void {
         try {
+
+            $this->setup();
+
             $response = Route::start(
                 $server,
                 $get,
@@ -45,6 +59,9 @@ class HttpKernel
         }
     }
 
+    /**
+     * Encerra a requisição
+     */
     private function terminate(): void
     {
 
@@ -64,5 +81,20 @@ class HttpKernel
         DataBase::closeAll();
 
         LumynusContainer::clear();
+    }
+
+    /**
+     * Caso o desenvolvedor queira inicicar as requisições com uma configuração específica,
+     * ele pode criar um arquivo setup.php na raiz do projeto.
+     * Este método será chamado automaticamente pelo kernel no método handle(), antes do roteamento.
+     * O arquivo deve conter a função setup() que recebe o kernel como parâmetro.
+     * @return void
+     */
+    private function setup(): void
+    {
+        $raiz = Config::pathProject();
+        if (file_exists($raiz . 'setup.php')) {
+            require_once $raiz . 'setup.php';
+        }
     }
 }

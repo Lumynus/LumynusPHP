@@ -52,7 +52,7 @@ final class Config extends LumaClasses
                 "nameApplication" => "Lumynus",
                 "version" => "1",
                 "description" => "A simple PHP framework for building web applications.",
-                "author" => "Welen",
+                "author" => "Weleny Santos",
                 "email" => "",
                 "host" => "",
                 "domain" => ""

@@ -108,6 +108,22 @@ final class Encryption extends LumaClasses
         return $plaintext;
     }
 
+    /**
+     * Verifica se uma chave PEM existe.
+     * @param string|null $keyName Nome da chave (sem extensão)
+     * @return bool True se a chave existir
+     */
+    public static function hasKey(?string $keyName = null): bool
+    {
+        $keyDir = Config::pathProject() .
+            DIRECTORY_SEPARATOR . 'storage'
+            . DIRECTORY_SEPARATOR . 'keys';
+
+        $keyName = self::sanitizeFileName($keyName ?? 'key');
+        $keyFile = $keyDir . DIRECTORY_SEPARATOR . $keyName . '.pem';
+
+        return file_exists($keyFile);
+    }
 
     /**
      * Cria uma nova chave AES de 32 bytes e salva em arquivo PEM.

@@ -48,6 +48,20 @@ abstract class AbstractCommand extends LumaClasses implements Output
     }
 
     /**
+     * Método para fazer uma pergunta ao usuário.
+     *
+     * @param string      $message   Mensagem a ser exibida ao usuário
+     * @param string|null $colorANSI Cor da mensagem (padrão azul)
+     * @return string
+     */
+    protected function question(string $message, string $colorANSI = "\033[37m"): string
+    {
+        $this->responded = true;
+        $question = readline(PHP_EOL . $colorANSI . $message . self::RESET . PHP_EOL);
+        return $question ?? '';
+    }
+
+    /**
      * Método para indicar sucesso no comando.
      *
      * @param string $message

@@ -123,36 +123,51 @@ final class Brasil extends LumaClasses
      * @param string $cnpj O CNPJ a ser validado.
      * @return bool Retorna true se o CNPJ for válido, caso contrário, false.
      */
-    public static function validarCNPJ(string|null $cnpj): bool
+    public static function validarCNPJ(?string $cnpj): bool
     {
         if ($cnpj === null) {
             return false;
         }
 
-        $cnpj = preg_replace('/\D/', '', $cnpj);
+        // Remove máscara e normaliza para maiúsculas
+        $cnpj = strtoupper(preg_replace('/[^A-Z0-9]/', '', $cnpj));
 
+        // CNPJ possui exatamente 14 posições
         if (strlen($cnpj) !== 14) {
             return false;
         }
-        if (preg_match('/^(\d)\1{13}$/', $cnpj)) {
+
+        // Os dois últimos caracteres são obrigatoriamente numéricos
+        if (!ctype_digit(substr($cnpj, 12, 2))) {
             return false;
         }
 
+        // Converte conforme regra da Receita:
+        // números permanecem com seu valor
+        // letras = ASCII - 48
+        $valor = static function (string $char): int {
+            return ord($char) - 48;
+        };
+
+        $pesos = [
+            [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2],
+            [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2],
+        ];
+
         for ($t = 12; $t < 14; $t++) {
             $soma = 0;
-            $peso = $t - 7;
 
-            for ($i = 0; $i < $t; $i++) {
-                $soma += $cnpj[$i] * $peso--;
-                if ($peso < 2) {
-                    $peso = 9;
-                }
+            foreach ($pesos[$t - 12] as $i => $peso) {
+                $soma += $valor($cnpj[$i]) * $peso;
             }
 
-            $digito = $soma % 11;
-            $digito = ($digito < 2) ? 0 : 11 - $digito;
+            $resto = $soma % 11;
 
-            if ((int)$cnpj[$t] !== $digito) {
+            $digito = $resto < 2
+                ? 0
+                : 11 - $resto;
+
+            if ((int) $cnpj[$t] !== $digito) {
                 return false;
             }
         }
