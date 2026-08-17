@@ -8,6 +8,7 @@ use Lumynus\Http\HttpException;
 use Lumynus\Templates\Errors;
 use Lumynus\Framework\Route;
 use Lumynus\Framework\Config;
+use Lumynus\Framework\CORS;
 use Lumynus\Framework\DataBase;
 use Lumynus\Framework\Logs;
 use Lumynus\Framework\LumynusContainer;
@@ -92,9 +93,19 @@ class HttpKernel
      */
     private function setup(): void
     {
+
+        $corsCfg = Config::getApplicationConfig()['security']['cors'] ?? [];
+        if (!empty($corsCfg['enabled'])) {
+            $cors = new CORS();
+            $cors->setOrigins($corsCfg['allowedOrigins'] ?? []);
+            $cors->setMethods($corsCfg['allowedMethods'] ?? ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']);
+            $cors->setTimeCache((int)($corsCfg['timeCache'] ?? 86400));
+            $cors->handle();
+        }
+
         $raiz = Config::pathProject();
-        if (file_exists($raiz . 'setup.php')) {
-            require_once $raiz . 'setup.php';
+        if (file_exists($raiz . '/setup.php')) {
+            require_once $raiz . '/setup.php';
         }
     }
 }

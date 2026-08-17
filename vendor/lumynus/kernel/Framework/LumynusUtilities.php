@@ -190,15 +190,6 @@ trait LumynusUtilities
     }
 
     /**
-     * Método para obter a instância da classe CORS.
-     * @return CORS Retorna uma nova instância da classe CORS.
-     */
-    public function cors(): CORS
-    {
-        return $this->makeInstance(CORS::class);
-    }
-
-    /**
      * Método para obter a instância da classe File
      * @return File Retorna uma nova instância da classe File
      */

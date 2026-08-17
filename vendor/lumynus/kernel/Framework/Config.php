@@ -79,7 +79,20 @@ final class Config extends LumaClasses
                 ],
                 "cookie" => [
                     "secret" => "2025_trx$#@@lum@nysCryptCookiesDates"
-                ]
+                ],
+                "cors" => [
+                    "enabled" => false,
+                    "allowedOrigins" => ["*"],
+                    "allowedMethods" => [
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "DELETE",
+                        "OPTIONS",
+                        "PATCH",
+                    ],
+                    "timeCache" => 86400,
+                ],
             ],
             "frontend" => [
                 "versionAssets" => true

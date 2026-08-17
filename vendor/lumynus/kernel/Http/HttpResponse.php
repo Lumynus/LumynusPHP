@@ -319,7 +319,11 @@ final class HttpResponse extends LumaClasses implements ResponseInterface
             return $this->status(404)->text('File not found.');
         }
 
-        $base = realpath(Config::getApplicationConfig()['path']['files']);
+        $configPath = Config::getApplicationConfig()['path']['files'];
+        $base = realpath(Config::pathProject() . DIRECTORY_SEPARATOR . ltrim($configPath, '/\\'));
+        if ($base === false) {
+            $base = realpath($configPath);
+        }
 
         if ($base === false) {
             return $this->status(500)->text('Invalid files base path.');

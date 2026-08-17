@@ -429,7 +429,8 @@ EOT
         $reset = "\033[0m";
         if (empty($data)) {
             echo "\n\nPlease provide a key name\n";
-            echo "(Por favor, forneça um nome para a chave)\n\n";
+            echo "(Por favor, forneça um nome para a chave)\n";
+            echo "Example: php luma key {$ciano}name{$reset}'\n\n";
             return;
         }
 
@@ -448,8 +449,9 @@ EOT
         $ciano = "\033[96m";
         $reset = "\033[0m";
         if (empty($data)) {
-            echo "\n\nPlease provide a key name\n";
-            echo "(Por favor, forneça um nome para a chave)\n\n";
+            echo "\n\nPlease provide the name of the key to be removed.\n";
+            echo "(Por favor, forneça o nome da chave a ser removida)\n\n";
+            echo "Example: php luma removeKey {$ciano}name{$reset}'\n\n";
             return;
         }
 
@@ -637,6 +639,18 @@ EOT
 
     private static function controller($dados)
     {
+
+        $ciano = "\033[96m";
+        $reset = "\033[0m";
+        $roxo = "\033[95m";
+        $verde = "\033[92m";
+
+        if (empty($data) || self::l_countStatic($data) < 1) {
+            echo "\n\nPlease provide a controller name\n";
+            echo "(Por favor, forneça um nome para o Controlador.)\nExample: php luma controller {$roxo}PascalCase{$reset}'\n\n";
+            return;
+        }
+
         $input = trim($dados[0], '\\');
         $parts = explode('\\', $input);
         $className = array_pop($parts);
@@ -707,6 +721,18 @@ PHP;
 
     private static function middleware($dados)
     {
+
+        $ciano = "\033[96m";
+        $reset = "\033[0m";
+        $roxo = "\033[95m";
+        $verde = "\033[92m";
+
+        if (empty($data) || self::l_countStatic($data) < 1) {
+            echo "\n\nPlease provide a middleware name\n";
+            echo "(Por favor, forneça um nome para o middleware.)\nExample: php luma middleware {$roxo}PascalCase{$reset}'\n\n";
+            return;
+        }
+
         $input = trim($dados[0], '\\');
 
         $parts = explode('\\', $input);
@@ -783,6 +809,18 @@ PHP;
 
     private static function command($dados)
     {
+
+        $ciano = "\033[96m";
+        $reset = "\033[0m";
+        $roxo = "\033[95m";
+        $verde = "\033[92m";
+
+        if (empty($data) || self::l_countStatic($data) < 1) {
+            echo "\n\nPlease provide a command name\n";
+            echo "(Por favor, forneça um nome para o comando.)\nExample: php luma command {$roxo}PascalCase{$reset}'\n\n";
+            return;
+        }
+
         $input = trim($dados[0], '\\');
         $parts = explode('\\', $input);
         $className = array_pop($parts);
