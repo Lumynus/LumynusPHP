@@ -98,6 +98,7 @@ class HttpKernel
         if (!empty($corsCfg['enabled'])) {
             $cors = new CORS();
             $cors->setOrigins($corsCfg['allowedOrigins'] ?? []);
+            $cors->setHeaders($corsCfg['allowedHeaders'] ?? []);
             $cors->setMethods($corsCfg['allowedMethods'] ?? ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']);
             $cors->setTimeCache((int)($corsCfg['timeCache'] ?? 86400));
             $cors->handle();

@@ -31,21 +31,28 @@ final class CORS extends LumaClasses
      */
     private $allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'];
 
-    /*     * Cabeçalhos permitidos para CORS.
+    /* * Cabeçalhos permitidos para CORS.
      * Estes são os cabeçalhos que o servidor aceitará de requisições CORS.
      * Você pode adicionar ou remover cabeçalhos conforme necessário.
      */
-    private $allowedHeaders = [
+       private $allowedHeaders = [
         'Content-Type',
         'Authorization',
         'Accept',
         'Origin',
         'X-Requested-With',
         'X-CSRF-Token',
+        'HTTP-XSRF-TOKEN',
+        'luma_csrf',
+        'LUMA-CSRF-TOKEN',
+        'LUMA-CSRF',
+        'LUMA_CSRF',
         'X-Auth-Token',
         'X-Access-Token',
         'Cache-Control',
         'Pragma',
+        'XSRF-TOKEN',
+        'CSRF-TOKEN'
     ];
 
     /**
@@ -61,15 +68,13 @@ final class CORS extends LumaClasses
      *
      * @param array $origins Array de origens permitidas.
      */
-    public function setOrigins(string| array $origin)
+    public function setOrigins(string|array $origins): void
     {
-        if (is_string($origin)) {
-            $this->allowedOrigins = [$origin];
-        } elseif (is_array($origin)) {
-            $this->allowedOrigins = $origin;
-        } else {
-            throw new \InvalidArgumentException('Origin must be a string or an array of strings.');
-        }
+        $origins = is_array($origins) ? $origins : [$origins];
+
+        $this->allowedOrigins = array_unique(
+            array_merge($this->allowedOrigins, $origins)
+        );
     }
 
     /**
@@ -87,9 +92,11 @@ final class CORS extends LumaClasses
      * @param array $headers Array de cabeçalhos permitidos.
      * @throws \InvalidArgumentException Se os cabeçalhos não forem válidos.
      */
-    public function setHeaders(array $headers)
+     public function setHeaders(array $headers)
     {
-        $this->allowedHeaders = array_intersect($headers, $this->allowedHeaders);
+         $this->allowedHeaders = array_unique(
+            array_merge($this->allowedHeaders, $headers)
+        );
     }
 
     /**

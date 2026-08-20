@@ -83,6 +83,7 @@ final class Config extends LumaClasses
                 "cors" => [
                     "enabled" => false,
                     "allowedOrigins" => ["*"],
+                    "allowedHeaders" => [],
                     "allowedMethods" => [
                         "GET",
                         "POST",

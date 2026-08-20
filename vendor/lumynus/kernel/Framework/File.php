@@ -48,6 +48,18 @@ class File extends LumaClasses
     {
         try {
             $pathAbsolute = $this->getPath($path);
+
+            $oldFile = $pathAbsolute . $fileName;
+
+            if (!is_file($oldFile)) {
+                Logs::register('File not found: ' . $fileName, 'error');
+                return false;
+            }
+
+            if (!is_dir($pathAbsolute) && !mkdir($pathAbsolute, 0755, true)) {
+                Logs::register('Failed to create directory: ' . $pathAbsolute, 'error');
+                return false;
+            }
             return rename($pathAbsolute . $fileName, $pathAbsolute . $newName);
         } catch (\Throwable $th) {
             Logs::register('File rename error: ' . $th->getMessage(), 'error');
@@ -82,7 +94,14 @@ class File extends LumaClasses
     {
         try {
             $pathAbsolute = $this->getPath($path);
-            return unlink($pathAbsolute . $fileName);
+            $file = $pathAbsolute . $fileName;
+
+            if (!is_file($file)) {
+                Logs::register('File not found: ' . $fileName, 'error');
+                return false;
+            }
+
+            return unlink($file);
         } catch (\Throwable $th) {
             Logs::register('File delete error: ' . $th->getMessage(), 'error');
             return false;
@@ -100,6 +119,10 @@ class File extends LumaClasses
     {
         try {
             $pathAbsolute = $this->getPath($path);
+            if (!is_dir($pathAbsolute) && !mkdir($pathAbsolute, 0755, true)) {
+                Logs::register('Failed to create directory: ' . $pathAbsolute, 'error');
+                return false;
+            }
             return move_uploaded_file($from, $pathAbsolute . $newName);
         } catch (\Throwable $th) {
             Logs::register('File upload error: ' . $th->getMessage(), 'error');
@@ -118,6 +141,10 @@ class File extends LumaClasses
     {
         try {
             $pathAbsolute = $this->getPath($path);
+            if (!is_dir($pathAbsolute) && !mkdir($pathAbsolute, 0755, true)) {
+                Logs::register('Failed to create directory: ' . $pathAbsolute, 'error');
+                return false;
+            }
             return copy($pathAbsolute . $fileName, $pathAbsolute . $newName);
         } catch (\Throwable $th) {
             Logs::register('File copy error: ' . $th->getMessage(), 'error');
@@ -135,7 +162,14 @@ class File extends LumaClasses
     {
         $pathAbsolute = $this->getPath($path);
 
-        $files = array_diff(scandir($pathAbsolute, SCANDIR_SORT_DESCENDING), ['.', '..']) ?? [];
+        if (!is_dir($pathAbsolute)) {
+            return [];
+        }
+
+        $files = array_diff(
+            scandir($pathAbsolute, SCANDIR_SORT_DESCENDING),
+            ['.', '..']
+        );
 
         $key = Sanitizer::string($key);
         if (!empty($key)) {
@@ -156,8 +190,12 @@ class File extends LumaClasses
     {
         $pathProject = Config::pathProject();
         $pathFiles = Config::getApplicationConfig()['path']['files'];
-        $pathAlternative = empty($path) ? '' : $path . DIRECTORY_SEPARATOR;
-        return $pathProject . $pathFiles . $pathAlternative;
+
+        return rtrim($pathProject . $pathFiles, DIRECTORY_SEPARATOR)
+            . DIRECTORY_SEPARATOR
+            . ($path !== ''
+                ? trim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR
+                : '');
     }
 
     /**
