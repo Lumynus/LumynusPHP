@@ -58,7 +58,6 @@ final class Encryption extends LumaClasses
         return base64_encode($iv . $tag . $ciphertext);
     }
 
-
     /**
      * Descriptografa um conteúdo criptografado com AES-256-GCM.
      *
@@ -106,6 +105,37 @@ final class Encryption extends LumaClasses
         }
 
         return $plaintext;
+    }
+
+     /**
+     * Criptografa um conteúdo usando AES-256-GCM e codifica o resultado
+     * em Base64 URL-safe, removendo o padding.
+     *
+     * @param string $data Conteúdo a ser criptografado.
+     * @param string|null $keyName Nome da chave PEM a ser utilizada.
+     *
+     * @return string Conteúdo criptografado e codificado para uso em URL.
+     *
+     * @throws \InvalidArgumentException Se o conteúdo for vazio ou inválido.
+     * @throws \RuntimeException Se o OpenSSL não estiver disponível ou a criptografia falhar.
+     */
+    public static function encryptToUrl(string $data, ?string $keyName = null): string {
+        return rtrim(strtr($this->encrypt($data,$keyName), '+/', '-_'), '=');
+    }
+
+     /**
+     * Descriptografa um conteúdo criptografado e codificado para uso em URL.
+     *
+     * @param string $data Conteúdo criptografado em Base64 URL-safe.
+     * @param string|null $keyName Nome da chave PEM a ser utilizada.
+     *
+     * @return string Conteúdo descriptografado.
+     *
+     * @throws \InvalidArgumentException Se o conteúdo for vazio ou inválido.
+     * @throws \RuntimeException Se a descriptografia falhar.
+     */
+    public static function decryptFromUrl(string $data, ?string $keyName = null) : string {
+        return $this->decrypt(strtr($data, '-_', '+/'), $keyName);
     }
 
     /**

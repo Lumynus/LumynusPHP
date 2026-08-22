@@ -11,6 +11,7 @@ namespace Lumynus\Framework;
 
 use Lumynus\Framework\LumaClasses;
 use Lumynus\Templates\Errors;
+use Lumynus\Framework\Config;
 
 final class CORS extends LumaClasses
 {
@@ -130,6 +131,17 @@ final class CORS extends LumaClasses
         }
 
         header('Access-Control-Allow-Origin: ' . $origin);
+
+        $corsCfg = Config::getApplicationConfig()['security']['cors'] ?? [];
+        if (!empty($corsCfg['enabled'])) {
+            if (isset($corsCfg['credentials'])) {
+                header(
+                    'Access-Control-Allow-Credentials: ' .
+                        ($corsCfg['credentials'] === true ? 'true' : 'false')
+                );
+            }
+        }
+
         header('Vary: Origin');
         header('Access-Control-Allow-Methods: ' . implode(', ', $this->allowedMethods));
         header('Access-Control-Allow-Headers: ' . implode(', ', $this->allowedHeaders));

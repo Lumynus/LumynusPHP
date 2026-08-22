@@ -84,6 +84,7 @@ final class Config extends LumaClasses
                     "enabled" => false,
                     "allowedOrigins" => ["*"],
                     "allowedHeaders" => [],
+                    "credentials" => true,
                     "allowedMethods" => [
                         "GET",
                         "POST",
