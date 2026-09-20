@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Lumynus\Console\Contracts;
 
 interface Output
@@ -34,4 +36,19 @@ interface Output
      * @return string
      */
     public function question(string $message, string $colorANSI = "\033[37m"): string;
+
+    /**
+     * Método para responder ao comando.
+     *
+     * @param string      $message   Mensagem a ser exibida ao usuário
+     * @param string|null $colorANSI Cor da mensagem (padrão azul) . Exemplo: "\033[94m" para azul.
+     * @return self
+     */
+    public function respond(string $message, string $colorANSI = "\033[37m"): self;
+
+    /**
+     * Método para interromper o comando em execução.
+     * @return void
+     */
+    public function interrupt(): void;
 }

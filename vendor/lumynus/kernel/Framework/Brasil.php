@@ -89,7 +89,17 @@ final class Brasil extends LumaClasses
             return null;
         }
 
-        return preg_replace("/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/", "$1.$2.$3/$4-$5", preg_replace('/\D/', '', $cnpj));
+        $cnpj = preg_replace('/[^A-Za-z0-9]/', '', $cnpj);
+
+        if (strlen($cnpj) !== 14) {
+            return $cnpj;
+        }
+
+        return preg_replace(
+            '/^(.{2})(.{3})(.{3})(.{4})(.{2})$/',
+            '$1.$2.$3/$4-$5',
+            strtoupper($cnpj)
+        );
     }
 
     /**

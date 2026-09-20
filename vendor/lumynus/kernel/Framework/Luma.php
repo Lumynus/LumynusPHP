@@ -41,6 +41,7 @@ class Luma extends LumaClasses
 
     /**
      * Inicializa os padrões de regex seguros para o compilador.
+     * @return void
      */
     public static function bootCompiler(): void
     {
@@ -92,9 +93,17 @@ class Luma extends LumaClasses
         ];
     }
 
-
     /**
      * Renderiza uma view com os dados fornecidos de forma segura.
+     * @param string $view Nome da view a ser renderizada
+     * @param array $data Dados a serem passados para a view
+     * @param bool $regenerateCSRF Indica se o token CSRF deve ser regenerado
+     * @param bool $isolate Indica se os dados devem ser isolados (não mesclados com dados compartilhados)
+     * @throws ViewNotFoundException Se a view não for encontrada
+     * @throws TemplateSecurityException Se houver um problema de segurança no template
+     * @throws TemplateCompilationException Se houver um problema na compilação do template
+     * @return string O conteúdo renderizado da view
+     * 
      */
     public static function render(string $view, array $data = [], bool $regenerateCSRF = true, bool $isolate = false): string
     {
@@ -186,6 +195,9 @@ class Luma extends LumaClasses
 
     /**
      * Valida o nome da view contra caracteres perigosos.
+     * @param string $view
+     * @throws TemplateSecurityException
+     * @return void
      */
     private static function validateView(string $view): void
     {
@@ -200,6 +212,8 @@ class Luma extends LumaClasses
 
     /**
      * Rate limiting para compilações.
+     * @throws TemplateSecurityException
+     * 
      */
     private static function checkRateLimit(): void
     {
@@ -221,6 +235,10 @@ class Luma extends LumaClasses
 
     /**
      * Resolve o caminho seguro da view.
+     * @param string $basePath
+     * @param array $config
+     * @param string $view
+     * @return string
      */
     private static function resolveViewPath(string $basePath, array $config, string $view): string
     {
@@ -240,6 +258,10 @@ class Luma extends LumaClasses
 
     /**
      * Gera caminho seguro para arquivo de cache.
+     * @param string $basePath
+     * @param array $config
+     * @param string $view
+     * @return string
      */
     private static function getCacheFilePath(string $basePath, array $config, string $view): string
     {
@@ -256,6 +278,11 @@ class Luma extends LumaClasses
 
     /**
      * Compila e armazena template em cache com validações de segurança.
+     * @param string $viewFile
+     * @param string $cacheFile
+     * @throws TemplateSecurityException
+     * @throws TemplateCompilationException
+     * @return void
      */
     private static function compileAndCache(string $viewFile, string $cacheFile): void
     {
@@ -272,7 +299,7 @@ class Luma extends LumaClasses
         $compiled = self::compile($original);
 
         if (empty($compiled)) {
-            throw new TemplateCompilationException("Template compilation failed.");
+            throw new TemplateCompilationException("Template compilation failed. The compiled content is empty.");
         }
 
         $tmpFile = $cacheFile . '.tmp';
@@ -288,6 +315,8 @@ class Luma extends LumaClasses
 
     /**
      * Compila template com validações de segurança aprimoradas.
+     * @param string $template
+     * @return string
      */
     private static function compile(string $template): string
     {
@@ -313,6 +342,8 @@ class Luma extends LumaClasses
 
     /**
      * Compila estruturas de controle de forma segura.
+     * @param string $template
+     * @return string
      */
     private static function compileControlStructures(string $template): string
     {
@@ -351,6 +382,8 @@ class Luma extends LumaClasses
 
     /**
      * Compila includes de forma segura.
+     * @param string $template
+     * @return string
      */
     private static function compileIncludes(string $template): string
     {
@@ -379,9 +412,10 @@ class Luma extends LumaClasses
         return $template;
     }
 
-
     /**
      * Compila assets com validação de integridade e gerencia injeção no header.
+     * @param string $template
+     * @return string
      */
     private static function compileAssets(string $template): string
     {
@@ -420,6 +454,8 @@ class Luma extends LumaClasses
 
     /**
      * Compila escape de variáveis com validação rigorosa.
+     * @param string $template
+     * @return string
      */
     private static function compileEscape(string $template): string
     {
@@ -452,6 +488,8 @@ class Luma extends LumaClasses
 
     /**
      * Compila helpers personalizados.
+     * @param string $template
+     * @return string
      */
     private static function compileHelpers(string $template): string
     {
@@ -474,6 +512,8 @@ class Luma extends LumaClasses
 
     /**
      * Adiciona token CSRF se habilitado.
+     * @param string $template
+     * @return string
      */
     private static function addCSRFToken(string $template): string
     {
@@ -482,6 +522,13 @@ class Luma extends LumaClasses
         if (($config['security']['csrf']['enabled'] ?? false) !== true) {
             return $template;
         }
+
+        $template = preg_replace(
+            '/<\/head>/i',
+            '<meta name="<?= $csrf_name ?? "csrf" ?>" content="<?= $csrf_token ?? "" ?>">'  . PHP_EOL . '</head>',
+            $template,
+            1
+        );
 
         return preg_replace(
             '/<\/body>/i',
@@ -493,6 +540,9 @@ class Luma extends LumaClasses
 
     /**
      * Log de performance para templates lentos.
+     * @param string $view
+     * @param float $startTime
+     * @return void
      */
     private static function logPerformance(string $view, float $startTime): void
     {
@@ -502,8 +552,12 @@ class Luma extends LumaClasses
         }
     }
 
-    // ... outros métodos permanecem iguais mas com validações adicionais
-
+    /**
+     * Verifica se o cache é válido.
+     * @param string $viewFile
+     * @param string $cacheFile
+     * @return bool
+     */
     private static function isCached(string $viewFile, string $cacheFile): bool
     {
         return file_exists($cacheFile)
@@ -511,6 +565,13 @@ class Luma extends LumaClasses
             && filesize($cacheFile) > 0;
     }
 
+    /**
+     * Renderiza o conteúdo do cache com os dados fornecidos.
+     * @param string $cacheFile
+     * @param array $data
+     * @param bool $regenerateCSRF
+     * @return string
+     */
     private static function getRenderedContent(string $cacheFile, array $data, bool $regenerateCSRF): string
     {
         $config = Config::getApplicationConfig();
@@ -527,10 +588,12 @@ class Luma extends LumaClasses
         })($cacheFile, $data);
     }
 
-
     /**
      * Registra um asset na fila para injeção posterior no head.
      * Deve ser público pois será chamado pelos arquivos de cache compilados.
+     * @param string $pathOrVar Caminho do asset ou variável contendo o caminho
+     * @param string $type Tipo do asset ('js' ou 'css')
+     * @return void
      */
     public static function registerHeaderAsset(string $pathOrVar, string $type): void
     {
@@ -544,6 +607,9 @@ class Luma extends LumaClasses
 
     /**
      * Gera HTML para assets com validação de integridade.
+     * @param string $path
+     * @param string $type
+     * @return string
      */
     public static function getAssetHtml(string $path, string $type): string
     {
@@ -588,6 +654,9 @@ class Luma extends LumaClasses
         return "<link rel=\"stylesheet\" href=\"{$url}\" {$integrity}>";
     }
 
+    /**
+     * Método mágico para depuração.
+     */
     public function __debugInfo(): array
     {
         return ['Lumynus' => "Framework PHP"];

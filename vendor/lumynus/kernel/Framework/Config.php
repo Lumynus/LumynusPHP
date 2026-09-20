@@ -111,6 +111,96 @@ final class Config extends LumaClasses
         ];
     }
 
+    /**
+     * Obtém o ambiente de execução atual do PHP.
+     *
+     * @return string Retorna uma string representando o ambiente de execução.
+     */
+    public static function getRuntimeEnvironment(): string
+    {
+        return match (PHP_SAPI) {
+            'cli'            => 'cli',
+            'cli-server'     => 'php-server',
+            'apache2handler' => 'apache',
+            'fpm-fcgi'       => 'php-fpm',
+            'cgi-fcgi'       => 'cgi',
+            'cgi'            => 'cgi',
+            'litespeed'      => 'litespeed',
+            default           => 'unknown',
+        };
+    }
+
+    /**
+     * Obtém o sistema operacional em que o PHP está sendo executado.
+     *
+     * @return string Retorna uma string representando o sistema operacional.
+     */
+    public static function getOperatingSystem(): string
+    {
+        return match (PHP_OS_FAMILY) {
+            'Windows' => 'Windows',
+            'Linux'   => 'Linux',
+            'Darwin'  => 'macOS',
+            'BSD'     => 'BSD',
+            default   => 'Unknown',
+        };
+    }
+
+    /**
+     * Obtém informações sobre o host da requisição HTTP atual.
+     *
+     * @param string $part Parte a ser retornada: host, port ou full.
+     *
+     * @return string|null Retorna o host, a porta ou host com porta.
+     */
+    public static function getHost(string $part = 'host'): ?string
+    {
+        $host = $_SERVER['HTTP_HOST'] ?? null;
+
+        if ($host === null) {
+            return null;
+        }
+
+        [$hostname, $port] = array_pad(explode(':', $host, 2), 2, null);
+
+        return match ($part) {
+            'host' => $hostname,
+            'port' => $port,
+            'full' => $host,
+            default => null,
+        };
+    }
+
+    /**
+     * Obtém o método HTTP da requisição atual.
+     *
+     * @return string Retorna o método HTTP (GET, POST, etc.).
+     */
+    public static function getRequestMethod(): string
+    {
+        return $_SERVER['REQUEST_METHOD'] ?? 'GET';
+    }
+
+    /**
+     * Verifica se a requisição atual é feita a partir de localhost.
+     *
+     * @return bool Retorna true se for localhost, caso contrário false.
+     */
+    public static function isLocalhost(): bool
+    {
+        $host = self::getHost('host');
+
+        if ($host === null) {
+            return false;
+        }
+
+        return in_array($host, [
+            'localhost',
+            'localhost.localdomain',
+            '127.0.0.1',
+            '::1',
+        ], true);
+    }
 
     /**
      * Retorna o caminho do projeto Lumynus.

@@ -125,9 +125,14 @@ final class CORS extends LumaClasses
     {
         $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
-        if (!in_array($origin, $this->allowedOrigins)) {
+        if (!in_array($origin, $this->allowedOrigins) && !in_array('*', $this->allowedOrigins)) {
+            Logs::register('CORS Error', "Blocked origin: '{$origin}'");
             self::throwError('CORS origin not allowed', 403);
             return;
+        }
+        
+        if (in_array('*', $this->allowedOrigins) && empty($origin)) {
+            $origin = '*';
         }
 
         header('Access-Control-Allow-Origin: ' . $origin);

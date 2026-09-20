@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Lumynus\Framework;
 
 use Lumynus\Http\Contracts\Response;

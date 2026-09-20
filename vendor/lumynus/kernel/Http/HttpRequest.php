@@ -36,8 +36,22 @@ final class HttpRequest implements RequestInterface
      */
     public static function fromGlobals(): self
     {
+
+        $method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+
+        // Permite enviar o HTTP Method Spoofing
+        if ($method === 'POST') {
+            $override = $_POST['_method'] 
+                ?? $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] 
+                ?? null;
+
+            if ($override && in_array(strtoupper($override), ['PUT', 'PATCH', 'DELETE'], true)) {
+                $method = strtoupper($override);
+            }
+        }
+
         return new self(
-            strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET'),
+            $method,
             $_SERVER['REQUEST_URI'] ?? '/',
             $_GET,
             $_POST,

@@ -153,8 +153,8 @@ final class Route extends LumaClasses
     /**
      * Registra middlewares que serão aplicados às rotas definidas no callback.
      *
-     * @param string|array $middleware Nome(s) do(s) middleware(s) a serem aplicados.
-     * @param string|array $action Nome(s) das ação(ões) a serem executadas.
+     * @param string|array $middlewares Nome(s) do(s) middleware(s) a serem aplicados.
+     * @param string|array $actions Nome(s) das ação(ões) a serem executadas.
      * @param callable $callback Função de callback onde as rotas serão definidas.
      * @return void
      */
@@ -605,6 +605,18 @@ final class Route extends LumaClasses
     {
 
         $method = $server['REQUEST_METHOD'] ?? 'GET';
+
+        // Permite enviar o HTTP Method Spoofing
+        if ($method === 'POST') {
+            $override = $post['_method']
+                ?? $server['HTTP_X_HTTP_METHOD_OVERRIDE']
+                ?? null;
+
+            if ($override && in_array(strtoupper($override), ['PUT', 'PATCH', 'DELETE'], true)) {
+                $method = strtoupper($override);
+            }
+        }
+
         $uri    = parse_url($server['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
 
         $script = str_replace('\\', '/', $server['SCRIPT_NAME'] ?? '');
@@ -694,11 +706,15 @@ final class Route extends LumaClasses
             try {
                 $result = $instance->{$midd['action']}($request, $response, $params);
             } catch (\Throwable $e) {
-                Logs::register('Middleware Error', ['msg' => $e->getMessage()]);
+                Logs::register("Middleware {$midd['midd']} Error", ['msg' => $e->getMessage()]);
                 throw new HttpException('Internal server error', 500, 'html');
             }
 
             if ($result === false) {
+                Logs::register(
+                    "Process interrupted by middleware {$midd['midd']}",
+                    ['msg' => "The middleware interrupted the process through the {$midd['action']} method."]
+                );
                 throw new HttpException('Forbidden', 403, 'html');
             }
 
@@ -734,7 +750,7 @@ final class Route extends LumaClasses
      * @param ContractsResponse $response    Objeto de resposta atual.
      * @param array             $params      Parâmetros extraídos da rota.
      *
-     * @return void
+     * @return ContractsResponse
      */
     private static function dispatchController($routeConfig, ContractsRequest $request, ContractsResponse $response, $params): ContractsResponse
     {
@@ -765,7 +781,7 @@ final class Route extends LumaClasses
                 return $response;
             }
         } catch (\Throwable $e) {
-            Logs::register('Controller Error', ['msg' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            Logs::register("Controller " . get_class($controller) . "::{$methodName} Error", ['msg' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             throw new HttpException('Internal server error', 500);
         }
     }
@@ -801,7 +817,7 @@ final class Route extends LumaClasses
         [$routeConfig, $routeParams] = self::matchRoute($method, $route);
 
         if (!$routeConfig) {
-            throw new HttpException('Route not found', 404);
+            throw new HttpException("Route {$route} not found", 404);
         }
 
         $params = array_merge($get, $routeParams);
@@ -813,7 +829,7 @@ final class Route extends LumaClasses
 
         // Validação de Parâmetros
         if (!self::validateParams($params, $routeConfig['fieldsPermitted'])['valid']) {
-            Logs::register('Validation Params', ['params' => $params, 'allowed' => $routeConfig['fieldsPermitted']]);
+            Logs::register("Validation Params in route {$route}", ['params' => $params, 'allowed' => $routeConfig['fieldsPermitted']]);
             throw new HttpException('Forbidden', 403);
         }
 
@@ -831,7 +847,7 @@ final class Route extends LumaClasses
                 ?? null;
 
             if (!$token || !CSRF::isValidToken($token)) {
-                Logs::register('CSRF Token Mismatch', ['token' => $token]);
+                Logs::register("CSRF Token Mismatch in route {$route}", ['token' => $token]);
                 throw new HttpException('Page Expired', 419);
             }
         }

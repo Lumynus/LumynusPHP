@@ -88,6 +88,20 @@ abstract class AbstractCommand extends LumaClasses implements Output
     }
 
     /**
+     * Método para responder ao comando.
+     *
+     * @param string      $message   Mensagem a ser exibida ao usuário
+     * @param string|null $colorANSI Cor da mensagem (padrão azul) . Exemplo: "\033[94m" para azul.
+     * @return self
+     */
+    public function respond(string $message, string $colorANSI = "\033[37m"): Output
+    {
+        $this->responded = true;
+        echo $colorANSI . $message . self::RESET . PHP_EOL;
+        return $this;
+    }
+
+    /**
      * Método para indicar erro no comando.
      *
      * @param string      $message
@@ -101,6 +115,18 @@ abstract class AbstractCommand extends LumaClasses implements Output
         echo self::RED . $message . self::RESET . PHP_EOL;
         return $this;
     }
+
+    /**
+     * Método para interromper o comando em execução.
+     * @return void
+     */
+    public function interrupt(): void
+    {
+        $this->responded = true;
+        echo self::RED . "Command interrupted." . self::RESET . PHP_EOL;
+        exit(1);
+    }
+
 
     /**
      * Método para chamar funções em molde estático

@@ -14,6 +14,16 @@ use Lumynus\Framework\Config;
 
 class LumaConsole extends LumaClasses
 {
+    private static $GREEN = "\033[92m";   // Enabled
+    private static $RED   = "\033[91m";   // Disabled
+    private static $YELLOW = "\033[93m";  // Warnings / Info
+    private static $BOLD = "\033[1m"; // Bold text
+    private static $BLUE = "\033[94m"; // Info / Headers
+    private static $CYAN = "\033[96m"; // Info / Headers
+    private static $WHITE = "\033[97m"; // White text
+    private static $PURPLE = "\033[95m"; // Purple text
+    private static $RESET = "\033[0m"; // Reset to default
+
 
     /**
      * Executa o console com os argumentos fornecidos
@@ -75,6 +85,7 @@ class LumaConsole extends LumaClasses
             'inspect' => 'Iniciar o inspector',
             'make' => 'Executar um comando',
             'middleware' => 'Criar um novo middleware',
+            'lint' => 'Verifica a sintaxe do código PHP',
             'htaccess' => 'Cria um arquivo .htaccess',
             'nginxConf' => 'Cria um arquivo conf de exemplo'
         ];
@@ -99,14 +110,11 @@ class LumaConsole extends LumaClasses
     {
 
         $values = [
-
             /**INVALID */
             'invalid' => <<<EOT
         \n\nNo command provided. Use 'help' for available commands.
-        (Nenhum comando fornecido. Use 'help' para os comandos disponíveis.)\n\n
+(Nenhum comando fornecido. Use 'help' para os comandos disponíveis.)\n\n
 EOT
-
-
         ];
 
         return $values[$type] ?? "\n\nUnknown error occurred.\n\n
@@ -120,14 +128,14 @@ EOT
     {
 
         // Definindo as cores ANSI para PHP
-        $BOLD = "\033[1m";
-        $BLUE = "\033[94m";
-        $YELLOW = "\033[93m";
-        $CYAN = "\033[96m";
-        $GREEN = "\033[92m";
-        $WHITE = "\033[97m";
-        $PURPLE = "\033[95m";
-        $RESET = "\033[0m";
+        $BOLD = self::$BOLD;
+        $BLUE = self::$BLUE;
+        $YELLOW = self::$YELLOW;
+        $CYAN = self::$CYAN;
+        $GREEN = self::$GREEN;
+        $WHITE = self::$WHITE;
+        $PURPLE = self::$PURPLE;
+        $RESET = self::$RESET;
 
         echo PHP_EOL;
         echo PHP_EOL;
@@ -166,6 +174,7 @@ EOT
         echo "  {$CYAN}command{$RESET}      - Create a new Command | Criar um novo comando\n";
         echo "  {$CYAN}make{$RESET}         - Execute a command | Executar um comando\n";
         echo "  {$CYAN}middleware{$RESET}   - Create a new middleware | Criar um novo middleware\n";
+        echo "  {$CYAN}lint{$RESET}         - Check PHP code syntax | Verifica a sintaxe do código PHP\n";
         echo "  {$CYAN}htaccess{$RESET}     - Create a .htaccess: /public | Cria .htaccess na /public\n";
         echo "  {$CYAN}nginxConf{$RESET}    - Creates a sample configuration | Cria um exemplo de configuração\n\n";
     }
@@ -175,8 +184,8 @@ EOT
      */
     private static function version($data)
     {
-        echo "\n\nLumynus version: " . LumaClasses::VERSION . PHP_EOL;
-        echo "PHP version: " . phpversion() . PHP_EOL . PHP_EOL;
+        echo self::$YELLOW . "\n\nLumynus version: " . self::$RESET . LumaClasses::VERSION  . PHP_EOL;
+        echo self::$CYAN . "PHP version: " . self::$RESET . phpversion() . self::$RESET . PHP_EOL . PHP_EOL;
     }
 
     /**
@@ -184,25 +193,19 @@ EOT
      */
     private static function info($data)
     {
-        // Cores ANSI
-        $GREEN = "\033[92m";   // Enabled
-        $RED   = "\033[91m";   // Disabled
-        $YELLOW = "\033[93m";  // Warnings / Info
-        $RESET = "\033[0m";
-
         // Closure para formatar status
-        $formatStatus = function ($condition) use ($GREEN, $RED, $RESET) {
-            return $condition ? $GREEN . 'Enabled' . $RESET : $RED . 'Disabled' . $RESET;
+        $formatStatus = function ($condition) {
+            return $condition ? self::$GREEN . 'Enabled' . self::$RESET : self::$RED . 'Disabled' . self::$RESET;
         };
 
         // Cabeçalho
-        echo "\n\n{$YELLOW}Lumynus Framework - A simple and lightweight PHP framework{$RESET}\n";
+        echo "\n\n" . self::$YELLOW . "Lumynus Framework - A simple and lightweight PHP framework" . self::$RESET . "\n";
         echo "Developed by Weleny Santos\n";
-        echo "Version: " . LumaClasses::VERSION . "\n";
-        echo "PHP Version: " . phpversion() . "\n\n";
+        echo self::$CYAN . "Version: " . self::$RESET . LumaClasses::VERSION . "\n";
+        echo self::$CYAN . "PHP Version: " . self::$RESET . phpversion() . "\n\n";
 
         // Informações do sistema
-        echo "{$YELLOW}## System Information{$RESET}\n";
+        echo "" . self::$YELLOW . "## System Information" . self::$RESET . "\n";
         echo "PHP SAPI: " . php_sapi_name() . PHP_EOL;
         echo "PHP OS: " . PHP_OS . PHP_EOL;
         echo "PHP Memory Limit: " . ini_get('memory_limit') . PHP_EOL;
@@ -215,7 +218,7 @@ EOT
         echo "PHP Timezone: " . date_default_timezone_get() . PHP_EOL . PHP_EOL;
 
         // Extensões principais
-        echo "{$YELLOW}## Core Extensions{$RESET}\n";
+        echo "" . self::$YELLOW . "## Core Extensions" . self::$RESET . "\n";
         $extensions = [
             'openssl',
             'curl',
@@ -238,32 +241,32 @@ EOT
         }
 
         // Database
-        echo "\n{$YELLOW}## Database{$RESET}\n";
+        echo "\n" . self::$YELLOW . "## Database" . self::$RESET . "\n";
         $dbExtensions = ['pdo', 'mysqli', 'pdo_mysql', 'pgsql', 'pdo_pgsql', 'sqlite3', 'pdo_sqlite'];
         foreach ($dbExtensions as $ext) {
             echo "PHP " . strtoupper($ext) . " Support: " . $formatStatus(extension_loaded($ext)) . PHP_EOL;
         }
 
         // Network
-        echo "\n{$YELLOW}## Network{$RESET}\n";
+        echo "\n" . self::$YELLOW . "## Network" . self::$RESET . "\n";
         $networkExtensions = ['ftp', 'sockets', 'soap'];
         foreach ($networkExtensions as $ext) {
             echo "PHP " . ucfirst($ext) . " Support: " . $formatStatus(extension_loaded($ext)) . PHP_EOL;
         }
 
         // Performance
-        echo "\n{$YELLOW}## Performance{$RESET}\n";
+        echo "\n" . self::$YELLOW . "## Performance" . self::$RESET . "\n";
         $performanceExtensions = ['Zend OPcache', 'apcu', 'redis', 'memcached'];
         foreach ($performanceExtensions as $ext) {
             echo "PHP " . $ext . " Support: " . $formatStatus(extension_loaded(strtolower(str_replace(' ', '', $ext)))) . PHP_EOL;
         }
 
         // Development
-        echo "\n{$YELLOW}## Development{$RESET}\n";
+        echo "\n" . self::$YELLOW . "## Development" . self::$RESET . "\n";
         echo "PHP Xdebug Support: " . $formatStatus(extension_loaded('xdebug')) . PHP_EOL;
 
         // Advanced
-        echo "\n{$YELLOW}## Advanced{$RESET}\n";
+        echo "\n" . self::$YELLOW . "## Advanced" . self::$RESET . "\n";
         echo "PHP Swoole Support: " . $formatStatus(extension_loaded('swoole')) . PHP_EOL;
         echo "PHP Calendar Support: " . $formatStatus(extension_loaded('calendar')) . PHP_EOL;
         echo "PHP GD Version: " . (function_exists('gd_info') ? gd_info()['GD Version'] : 'Not Available') . PHP_EOL;
@@ -271,21 +274,17 @@ EOT
 
     private static function status($data)
     {
-        $GREEN = "\033[92m";   // Enabled
-        $RED   = "\033[91m";   // Disabled
-        $YELLOW = "\033[93m";  // Warnings / Info
-        $RESET = "\033[0m";
 
         // Closure para formatar status
-        $formatStatus = function ($condition) use ($GREEN, $RED, $RESET) {
-            return $condition ? $GREEN . 'Enabled' . $RESET : $RED . 'Disabled' . $RESET;
+        $formatStatus = function ($condition) {
+            return $condition ? self::$GREEN . 'Enabled' . self::$RESET : self::$RED . 'Disabled' . self::$RESET;
         };
 
-        echo "\n\n{$YELLOW}Lumynus Framework - A simple and lightweight PHP framework{$RESET}\n";
-        echo "{$YELLOW}## Core Extensions{$RESET}\n";
-        echo "{$RED}All listed extensions are REQUIRED.$RESET\n";
-        echo "{$RED}They are essential for the framework to work properly.$RESET\n";
-        echo "{$RED}Missing extensions may cause unexpected behavior, errors, or system instability.$RESET\n\n";
+        echo "\n\n" . self::$YELLOW . "Lumynus Framework - A simple and lightweight PHP framework" . self::$RESET . "\n";
+        echo self::$YELLOW . "## Core Extensions" . self::$RESET . "\n";
+        echo self::$RED . "All listed extensions are REQUIRED." . self::$RESET . "\n";
+        echo self::$RED . "They are essential for the framework to work properly." . self::$RESET . "\n";
+        echo self::$RED . "Missing extensions may cause unexpected behavior, errors, or system instability." . self::$RESET . "\n\n";
 
         $extensions = [
             'openssl',
@@ -315,8 +314,8 @@ EOT
     private static function mode($data)
     {
         if (empty($data)) {
-            echo "\n\nLumynus run: " . (Config::modeProduction() ? 'Production' : 'Development') . PHP_EOL;
-            echo "(Lumynus está rodando em modo: " . (Config::modeProduction() ? 'Produção' : 'Desenvolvimento') . ")\n\n";
+            echo self::$YELLOW . "\n\nLumynus run: " . self::$RESET . ' ' . self::$CYAN . (Config::modeProduction() ? 'Production' : 'Development') . self::$RESET . PHP_EOL;
+            echo self::$YELLOW . "(Lumynus está rodando em modo: " . self::$RESET . ' ' . self::$CYAN . (Config::modeProduction() ? 'Produção' : 'Desenvolvimento') . ")\n\n" . self::$RESET;
 
             echo "To change the mode, use:\n";
             echo "  php luma mode production   (to set Production mode)\n";
@@ -425,12 +424,12 @@ EOT
      */
     private static function key(array $data)
     {
-        $ciano = "\033[96m";
-        $reset = "\033[0m";
+        $ciano = self::$CYAN;
+        $reset = self::$RESET;
         if (empty($data)) {
             echo "\n\nPlease provide a key name\n";
             echo "(Por favor, forneça um nome para a chave)\n";
-            echo "Example: php luma key {$ciano}name{$reset}'\n\n";
+            echo "Example: php luma key {$ciano}name{$reset}\n\n";
             return;
         }
 
@@ -446,12 +445,12 @@ EOT
 
     private static function removeKey(array $data)
     {
-        $ciano = "\033[96m";
-        $reset = "\033[0m";
+        $ciano = self::$CYAN;
+        $reset = self::$RESET;
         if (empty($data)) {
             echo "\n\nPlease provide the name of the key to be removed.\n";
             echo "(Por favor, forneça o nome da chave a ser removida)\n\n";
-            echo "Example: php luma removeKey {$ciano}name{$reset}'\n\n";
+            echo "Example: php luma removeKey {$ciano}name{$reset}\n\n";
             return;
         }
 
@@ -472,13 +471,13 @@ EOT
      */
     private static function encrypt($data)
     {
-        $ciano = "\033[96m";
-        $reset = "\033[0m";
-        $roxo = "\033[95m";
+        $ciano = self::$CYAN;
+        $reset = self::$RESET;
+        $roxo = self::$PURPLE;
 
         if (empty($data) || self::l_countStatic($data) < 2) {
             echo "\n\nPlease provide a key name and data to encrypt\n";
-            echo "(Por favor, forneça um nome de chave e dados para criptografar)\nExample: php luma encrypt {$roxo}key_name{$roxo} '{$ciano}data{$reset}'\n\n";
+            echo "(Por favor, forneça um nome de chave e dados para criptografar)\nExample: php luma encrypt {$roxo}key_name{$reset} '{$ciano}data{$reset}'\n\n";
             return;
         }
 
@@ -507,9 +506,9 @@ EOT
     private static function decrypt($data)
     {
 
-        $ciano = "\033[96m";
-        $roxo = "\033[95m";
-        $reset = "\033[0m";
+        $ciano = self::$CYAN;
+        $roxo = self::$PURPLE;
+        $reset = self::$RESET;
         if (empty($data) || self::l_countStatic($data) < 2) {
             echo "\n\nPlease provide a key name and data to decrypt\n";
             echo "(Por favor, forneça um nome de chave e dados para descriptografar)\nExample: php luma decrypt {$roxo}key_name{$reset} '{$ciano}data{$reset}'\n\n";
@@ -533,10 +532,10 @@ EOT
 
     private static function encryptSave($data)
     {
-        $ciano = "\033[96m";
-        $reset = "\033[0m";
-        $roxo = "\033[95m";
-        $verde = "\033[92m";
+        $ciano = self::$CYAN;
+        $reset = self::$RESET;
+        $roxo = self::$PURPLE;
+        $verde = self::$GREEN;
 
         if (empty($data) || self::l_countStatic($data) < 3) {
             echo "\n\nPlease provide a key name and data to encrypt and save\n";
@@ -569,17 +568,16 @@ EOT
         }
     }
 
-    private static function server($dados)
+    private static function server($data)
     {
+        $ciano = self::$CYAN;
+        $reset = self::$RESET;
+        $roxo = self::$PURPLE;
+        $verde = self::$GREEN;
+        $amarelo = self::$YELLOW;
 
-        $ciano = "\033[96m";
-        $reset = "\033[0m";
-        $roxo = "\033[95m";
-        $verde = "\033[92m";
-        $amarelo = "\033[93m";
-
-        $forcado = in_array('--force', $dados, true);
-        $dados = array_filter($dados, fn($v) => $v !== '--force');
+        $forcado = in_array('--force', $data, true);
+        $data = array_filter($data, fn($v) => $v !== '--force');
 
         if (Config::modeProduction() && $forcado === false) {
             echo "\n\nServer cannot be started in production mode. Switch to development mode to use this command.\n";
@@ -587,7 +585,7 @@ EOT
             return;
         }
 
-        if (empty($dados) && self::l_countStatic($dados) > 1) {
+        if (empty($data) && self::l_countStatic($data) > 1) {
             echo "\n\nPlease provide a door you wish to serve.\n";
             echo "(Por favor, forneça uma porta que deseja servir)\nExample: php luma {$verde}server{$reset} {$ciano}8000{$reset}\n\n";
             return;
@@ -596,9 +594,9 @@ EOT
         $caminho = Config::pathProject() . DIRECTORY_SEPARATOR . Config::getApplicationConfig()['path']['public'];
         $caminho = preg_replace('#[\/\\\\]+#', DIRECTORY_SEPARATOR, $caminho);
 
-        $index = array_search('--host', $dados);
+        $index = array_search('--host', $data);
         $hostname = $index !== false ? gethostbyname(php_uname('n')) : 'localhost';
-        $dadosLimpos = array_values(array_filter($dados, fn($v) => $v !== '--host'));
+        $dadosLimpos = array_values(array_filter($data, fn($v) => $v !== '--host'));
         $porta = $dadosLimpos[0] ?? '8000';
 
         if ($forcado) {
@@ -609,13 +607,13 @@ EOT
         shell_exec('php -S ' . $hostname . ':' . $porta . ' -t ' . $caminho);
     }
 
-    private static function inspect($dados)
+    private static function inspect($data)
     {
 
-        $ciano = "\033[96m";
-        $reset = "\033[0m";
-        $roxo = "\033[95m";
-        $verde = "\033[92m";
+        $ciano = self::$CYAN;
+        $reset = self::$RESET;
+        $roxo = self::$PURPLE;
+        $verde = self::$GREEN;
 
         if (Config::modeProduction()) {
             echo "\n\nServer cannot be started in production mode. Switch to development mode to use this command.\n";
@@ -623,7 +621,7 @@ EOT
             return;
         }
 
-        if (empty($dados) && self::l_countStatic($dados) > 1) {
+        if (empty($data) && self::l_countStatic($data) > 1) {
             echo "\n\nPlease provide a door you wish to serve Inspector.\n";
             echo "(Por favor, forneça uma porta que deseja servir)\nExample: php luma {$verde}inspect{$reset} {$ciano}8759{$reset}\n\n";
             return;
@@ -633,17 +631,17 @@ EOT
         $caminho = preg_replace('#[\/\\\\]+#', DIRECTORY_SEPARATOR, $caminho);
 
 
-        shell_exec('php -S localhost:' . ($dados[0] ?? '8759') . ' -t ' . $caminho);
+        shell_exec('php -S localhost:' . ($data[0] ?? '8759') . ' -t ' . $caminho);
     }
 
 
-    private static function controller($dados)
+    private static function controller($data)
     {
 
-        $ciano = "\033[96m";
-        $reset = "\033[0m";
-        $roxo = "\033[95m";
-        $verde = "\033[92m";
+        $ciano = self::$CYAN;
+        $reset = self::$RESET;
+        $roxo = self::$PURPLE;
+        $verde = self::$GREEN;
 
         if (empty($data) || self::l_countStatic($data) < 1) {
             echo "\n\nPlease provide a controller name\n";
@@ -651,7 +649,7 @@ EOT
             return;
         }
 
-        $input = trim($dados[0], '\\');
+        $input = trim($data[0], '\\');
         $parts = explode('\\', $input);
         $className = array_pop($parts);
 
@@ -719,13 +717,13 @@ PHP;
     }
 
 
-    private static function middleware($dados)
+    private static function middleware($data)
     {
 
-        $ciano = "\033[96m";
-        $reset = "\033[0m";
-        $roxo = "\033[95m";
-        $verde = "\033[92m";
+        $ciano = self::$CYAN;
+        $reset = self::$RESET;
+        $roxo = self::$PURPLE;
+        $verde = self::$GREEN;
 
         if (empty($data) || self::l_countStatic($data) < 1) {
             echo "\n\nPlease provide a middleware name\n";
@@ -733,7 +731,7 @@ PHP;
             return;
         }
 
-        $input = trim($dados[0], '\\');
+        $input = trim($data[0], '\\');
 
         $parts = explode('\\', $input);
 
@@ -807,13 +805,13 @@ PHP;
     }
 
 
-    private static function command($dados)
+    private static function command($data)
     {
 
-        $ciano = "\033[96m";
-        $reset = "\033[0m";
-        $roxo = "\033[95m";
-        $verde = "\033[92m";
+        $ciano = self::$CYAN;
+        $reset = self::$RESET;
+        $roxo = self::$PURPLE;
+        $verde = self::$GREEN;
 
         if (empty($data) || self::l_countStatic($data) < 1) {
             echo "\n\nPlease provide a command name\n";
@@ -821,7 +819,7 @@ PHP;
             return;
         }
 
-        $input = trim($dados[0], '\\');
+        $input = trim($data[0], '\\');
         $parts = explode('\\', $input);
         $className = array_pop($parts);
 
@@ -898,10 +896,10 @@ PHP;
     }
 
 
-    private static function make($dados)
+    private static function make($data)
     {
 
-        if (self::l_countStatic($dados) < 2) {
+        if (self::l_countStatic($data) < 2) {
 
             echo "\n";
             echo "Invalid command usage.\n";
@@ -916,7 +914,7 @@ PHP;
         }
 
         try {
-            CommandDispatcher::boot($dados);
+            CommandDispatcher::boot($data);
         } catch (\Throwable $th) {
 
             Logs::register('Terminal error', $th->getMessage());
@@ -924,6 +922,349 @@ PHP;
             echo "\nAn error occurred while trying to execute; please verify that the data entered matches a command.\n";
             echo "(Ocorreu um erro ao tentar executar, verifique os dados digitados correspondem a um comando.)\n\n";
             return;
+        }
+    }
+
+
+    private static function lint($data)
+    {
+        $cyan = self::$CYAN;
+        $yellow = self::$YELLOW;
+        $green = self::$GREEN;
+        $red = "\033[31m";
+        $reset = self::$RESET;
+
+        echo "\n\n{$yellow}Lumynus{$reset}\n";
+        echo "Code Linting\n";
+        echo "(Verificação de código)\n\n";
+
+        $src = Config::pathProject()
+            . DIRECTORY_SEPARATOR
+            . 'src';
+
+        $arquivos = [];
+        $diretorio = null;
+
+        /*
+     * ============================================================
+     * IDENTIFICA O ALVO DA OPERAÇÃO
+     * ============================================================
+     *
+     * luma lint
+     *     -> todo o src/
+     *
+     * luma lint Controllers
+     *     -> src/Controllers/
+     *
+     * luma lint Controllers/
+     *     -> src/Controllers/
+     *
+     * luma lint Controllers/UserController.php
+     *     -> arquivo específico
+     */
+
+        if (empty($data[0])) {
+            // Nenhum argumento: analisa todo o src
+            $diretorio = $src;
+        } else {
+            // Remove / ou \ do início/final
+            $argumento = trim($data[0], '/\\');
+
+            $caminho = $src
+                . DIRECTORY_SEPARATOR
+                . str_replace(
+                    ['/', '\\'],
+                    DIRECTORY_SEPARATOR,
+                    $argumento
+                );
+
+            if (is_file($caminho)) {
+
+                // Arquivo específico
+                $arquivos[$argumento] = $caminho;
+            } elseif (is_dir($caminho)) {
+
+                // Diretório específico
+                $diretorio = $caminho;
+            } else {
+
+                echo "{$red}✖ File or directory not found: {$argumento}{$reset}\n";
+                echo "(Arquivo ou diretório não encontrado: {$argumento})\n\n";
+
+                return;
+            }
+        }
+
+        /*
+     * ============================================================
+     * ENCONTRA OS ARQUIVOS PHP
+     * ============================================================
+     */
+
+        if ($diretorio !== null) {
+
+            if (!is_dir($diretorio)) {
+
+                echo "{$red}✖ Directory not found: {$diretorio}{$reset}\n";
+                echo "(Diretório não encontrado: {$diretorio})\n\n";
+
+                return;
+            }
+
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator(
+                    $diretorio,
+                    \FilesystemIterator::SKIP_DOTS
+                )
+            );
+
+            foreach ($iterator as $arquivo) {
+
+                if (!$arquivo->isFile()) {
+                    continue;
+                }
+
+                if (strtolower($arquivo->getExtension()) !== 'php') {
+                    continue;
+                }
+
+                $filePath = $arquivo->getPathname();
+
+                /*
+             * Converte o caminho absoluto para o caminho
+             * relativo ao src.
+             *
+             * Exemplo:
+             *
+             * C:\projeto\src\Controllers\User.php
+             *
+             * vira:
+             *
+             * Controllers\User.php
+             */
+                $relative = substr(
+                    $filePath,
+                    strlen($src) + 1
+                );
+
+                /*
+             * Transforma o caminho em namespace/classe.
+             */
+                $class = str_replace(
+                    ['/', '\\'],
+                    '\\',
+                    $relative
+                );
+
+                $class = substr(
+                    $class,
+                    0,
+                    -4
+                );
+
+                $arquivos[$class] = $filePath;
+            }
+        }
+
+        /*
+     * ============================================================
+     * NENHUM ARQUIVO ENCONTRADO
+     * ============================================================
+     */
+
+        if (empty($arquivos)) {
+
+            echo "{$red}✖ No PHP files found.{$reset}\n";
+            echo "(Nenhum arquivo PHP encontrado.)\n\n";
+
+            return;
+        }
+
+        /*
+     * ============================================================
+     * LINT
+     * ============================================================
+     */
+
+        $total = count($arquivos);
+        $passed = 0;
+        $failed = 0;
+
+        foreach ($arquivos as $class => $arquivo) {
+
+            $status = 'ERROR';
+            $result = 'File not found';
+            $line = '-';
+            $message = 'The specified file does not exist.';
+
+            if (file_exists($arquivo)) {
+
+                /*
+             * Usa exatamente o PHP que está executando
+             * o Lumynus.
+             */
+                $output = shell_exec(
+                    escapeshellarg(PHP_BINARY)
+                        . ' -l '
+                        . escapeshellarg($arquivo)
+                        . ' 2>&1'
+                );
+
+                if (
+                    $output !== null &&
+                    strpos(
+                        $output,
+                        'No syntax errors detected'
+                    ) !== false
+                ) {
+
+                    $status = 'OK';
+                    $result = 'No syntax errors detected';
+                    $line = '-';
+                    $message = 'Syntax valid.';
+
+                    $passed++;
+                } else {
+
+                    $result = 'Syntax errors found';
+
+                    /*
+                 * Pega a linha do erro.
+                 */
+                    preg_match(
+                        '/on line (\d+)/i',
+                        $output ?? '',
+                        $lineMatch
+                    );
+
+                    $line = $lineMatch[1] ?? '-';
+
+                    /*
+                 * Pega somente a mensagem do erro.
+                 *
+                 * Exemplo:
+                 *
+                 * syntax error, unexpected token "return"
+                 */
+                    preg_match(
+                        '/syntax error:\s*(.+?)(?:\s+in\s+.+?\s+on\s+line|\r?\n|$)/i',
+                        $output ?? '',
+                        $messageMatch
+                    );
+
+                    $message = $messageMatch[1]
+                        ?? 'Unknown syntax error';
+
+                    $failed++;
+                }
+            }
+
+            /*
+         * ========================================================
+         * TABELA
+         * ========================================================
+         */
+
+            $rows = [
+                'STATUS' => $status,
+                'CLASS' => $class,
+                'FILE' => $arquivo,
+                'RESULT' => $result,
+                'LINE' => $line,
+                'MESSAGE' => $message,
+            ];
+
+            $labelWidth = 10;
+            $valueWidth = 60;
+
+            $top = '┌'
+                . str_repeat('─', $labelWidth + 2)
+                . '┬'
+                . str_repeat('─', $valueWidth + 2)
+                . "┐\n";
+
+            $middle = '├'
+                . str_repeat('─', $labelWidth + 2)
+                . '┼'
+                . str_repeat('─', $valueWidth + 2)
+                . "┤\n";
+
+            $bottom = '└'
+                . str_repeat('─', $labelWidth + 2)
+                . '┴'
+                . str_repeat('─', $valueWidth + 2)
+                . "┘\n";
+
+            echo $top;
+
+            foreach ($rows as $label => $value) {
+
+                $color = '';
+
+                if ($label === 'STATUS') {
+                    $color = $status === 'OK'
+                        ? $green
+                        : $red;
+                }
+
+                $lines = explode(
+                    "\n",
+                    wordwrap(
+                        (string) $value,
+                        $valueWidth,
+                        "\n",
+                        true
+                    )
+                );
+
+                foreach ($lines as $lineIndex => $lineValue) {
+
+                    $currentLabel = $lineIndex === 0
+                        ? $label
+                        : '';
+
+                    $currentLabel = str_pad(
+                        $currentLabel,
+                        $labelWidth
+                    );
+
+                    $currentValue = str_pad(
+                        $lineValue,
+                        $valueWidth
+                    );
+
+                    echo "│ {$currentLabel} │ "
+                        . "{$color}{$currentValue}{$reset} │\n";
+                }
+
+                if ($label !== array_key_last($rows)) {
+                    echo $middle;
+                }
+            }
+
+            echo $bottom;
+            echo "\n";
+        }
+
+        /*
+     * ============================================================
+     * RESUMO
+     * ============================================================
+     */
+
+        echo "{$yellow}Linting summary{$reset}\n";
+        echo "Total: {$total}\n";
+        echo "{$green}Passed: {$passed}{$reset}\n";
+        echo "{$red}Failed: {$failed}{$reset}\n";
+
+        if ($failed === 0) {
+
+            echo "\n{$green}✔ Linting passed.{$reset}\n";
+            echo "(Verificação concluída com sucesso.)\n\n";
+        } else {
+
+            echo "\n{$red}✖ Linting failed.{$reset}\n";
+            echo "(Verificação encontrou erros.)\n\n";
         }
     }
 
