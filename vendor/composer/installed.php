@@ -3,7 +3,7 @@
         'name' => 'lumynus/lumynus',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '6177ee9b63a2c24a4847fdde992f991bcb7b1318',
+        'reference' => 'd4ad9b2850f6788f3cf38d4192d4035ed13014c4',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -22,7 +22,7 @@
         'lumynus/lumynus' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '6177ee9b63a2c24a4847fdde992f991bcb7b1318',
+            'reference' => 'd4ad9b2850f6788f3cf38d4192d4035ed13014c4',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
