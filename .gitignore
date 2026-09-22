@@ -1,6 +1,8 @@
 #Deabilitando caches
-caches/*
+cache/*
 vendor/*
+storage/logs/*
+storage/cache/*
 
 
 # Normalizar apenas arquivos de texto comuns

@@ -188,10 +188,10 @@ class File extends LumaClasses
      */
     public function getPath(string $path = ''): string
     {
-        $pathProject = Config::pathProject();
+        $projectPath = Config::projectPath();
         $pathFiles = Config::getApplicationConfig()['path']['files'];
 
-        return rtrim($pathProject . $pathFiles, DIRECTORY_SEPARATOR)
+        return rtrim($projectPath . $pathFiles, DIRECTORY_SEPARATOR)
             . DIRECTORY_SEPARATOR
             . ($path !== ''
                 ? trim($path, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR

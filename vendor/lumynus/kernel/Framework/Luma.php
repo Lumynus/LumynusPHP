@@ -110,7 +110,7 @@ class Luma extends LumaClasses
         $startTime = microtime(true);
 
         $config = Config::getApplicationConfig();
-        $basePath = Config::pathProject();
+        $basePath = Config::projectPath();
         $viewsPath = realpath($basePath . $config['path']['views']);
 
         // Se o arquivo exato não existe e não termina com .luma, tenta com .luma se este existir
@@ -153,7 +153,7 @@ class Luma extends LumaClasses
             }
 
             $config = Config::getApplicationConfig();
-            $basePath = Config::pathProject();
+            $basePath = Config::projectPath();
 
             $viewFile = self::resolveViewPath($basePath, $config, $view);
             $cacheFile = self::getCacheFilePath($basePath, $config, $view);
@@ -576,7 +576,7 @@ class Luma extends LumaClasses
     {
         $config = Config::getApplicationConfig();
         if (($config['security']['csrf']['enabled'] ?? false) === true) {
-            $data['csrf_name'] = $config['security']['csrf']['nameToken'] ?? 'csrf';
+            $data['csrf_name'] = $config['security']['csrf']['tokenName'] ?? 'csrf';
             $data['csrf_token'] = $regenerateCSRF ? CSRF::generateToken() : CSRF::getToken();
         }
 
@@ -614,7 +614,7 @@ class Luma extends LumaClasses
     public static function getAssetHtml(string $path, string $type): string
     {
         $config = Config::getApplicationConfig();
-        $basePath = Config::pathProject();
+        $basePath = Config::projectPath();
 
         // 1. Prepara os nomes das pastas removendo barras extras
         $publicDirName = trim($config['path']['public'], '/'); // ex: "public"
@@ -631,7 +631,7 @@ class Luma extends LumaClasses
         }
 
         $integrity = '';
-        if (($config['security']['integrityAssets']['enabled'] ?? false) === true) {
+        if (($config['security']['assetsIntegrity']['enabled'] ?? false) === true) {
             $content = file_get_contents($fullPath);
             $hash = base64_encode(hash('sha384', $content, true));
             $integrity = "integrity='sha384-{$hash}' crossorigin='anonymous'";
@@ -643,7 +643,7 @@ class Luma extends LumaClasses
         $baseUrl = rtrim($baseUrl, '/');
         $url = $baseUrl . '/' . $resourcePath . '/' . $fileName;
 
-        if (($config['frontend']['versionAssets'] ?? false) === true) {
+        if (($config['frontend']['assetsVersion'] ?? false) === true) {
             $url .= "?v=" . filemtime($fullPath);
         }
 

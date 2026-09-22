@@ -147,7 +147,7 @@ final class Encryption extends LumaClasses
      */
     public static function hasKey(?string $keyName = null): bool
     {
-        $keyDir = Config::pathProject() .
+        $keyDir = Config::projectPath() .
             DIRECTORY_SEPARATOR . 'storage'
             . DIRECTORY_SEPARATOR . 'keys';
 
@@ -168,7 +168,7 @@ final class Encryption extends LumaClasses
      */
     public static function createKey(?string $keyName = null): string
     {
-        $keyDir = Config::pathProject() .
+        $keyDir = Config::projectPath() .
             DIRECTORY_SEPARATOR . 'storage'
             . DIRECTORY_SEPARATOR . 'keys';
 
@@ -209,7 +209,7 @@ final class Encryption extends LumaClasses
     {
         $keyName = self::sanitizeFileName($keyName ?? 'key');
 
-        $keyFile = Config::pathProject() .
+        $keyFile = Config::projectPath() .
             DIRECTORY_SEPARATOR . 'storage' .
             DIRECTORY_SEPARATOR . 'keys' .
             DIRECTORY_SEPARATOR . $keyName . '.pem';
@@ -230,7 +230,7 @@ final class Encryption extends LumaClasses
      */
     public static function saveToFile(string $nameFile, $value, ?string $keyName = null): bool
     {
-        $dir = Config::pathProject() .
+        $dir = Config::projectPath() .
             DIRECTORY_SEPARATOR . 'storage' .
             DIRECTORY_SEPARATOR . 'encryptions';
 
@@ -264,7 +264,7 @@ final class Encryption extends LumaClasses
      */
     public static function removeToFile(string $nameFile): bool
     {
-        $dir = Config::pathProject() .
+        $dir = Config::projectPath() .
             DIRECTORY_SEPARATOR . 'storage' .
             DIRECTORY_SEPARATOR . 'encryptions';
 
@@ -288,7 +288,7 @@ final class Encryption extends LumaClasses
      */
     public static function readFiles(string|array $nameFile, ?string $keyName = null)
     {
-        $dir = Config::pathProject() .
+        $dir = Config::projectPath() .
             DIRECTORY_SEPARATOR . 'storage' .
             DIRECTORY_SEPARATOR . 'encryptions';
 
@@ -350,7 +350,7 @@ final class Encryption extends LumaClasses
             $keyName = str_ireplace('.pem', '', $keyName);
         }
 
-        $caminho = Config::pathProject() .
+        $caminho = Config::projectPath() .
             DIRECTORY_SEPARATOR . 'storage' .
             DIRECTORY_SEPARATOR . 'keys' .
             DIRECTORY_SEPARATOR .

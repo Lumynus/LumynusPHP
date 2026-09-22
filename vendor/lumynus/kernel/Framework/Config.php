@@ -21,7 +21,7 @@ final class Config extends LumaClasses
      */
     public static function getINI(): ?array
     {
-        $file = self::pathProject() . DIRECTORY_SEPARATOR . 'config.ini';
+        $file = self::projectPath() . DIRECTORY_SEPARATOR . 'config.ini';
         if (!file_exists($file)) {
             return null;
         }
@@ -36,7 +36,7 @@ final class Config extends LumaClasses
      */
     public static function getApplicationConfig(): ?array
     {
-        $file = self::pathProject() . DIRECTORY_SEPARATOR . 'application.json';
+        $file = self::projectPath() . DIRECTORY_SEPARATOR . 'application.json';
 
         if (file_exists($file)) {
             $config = json_decode(file_get_contents($file), true);
@@ -49,7 +49,7 @@ final class Config extends LumaClasses
         // Se não existir ou estiver inválido, retorna padrão
         return [
             "App" => [
-                "nameApplication" => "Lumynus",
+                "applicationName" => "Lumynus",
                 "version" => "1",
                 "description" => "A simple PHP framework for building web applications.",
                 "author" => "Weleny Santos",
@@ -69,9 +69,9 @@ final class Config extends LumaClasses
             "security" => [
                 "csrf" => [
                     "enabled" => true,
-                    "nameToken" => "luma_csrf"
+                    "tokenName" => "luma_csrf"
                 ],
-                "integrityAssets" => [
+                "assetsIntegrity" => [
                     "enabled" => true
                 ],
                 "session" =>  [
@@ -93,11 +93,11 @@ final class Config extends LumaClasses
                         "OPTIONS",
                         "PATCH",
                     ],
-                    "timeCache" => 86400,
+                    "cacheTime" => 86400,
                 ],
             ],
             "frontend" => [
-                "versionAssets" => true
+                "assetsVersion" => true
             ],
             "database" => [
                 "autoClose" => true
@@ -207,7 +207,7 @@ final class Config extends LumaClasses
      *
      * @return string Caminho absoluto do diretório raiz do projeto.
      */
-    public static function pathProject(): string
+    public static function projectPath(): string
     {
         return dirname(__DIR__, 4);
     }
@@ -217,7 +217,7 @@ final class Config extends LumaClasses
      *
      * @return bool true -> Produção, false -> Desenvolvimento
      */
-    public static function modeProduction(): bool
+    public static function productionMode(): bool
     {
         $config = self::getINI();
         if (isset($config['app']['mode']) && $config['app']['mode'] !== 'development') {
@@ -232,9 +232,9 @@ final class Config extends LumaClasses
      * @param bool $isProduction Define se o modo é produção (true) ou desenvolvimento (false).
      * @return void
      */
-    public static function setModeProduction(bool $isProduction): void
+    public static function setProductionMode(bool $isProduction): void
     {
-        $file = self::pathProject() . DIRECTORY_SEPARATOR . 'config.ini';
+        $file = self::projectPath() . DIRECTORY_SEPARATOR . 'config.ini';
         $config = self::getINI() ?? [];
 
         if (!isset($config['app'])) {

@@ -42,7 +42,7 @@ final class CSRF extends LumaClasses
     {
         $token = bin2hex(random_bytes(32));
         self::session()->set(
-            Config::getApplicationConfig()['security']['csrf']['nameToken'],
+            Config::getApplicationConfig()['security']['csrf']['tokenName'],
             $token
         );
         return $token;
@@ -60,7 +60,7 @@ final class CSRF extends LumaClasses
             return false;
         }
 
-        $name = Config::getApplicationConfig()['security']['csrf']['nameToken'];
+        $name = Config::getApplicationConfig()['security']['csrf']['tokenName'];
 
         if (!self::session()->has($name)) {
             return false;
@@ -79,7 +79,7 @@ final class CSRF extends LumaClasses
     {
         return
             self::session()->get(
-                Config::getApplicationConfig()['security']['csrf']['nameToken']
+                Config::getApplicationConfig()['security']['csrf']['tokenName']
             ) ?? null;
     }
 }

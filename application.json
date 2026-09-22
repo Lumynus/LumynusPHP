@@ -1,8 +1,8 @@
 [
     {
         "App": {
-            "nameApplication": "Lumynus",
-            "version": "1.1.6",
+            "applicationName": "Lumynus",
+            "version": "1.1.7",
             "description": "A simple PHP framework for building web applications.",
             "author": "Weleny Santos",
             "email": "",
@@ -20,9 +20,9 @@
         "security": {
             "csrf": {
                 "enabled": true,
-                "nameToken": "luma_csrf"
+                "tokenName": "luma_csrf"
             },
-            "integrityAssets": {
+            "assetsIntegrity": {
                 "enabled": false
             },
             "session": {
@@ -44,11 +44,11 @@
                     "OPTIONS",
                     "PATCH"
                 ],
-                "timeCache": 86400
+                "cacheTime": 86400
             }
         },
         "frontend": {
-            "versionAssets": true
+            "assetsVersion": true
         },
         "database": {
             "autoClose": true

@@ -43,7 +43,7 @@ class ErrorTemplate extends LumaClasses
             'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'N/A',
             'lumynus_version' => LumaClasses::VERSION,
             'node_version' => phpversion(),
-            'environment' => (Config::modeProduction() ? 'Production' : 'Development'),
+            'environment' => (Config::productionMode() ? 'Production' : 'Development'),
             'memory_usage' => $this->formatBytes(memory_get_usage(true))
         ];
     }
@@ -197,7 +197,7 @@ class ErrorTemplate extends LumaClasses
      */
     public  static function getViewPath(string $name, string $extension = 'php'): string
     {
-        $path = Config::pathProject()
+        $path = Config::projectPath()
             . Config::getApplicationConfig()['pagesErrors'][$name] . '.' . $extension;
 
         if (file_exists($path)) {

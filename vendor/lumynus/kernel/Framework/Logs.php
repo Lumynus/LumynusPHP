@@ -19,7 +19,7 @@ final class Logs extends LumaClasses
      */
     private static function path(): string
     {
-        $path = Config::pathProject() .
+        $path = Config::projectPath() .
             DIRECTORY_SEPARATOR . 'storage' .
             DIRECTORY_SEPARATOR . 'logs' .
             DIRECTORY_SEPARATOR;

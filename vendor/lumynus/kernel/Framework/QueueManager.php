@@ -34,7 +34,7 @@ final class QueueManager extends LumaClasses
     public function __construct()
     {
 
-        $this->queueDir = Config::pathProject()
+        $this->queueDir = Config::projectPath()
             . DIRECTORY_SEPARATOR . 'storage'
             . DIRECTORY_SEPARATOR . 'queues'
             . DIRECTORY_SEPARATOR;

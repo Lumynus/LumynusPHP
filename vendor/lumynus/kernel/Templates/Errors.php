@@ -21,7 +21,7 @@ trait Errors
         $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
 
         $message = $message ?? 'Occurred an error in application';
-        if (Config::modeProduction()) {
+        if (Config::productionMode()) {
             Logs::register('Application error', "Error $code: " . (is_array($message) ? implode('; ', $message) : $message));
             $message = 'Occurred an error in application';
         }

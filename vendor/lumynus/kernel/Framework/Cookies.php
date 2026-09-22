@@ -33,8 +33,8 @@ final class Cookies extends LumaClasses implements \Lumynus\Contracts\CookieInte
         $this->cookieParams = [
             'path' => '/',
             'domain' => Config::getApplicationConfig()['App']['domain'] ?? '',
-            'secure' => Config::modeProduction(),
-            'httponly' => Config::modeProduction(),
+            'secure' => Config::productionMode(),
+            'httponly' => Config::productionMode(),
             'samesite' => 'Strict'
         ];
         $this->applyExistingCookies();

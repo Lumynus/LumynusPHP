@@ -314,8 +314,8 @@ EOT
     private static function mode($data)
     {
         if (empty($data)) {
-            echo self::$YELLOW . "\n\nLumynus run: " . self::$RESET . ' ' . self::$CYAN . (Config::modeProduction() ? 'Production' : 'Development') . self::$RESET . PHP_EOL;
-            echo self::$YELLOW . "(Lumynus está rodando em modo: " . self::$RESET . ' ' . self::$CYAN . (Config::modeProduction() ? 'Produção' : 'Desenvolvimento') . ")\n\n" . self::$RESET;
+            echo self::$YELLOW . "\n\nLumynus run: " . self::$RESET . ' ' . self::$CYAN . (Config::productionMode() ? 'Production' : 'Development') . self::$RESET . PHP_EOL;
+            echo self::$YELLOW . "(Lumynus está rodando em modo: " . self::$RESET . ' ' . self::$CYAN . (Config::productionMode() ? 'Produção' : 'Desenvolvimento') . ")\n\n" . self::$RESET;
 
             echo "To change the mode, use:\n";
             echo "  php luma mode production   (to set Production mode)\n";
@@ -327,7 +327,7 @@ EOT
         if (in_array($data[0], $permissions)) {
 
             $isProduction = $data[0] === 'production';
-            Config::setModeProduction($isProduction);
+            Config::setProductionMode($isProduction);
 
             echo "\n\nApplication mode set to: " . ($isProduction ? 'Production' : 'Development') . PHP_EOL;
             echo "(Modo do aplicativo definido para: " . ($isProduction ? 'Produção' : 'Desenvolvimento') . ")\n\n";
@@ -346,8 +346,8 @@ EOT
     private static function clear(array $data)
     {
         $paths = [
-            'cache' => Config::pathProject() . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'cache',
-            'logs'  => Config::pathProject() . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'logs',
+            'cache' => Config::projectPath() . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'cache',
+            'logs'  => Config::projectPath() . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'logs',
         ];
 
         if (empty($data)) {
@@ -579,7 +579,7 @@ EOT
         $forcado = in_array('--force', $data, true);
         $data = array_filter($data, fn($v) => $v !== '--force');
 
-        if (Config::modeProduction() && $forcado === false) {
+        if (Config::productionMode() && $forcado === false) {
             echo "\n\nServer cannot be started in production mode. Switch to development mode to use this command.\n";
             echo "(O servidor não pode ser iniciado no modo de produção. Mude para o modo de desenvolvimento para usar este comando.)\n\n";
             return;
@@ -591,7 +591,7 @@ EOT
             return;
         }
 
-        $caminho = Config::pathProject() . DIRECTORY_SEPARATOR . Config::getApplicationConfig()['path']['public'];
+        $caminho = Config::projectPath() . DIRECTORY_SEPARATOR . Config::getApplicationConfig()['path']['public'];
         $caminho = preg_replace('#[\/\\\\]+#', DIRECTORY_SEPARATOR, $caminho);
 
         $index = array_search('--host', $data);
@@ -615,7 +615,7 @@ EOT
         $roxo = self::$PURPLE;
         $verde = self::$GREEN;
 
-        if (Config::modeProduction()) {
+        if (Config::productionMode()) {
             echo "\n\nServer cannot be started in production mode. Switch to development mode to use this command.\n";
             echo "(O servidor não pode ser iniciado no modo de produção. Mude para o modo de desenvolvimento para usar este comando.)\n\n";
             return;
@@ -627,7 +627,7 @@ EOT
             return;
         }
 
-        $caminho = Config::pathProject() . DIRECTORY_SEPARATOR . 'bootstrap' . DIRECTORY_SEPARATOR . 'inspector' . DIRECTORY_SEPARATOR;
+        $caminho = Config::projectPath() . DIRECTORY_SEPARATOR . 'bootstrap' . DIRECTORY_SEPARATOR . 'inspector' . DIRECTORY_SEPARATOR;
         $caminho = preg_replace('#[\/\\\\]+#', DIRECTORY_SEPARATOR, $caminho);
 
 
@@ -660,7 +660,7 @@ EOT
             $namespace .= '\\' . implode('\\', $parts);
         }
 
-        $basePath = Config::pathProject()
+        $basePath = Config::projectPath()
             . DIRECTORY_SEPARATOR . 'src'
             . DIRECTORY_SEPARATOR . 'Controllers';
 
@@ -744,7 +744,7 @@ PHP;
             $namespace .= '\\' . implode('\\', $parts);
         }
 
-        $basePath = Config::pathProject()
+        $basePath = Config::projectPath()
             . DIRECTORY_SEPARATOR . 'src'
             . DIRECTORY_SEPARATOR . 'Middlewares';
 
@@ -830,7 +830,7 @@ PHP;
             $namespace .= '\\' . implode('\\', $parts);
         }
 
-        $basePath = Config::pathProject()
+        $basePath = Config::projectPath()
             . DIRECTORY_SEPARATOR . 'src'
             . DIRECTORY_SEPARATOR . 'Commands';
 
@@ -938,7 +938,7 @@ PHP;
         echo "Code Linting\n";
         echo "(Verificação de código)\n\n";
 
-        $src = Config::pathProject()
+        $src = Config::projectPath()
             . DIRECTORY_SEPARATOR
             . 'src';
 
@@ -1448,7 +1448,7 @@ PHP;
 
         EOL;
 
-        $file = Config::pathProject() . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . '.htaccess';
+        $file = Config::projectPath() . DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR . '.htaccess';
         if (file_exists($file)) {
             echo "\nFile exists, not created\n";
             echo "(Arquivo existe, não criado.)\n\n";
@@ -1475,7 +1475,7 @@ PHP;
     private static function nginxConf()
     {
 
-        $project_path = Config::pathProject();
+        $project_path = Config::projectPath();
 
         $domain = Config::getApplicationConfig()['App']['host'] ?? 'www.example.com';
 
@@ -1720,7 +1720,7 @@ PHP;
 
     EOL;
 
-        $file = Config::pathProject() . DIRECTORY_SEPARATOR . 'nginx.conf';
+        $file = Config::projectPath() . DIRECTORY_SEPARATOR . 'nginx.conf';
         if (file_exists($file)) {
             echo "\\nNginx config file exists, not created\\n";
             echo "(Arquivo de configuração do Nginx existe, não criado.)\\n\\n";

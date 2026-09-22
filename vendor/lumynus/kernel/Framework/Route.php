@@ -361,7 +361,7 @@ final class Route extends LumaClasses
      */
     private static function requireRouters()
     {
-        $projetoRoot = Config::pathProject();
+        $projetoRoot = Config::projectPath();
 
         if (!is_dir($projetoRoot)) {
             throw new HttpException('Route files not found', 500);
@@ -477,7 +477,7 @@ final class Route extends LumaClasses
      */
     private static function loadRoutesFromCache(): bool
     {
-        $basePath = Config::pathProject();
+        $basePath = Config::projectPath();
         $cachePathRelative = Config::getApplicationConfig()['path']['cache'] . 'routers' . DIRECTORY_SEPARATOR;
         $cacheFile = $basePath . $cachePathRelative . 'routes.cache.php';
 
@@ -519,7 +519,7 @@ final class Route extends LumaClasses
      */
     private static function cacheRoutes(): void
     {
-        $basePath = Config::pathProject();
+        $basePath = Config::projectPath();
         $cacheFile = $basePath . Config::getApplicationConfig()['path']['cache'] . 'routers' . DIRECTORY_SEPARATOR . 'routes.cache.php';
 
         $dataToCache = [
@@ -836,7 +836,7 @@ final class Route extends LumaClasses
         // CSRF (Usando $post e $server locais)
         $config = Config::getApplicationConfig()['security']['csrf'];
         if (!($routeConfig['api'] ?? false) && $config['enabled'] && in_array($method, ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
-            $tokenName = $config['nameToken'];
+            $tokenName = $config['tokenName'];
             $token =
                 $headers['X-CSRF-TOKEN']
                 ?? $headers['X-XSRF-TOKEN']

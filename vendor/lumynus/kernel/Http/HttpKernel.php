@@ -100,11 +100,11 @@ class HttpKernel
             $cors->setOrigins($corsCfg['allowedOrigins'] ?? []);
             $cors->setHeaders($corsCfg['allowedHeaders'] ?? []);
             $cors->setMethods($corsCfg['allowedMethods'] ?? ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']);
-            $cors->setTimeCache((int)($corsCfg['timeCache'] ?? 86400));
+            $cors->setCacheTime((int)($corsCfg['cacheTime'] ?? 86400));
             $cors->handle();
         }
 
-        $raiz = Config::pathProject();
+        $raiz = Config::projectPath();
         if (file_exists($raiz . '/setup.php')) {
             require_once $raiz . '/setup.php';
         }

@@ -19,7 +19,7 @@ final class Memory extends LumaClasses
 
     public function __construct()
     {
-        $this->memoryDir = Config::pathProject()
+        $this->memoryDir = Config::projectPath()
             . DIRECTORY_SEPARATOR . 'storage'
             . DIRECTORY_SEPARATOR . 'memory'
             . DIRECTORY_SEPARATOR;

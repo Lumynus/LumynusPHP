@@ -105,7 +105,7 @@ final class CORS extends LumaClasses
      * @param int $seconds Tempo em segundos.
      * @throws \InvalidArgumentException Se o tempo não for um inteiro positivo.
      */
-    public function setTimeCache(int $seconds)
+    public function setCacheTime(int $seconds)
     {
         if ($seconds > 0) {
             $this->maxAge = $seconds;

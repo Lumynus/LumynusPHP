@@ -48,9 +48,9 @@ final class Sessions extends LumaClasses implements \Lumynus\Contracts\SessionIn
             'cookie_lifetime'   => 0,
             'cookie_path'       => '/',
             'cookie_domain'     => Config::getApplicationConfig()['App']['domain'] ?? '',
-            'cookie_secure'     => Config::modeProduction(),
+            'cookie_secure'     => Config::productionMode(),
             'cookie_samesite'   => 'Lax',
-            'use_strict_mode'   => Config::modeProduction(),
+            'use_strict_mode'   => Config::productionMode(),
         ];
 
         $this->options = array_merge($defaults, $userOptions);
@@ -59,7 +59,7 @@ final class Sessions extends LumaClasses implements \Lumynus\Contracts\SessionIn
 
             session_name(
                 trim(
-                    strtoupper(Config::getApplicationConfig()['App']['nameApplication'] ?? 'LUMYNUS') . '_SESSID'
+                    strtoupper(Config::getApplicationConfig()['App']['applicationName'] ?? 'LUMYNUS') . '_SESSID'
                 )
             );
             foreach ($this->options as $key => $value) {

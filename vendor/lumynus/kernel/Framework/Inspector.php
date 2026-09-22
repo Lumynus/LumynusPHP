@@ -65,7 +65,7 @@ final class Inspector extends LumaClasses
      */
     private function scanSrc(): void
     {
-        $path = Config::pathProject() . DIRECTORY_SEPARATOR . 'src';
+        $path = Config::projectPath() . DIRECTORY_SEPARATOR . 'src';
         if (!is_dir($path)) return;
 
         $directory = new RecursiveDirectoryIterator($path);

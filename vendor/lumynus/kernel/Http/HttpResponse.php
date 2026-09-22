@@ -320,7 +320,7 @@ final class HttpResponse extends LumaClasses implements ResponseInterface
         }
 
         $configPath = Config::getApplicationConfig()['path']['files'];
-        $base = realpath(Config::pathProject() . DIRECTORY_SEPARATOR . ltrim($configPath, '/\\'));
+        $base = realpath(Config::projectPath() . DIRECTORY_SEPARATOR . ltrim($configPath, '/\\'));
         if ($base === false) {
             $base = realpath($configPath);
         }
