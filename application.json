@@ -6,6 +6,7 @@
             "description": "A simple PHP framework for building web applications.",
             "author": "Weleny Santos",
             "email": "",
+            "host": "",
             "domain": ""
         },
         "path": {
@@ -58,6 +59,16 @@
         },
         "persistentRuntime": {
             "is": false
+        },
+        "errors": {
+            "formatter": null,
+            "pages": {
+                "404": "errors/404",
+                "403": "errors/403",
+                "419": "errors/419",
+                "500": "errors/500",
+                "default": "errors/default"
+            }
         }
     }
 ]

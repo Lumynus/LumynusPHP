@@ -1,8 +1,15 @@
 #Deabilitando caches
 cache/*
+
+#Desabilitando vendor
 vendor/*
-storage/logs/*
-storage/cache/*
+
+#Desabilitando storage e segredos
+storage/*
+
+#Desabilitando configuração sensível
+application.json
+config.ini
 
 
 # Normalizar apenas arquivos de texto comuns
